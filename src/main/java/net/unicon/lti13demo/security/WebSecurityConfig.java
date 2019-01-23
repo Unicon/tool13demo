@@ -88,11 +88,10 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
-    // TODO remove this w/ something backed by our LtiUserRepository
+    // TODO replace this w/ something backed by our LtiUserRepository
     @Bean
-    @Override
     public UserDetailsManager userDetailsService() {
         return new InMemoryUserDetailsManager(ImmutableList.of(
                 User
@@ -139,9 +138,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         }
 
-        // You do not want your Servlet filters to be Beans, else they'll be added to request handling chains twice,
+        // You do not want your Servlet Filters to be Beans, else they'll be added to request handling chains twice,
         // once here (and on the path we actually want) and once by ServletContextInitializingBeans.addAdaptableBeans()
-        // (to a root path we don't want)
+        // (to a root path we don't want). (If you _do_ need these filters to be Beans, but still want control over
+        // where they're injected into the chain, define them as FilterRegistrationBean)
         private SecurityFilter newLti3OidcSecurityFilter() {
             SecurityFilter securityFilter = new SecurityFilter(
                     pac4jConfig(),
