@@ -21,6 +21,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.oauth2.sdk.auth.ClientAuthenticationMethod;
 import com.nimbusds.oauth2.sdk.id.ClientID;
+import com.nimbusds.oauth2.sdk.id.Identifier;
 import com.nimbusds.oauth2.sdk.id.Issuer;
 import com.nimbusds.openid.connect.sdk.OIDCScopeValue;
 import com.nimbusds.openid.connect.sdk.SubjectType;
@@ -30,6 +31,7 @@ import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
@@ -41,6 +43,7 @@ import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.core.http.callback.PathParameterCallbackUrlResolver;
 import org.pac4j.core.matching.Matcher;
+import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.oidc.client.OidcClient;
 import org.pac4j.oidc.config.OidcConfiguration;
 import org.pac4j.oidc.profile.OidcProfile;
@@ -48,8 +51,8 @@ import org.pac4j.oidc.profile.creator.OidcProfileCreator;
 import org.pac4j.oidc.profile.creator.TokenValidator;
 import org.pac4j.oidc.redirect.OidcRedirectActionBuilder;
 import org.pac4j.springframework.security.profile.SpringSecurityProfileManager;
+import org.pac4j.springframework.security.util.SpringSecurityHelper;
 import org.pac4j.springframework.security.web.CallbackFilter;
-import org.pac4j.springframework.security.web.Pac4jEntryPoint;
 import org.pac4j.springframework.security.web.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +68,12 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.AntPathMatcher;
@@ -75,21 +83,30 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-@Import( SecurityAutoConfiguration.class)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    // TODO remove this w/ something backed by our LtiUserRepository
+    @Bean
+    @Override
+    public UserDetailsManager userDetailsService() {
+        return new InMemoryUserDetailsManager(ImmutableList.of(
+                User
+                        .withUsername("admin")
+                        .password("admin")
+                        .roles("ADMIN", "USER")
+                        .build(),
+                User
+                        .withUsername("user")
+                        .password("user")
+                        .roles("USER")
+                        .build()
 
-    @Autowired
-    @Order(Ordered.HIGHEST_PRECEDENCE + 10)
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("admin").password("admin").roles("ADMIN", "USER")
-                .and().withUser("user").password("user").roles("USER");
+        ));
     }
 
     @Order(2) // HIGHER YET
@@ -99,6 +116,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Autowired
         private LTIDataService ltiDataService;
+
+        @Autowired
+        private UserDetailsManager userDetailsManager;
 
         @Value("https://${server.name}:${server.port}/${server.servlet.context-path:}")
         private String baseUrl;
@@ -133,28 +153,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Bean
         public SecurityLogic<Object, J2EContext> securityLogic() {
-            DefaultSecurityLogic<Object, J2EContext> securityLogic = new DefaultSecurityLogic<Object, J2EContext>() {
+            return new DefaultSecurityLogic<Object, J2EContext>() {
                 @Override
                 protected void saveRequestedUrl(final J2EContext context, final List<Client> currentClients) {
                     String targetLinkUri = context.getRequestParameter("target_link_uri");
                     context.getSessionStore().set(context, Pac4jConstants.REQUESTED_URL, targetLinkUri);
                 }
             };
-
-            // ProfileManager factory injection is normally handled in the SecurityLogic constructor, where the default
-            // SecurityLogic is configured, so we have to repeat it here.
-            securityLogic.setProfileManagerFactory(SpringSecurityProfileManager::new);
-            return securityLogic;
         }
-
 
         private CallbackFilter newLti3OidcCallbackFilter() {
             CallbackFilter callbackFilter = new CallbackFilter(pac4jConfig()) {
-                // Only needed if Client names are in the path rather than as a query param, which we're currently
-                // doing to try to rule out problems with query param encoding on the Platform side. Either way, there's
-                // a potential problem if the Platform expects return URLs to be known statically per-Tool, no matter
-                // how many times that Tool is registered with the platform (which may the case, for example, if
-                // Tools are expected to publish static registration metadata as was the case in LTI 1.1)
+                // Special requestPathMatcher only needed if Client names are in the path rather than as a query param,
+                // which we're currently doing to try to rule out problems with query param encoding on the Platform
+                // side. Either way, there's a potential problem if the Platform expects return URLs to be known
+                // statically per-Tool, no matter how many times that Tool is registered with the platform (which may
+                // the case, for example, if Tools are expected to publish static registration metadata as was the case
+                // in LTI 1.1)
                 private final Matcher requestPathMatcher = new Matcher() {
                     private final AntPathMatcher antMatcher = new AntPathMatcher("/");
 
@@ -176,9 +191,84 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Bean
         public Config pac4jConfig() {
-            return new Config(
+            Config config = new Config(
                     pac4jClients()
             );
+            config.setProfileManagerFactory(request -> new LTI3Pac4jSpringSecurityProfileManager(request, userDetailsManager));
+            return config;
+        }
+
+        // TODO to be truly reusable as a lib, this needs to be abstracted further to support
+        //  direct integration with any user repo, with SpringSecurity's UserDetailsManager being
+        //  just one option, i.e. this would become a concrete impl of a more generic
+        //  LTI3Pac4jProfileManager. **Also NB hooks need to be added somewhere for context
+        //  initialization, which is somewhat strongly related to other LTI Advantage callbacks,
+        //  most notably NRPS, so that's being delayed until we figure out where LTI-A slots in.
+        private class LTI3Pac4jSpringSecurityProfileManager extends SpringSecurityProfileManager {
+
+            private final UserDetailsManager userDetailsManager;
+
+            public LTI3Pac4jSpringSecurityProfileManager(WebContext context,
+                                                         UserDetailsManager userDetailsManager) {
+                super(context);
+                this.userDetailsManager = userDetailsManager;
+            }
+
+            @Override
+            public void save(final boolean saveInSession, final CommonProfile profile, final boolean multiProfile) {
+                Optional<UserDetails> existingUserDetails = findUserDetails(profile);
+                if (existingUserDetails.isPresent()) {
+                    merge(profile, existingUserDetails.get());
+                } else {
+                    create(profile);
+                }
+
+                // Write into the session at the end so we don't try to edit the profile once its already been placed
+                // into the session (problematic for distributed session stores).
+                super.save(saveInSession, profile, multiProfile);
+            }
+
+            protected String buildUserDetailsKey(CommonProfile profile) {
+                // TODO UserDetailsService/Manager only supports lookup by `username`. This is tough since LTI launches
+                //   are not going to contain usernames per-se, so we go with username==email, but this is not a good
+                //   solution b/c "private" launches w/o email addrs should be considered commonplace. So the only
+                //   way a UserDetailsManager-backed impl would actually work would be to either use LTI IDs as
+                //   usernames (not plausible for a 'real' Tool) or depend on an extension of that interface that
+                //   takes more complex predicates. Maybe check to see what SpringSecurity OIDC mainline is doing here.
+                return profile.getEmail();
+            }
+
+            protected Optional<UserDetails> findUserDetails(CommonProfile profile) {
+                try {
+                    String userDetailsKey = buildUserDetailsKey(profile);
+                    if (StringUtils.isBlank(userDetailsKey)) {
+                        throw new IllegalArgumentException("Blank user lookup key for profile ID ["
+                                + profile.getId() + " / " + profile.getTypedId() + "]");
+                    }
+                    return Optional.ofNullable(userDetailsManager.loadUserByUsername(userDetailsKey));
+                } catch (UsernameNotFoundException e) {
+                    return Optional.empty();
+                }
+            }
+
+            protected void merge(CommonProfile into, UserDetails from) {
+                // A more complex impl might have additional data stored on the UserDetails that needs to be
+                // exposed in the profile, e.g. the locked, expired, etc fields might be of interest. We don't, at
+                // least for now, since we don't know where those properties would be enforced.
+                return;
+            }
+
+            private void create(CommonProfile profile) {
+                userDetailsManager.createUser(asUserDetails(profile));
+            }
+
+            private UserDetails asUserDetails(CommonProfile profile) {
+                return User
+                        .withUsername(buildUserDetailsKey(profile))
+                        .password(new Identifier().getValue())
+                        .authorities(SpringSecurityHelper.buildAuthorities(ImmutableList.of(profile)))
+                        .build();
+            }
         }
 
         @Bean
