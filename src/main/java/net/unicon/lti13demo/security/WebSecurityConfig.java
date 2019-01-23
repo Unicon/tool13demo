@@ -334,11 +334,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             web.ignoring().antMatchers("/console/**");
         }
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            // this ensures security context info (Principal, sec:authorize, etc.) is accessible on all paths
-            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().headers().frameOptions().disable();
-        }
+//        @Override
+//        protected void configure(HttpSecurity http) throws Exception {
+//            // this ensures security context info (Principal, sec:authorize, etc.) is accessible on all paths
+//            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().headers().frameOptions().disable();
+//        }
     }
 
 }
