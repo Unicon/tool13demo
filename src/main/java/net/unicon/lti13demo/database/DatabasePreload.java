@@ -175,6 +175,61 @@ public class DatabasePreload {
             rsaKeyRepository.saveAndFlush(new RSAKeyEntity("imstester_4",false, iss3PublicKey,null));
             platformDeploymentRepository.saveAndFlush(iss2);
 
+            PlatformDeployment iss4 = new PlatformDeployment();
+//            iss4.setClientId("dmccallum-platform-2-client-1");
+            iss4.setClientId("dmccallum-local-platform-2-client-1");
+//            iss4.setIss("https://dmp2-lti-ri.imsglobal.org");
+            iss4.setIss("http://localhost:3000");
+            iss4.setDeploymentId("idontknowwhattosetthisto");
+            String iss4PublicKey = "-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2iSH+X2ZfSPhn9C3KwLF" +
+                    "Ba5rzFvifgmSWl8f1cdrnVCjeYgiPBVC/5N54GPDHw0t8mC2pqr/g4t+H0oIAGXC" +
+                    "Cl9SYrRsDN41g7iPXwWDbC6mFbzKZzsR4vhEGq434bUYS0uTS/HCqyp3J/YjY41X" +
+                    "FoYtyr7H1z+bXyAc8Y6X6RZSxJMKk1b5xN5cPnipaXh8pjomDy3fqWA1K+3i9uge" +
+                    "qduwxZx8AppinQRqlk/0hXA8DCuEdoESCcf5ZDIt8+m0lLOQJ68jqbd3Y6nO6vDy" +
+                    "IZfWeXbG+Lztm6+WfVf1puWddcGUWtwzQyDj/br3bSVZW48bxSgC3HcSWUwb6LeS" +
+                    "HwIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+//            iss4.setOidcEndpoint("https://lti-ri.imsglobal.org/platforms/110/authorizations/new");
+            iss4.setOidcEndpoint("http://localhost:3000/platforms/2/authorizations/new");
+            String tool4PrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
+                    "MIIEpAIBAAKCAQEA94DLZjdUAXryMMmUrz8L7CSMnH7nIKLQvWTSwlcSNbXoCXEi" +
+                    "z7URUd8u5aNrorE6WwrAeUk5PK5oNZ1iBuZ8qQpMHw/AIH3G4i3m0y8JohcJBPtA" +
+                    "jNNPLrvRpMeRMnxdPkA6TcSX1j9IkC4qA5AckzF1qtZl4Y7Jsbxh8e1Vz0fAwUIV" +
+                    "bn6HQQqtvLHCOhswBJ28RXm0hll+ELSsY4T57S8WQOJM8FF/zB05D2Km5bklORSR" +
+                    "KkAGy8ax8FUrvdXsqsiz0IQ/GYPNzfifx8VAPWCb8DXdM6Kn9l8IOYfzLQZkh91i" +
+                    "/LfBvJ6uBR+SqROZ0/Vw30j+fuDzm3oB1FLihwIDAQABAoIBAQDGqT6aITbwqTrV" +
+                    "JjiOIdD0DrI+uy3R6F4cZ100WKdpLUW+rmz+w5vPV5FRCcdPo2nvwcWUlM24g1Vq" +
+                    "E5WnbEILfRR0qjPQ4KRO0AFC6bKVxF+c+/9oCgS4wlEYLofBOkmtuegSnAY0Fj+s" +
+                    "WyGmEnqdO0nzgnvsfKwwWcFUauhBowZXTtqIn1XZZrUWzyq8m5Igb8juTZ4guZtn" +
+                    "DTszLiFfap3uj2jz5LHwuk3VdJtzxowI9Vdu0TvMkb8LTTMRf6x4gUTauNFeeMri" +
+                    "0BbPLL8Y0yKTjU1OIqHR6uj20fM3l3pwlsOq4wksdj4V8k0eBkvav1d3RF4XTiqj" +
+                    "y1z0Q6eBAoGBAP9UCl82gxhhpPZ6vA3E44Wq7a0bGrvrltoF3I5iNCJfInDvdrvn" +
+                    "jpPS0aXW/OqBbnO5V6d3ntz7QkWip//SG/+JDtVYiti0l6OTOX4UNwx6OB9Fot9k" +
+                    "Z/0TQ7XxpgaV8T0qwTLZQIwd2y4UXTZhHZcCgSgvI9LwUkYqh1iEtow3AoGBAPgn" +
+                    "e9+bOzE9M8XekGotC4WyCRdKzwkyowvpKiMGgb0IzaWGxT/sBXLFM9VUJPKuXtKE" +
+                    "HHN6kEr55RgWaSUnJKtaxeR71wC0zSEVEKXwWb/LZqU9gXK+5bedh+3EtH/nIk2T" +
+                    "VkscU++4MHqHJzgrciNIYI3MwuXtiBuhO9nDoFQxAoGABtJhAJA9Sm55cNhwo9GJ" +
+                    "3q1lckWSHkk6G5MihG9dQznVerz7KCQUrCBq14p58W4J3G+sRt4sUW0pJSEmafBc" +
+                    "LSSlT8/wzb9tecJaO+MgYWX2j+dVZbCSErHsEjVloTFqY5770Hb7gYLes0l6ABTy" +
+                    "LHG1r7Qqud0P5a4HNbc+BVsCgYA6Ij3Rx3LZeSX8z8PzK7RMUMXyb/MKi5NIwgm+" +
+                    "BNM17q8GfQkOjYNFPM+ExV6Wf6T1Gj/0CZ1uAxbZSr69FmtvvSco/J4Eq1Z2zpGE" +
+                    "3kaYONVGFp+RuwjjuALU/8TtRb9yfvazR+KeAP9SZQEaFot5moYMEhECfl/pYR89" +
+                    "R6fysQKBgQCN+FYL8waZBjfYEPVRjSxiSiUW6uyc/GcoR8jWa/t7pThjBCcX9b72" +
+                    "DpxsGjKNJWmxv5rwdS2PG/gQ5AEr1O7dVtBPlxOf15aq4ObirRntvpAZn2gtPSmM" +
+                    "qTHAXU6gVX3kn3sCWGRwuLWo7H7YJyt7DjSIkmpZIPxHSVyu1iA1Gg==" +
+                    "-----END RSA PRIVATE KEY-----";
+            String tool4PublicString = "-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA94DLZjdUAXryMMmUrz8L" +
+                    "7CSMnH7nIKLQvWTSwlcSNbXoCXEiz7URUd8u5aNrorE6WwrAeUk5PK5oNZ1iBuZ8" +
+                    "qQpMHw/AIH3G4i3m0y8JohcJBPtAjNNPLrvRpMeRMnxdPkA6TcSX1j9IkC4qA5Ac" +
+                    "kzF1qtZl4Y7Jsbxh8e1Vz0fAwUIVbn6HQQqtvLHCOhswBJ28RXm0hll+ELSsY4T5" +
+                    "7S8WQOJM8FF/zB05D2Km5bklORSRKkAGy8ax8FUrvdXsqsiz0IQ/GYPNzfifx8VA" +
+                    "PWCb8DXdM6Kn9l8IOYfzLQZkh91i/LfBvJ6uBR+SqROZ0/Vw30j+fuDzm3oB1FLi" +
+                    "hwIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("Wv9hbzJhtY7kNeg8uf-kfG9GUTZogcePNleBy2lVcns",true, tool4PublicString,tool4PrivateString));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("XKXYskdHB6p1XNsVGQO-iIM9DAb2siIRWvBu-1FJ_sY",false, iss4PublicKey,null));
 
             // create our sample user
             LtiUserEntity user = ltiUserRepository.saveAndFlush(new LtiUserEntity("azeckoski", null));

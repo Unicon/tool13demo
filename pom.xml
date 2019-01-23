@@ -67,20 +67,22 @@
             <version>3.3.2</version>
         </dependency>
 
-        <!-- OAuth -->
         <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth</artifactId>
-            <version>2.3.4.RELEASE</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>27.0.1-jre</version>
+        </dependency>
+
+        <!-- OIDC -->
+        <dependency>
+            <groupId>org.pac4j</groupId>
+            <artifactId>spring-security-pac4j</artifactId>
+            <version>4.1.0</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth2</artifactId>
-            <version>2.3.4.RELEASE</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-client</artifactId>
+            <groupId>org.pac4j</groupId>
+            <artifactId>pac4j-oidc</artifactId>
+            <version>3.4.0</version>
         </dependency>
 
         <!-- JWT -->
@@ -88,6 +90,11 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>6.5.1</version>
         </dependency>
 	</dependencies>
 
