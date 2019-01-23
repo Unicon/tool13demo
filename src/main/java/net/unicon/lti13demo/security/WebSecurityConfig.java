@@ -15,6 +15,8 @@
 package net.unicon.lti13demo.security;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -33,6 +35,7 @@ import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.pac4j.core.authorization.generator.AuthorizationGenerator;
 import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.config.Config;
@@ -56,13 +59,9 @@ import org.pac4j.springframework.security.web.CallbackFilter;
 import org.pac4j.springframework.security.web.SecurityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -70,13 +69,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.net.URI;
@@ -84,13 +83,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    // TODO replace this w/ something backed by our LtiUserRepository
+    // TODO replace this w/ something backed by our `LtiUserRepository`.
     @Bean
     public UserDetailsManager userDetailsService() {
         return new InMemoryUserDetailsManager(ImmutableList.of(
@@ -144,15 +144,15 @@ public class WebSecurityConfig {
         // where they're injected into the chain, define them as FilterRegistrationBean)
         private SecurityFilter newLti3OidcSecurityFilter() {
             SecurityFilter securityFilter = new SecurityFilter(
-                    pac4jConfig(),
+                    lti3OidcConfig(),
                     "Pac4jOidcClient" // TODO having to know list of client names at app startup is potentially a problem long-term since a real LTI app will grow that list at runtime
             );
-            securityFilter.setSecurityLogic(securityLogic());
+            securityFilter.setSecurityLogic(lti3OidcSecurityLogic());
             return securityFilter;
         }
 
         @Bean
-        public SecurityLogic<Object, J2EContext> securityLogic() {
+        public SecurityLogic<Object, J2EContext> lti3OidcSecurityLogic() {
             return new DefaultSecurityLogic<Object, J2EContext>() {
                 @Override
                 protected void saveRequestedUrl(final J2EContext context, final List<Client> currentClients) {
@@ -163,7 +163,7 @@ public class WebSecurityConfig {
         }
 
         private CallbackFilter newLti3OidcCallbackFilter() {
-            CallbackFilter callbackFilter = new CallbackFilter(pac4jConfig()) {
+            CallbackFilter callbackFilter = new CallbackFilter(lti3OidcConfig()) {
                 // Special requestPathMatcher only needed if Client names are in the path rather than as a query param,
                 // which we're currently doing to try to rule out problems with query param encoding on the Platform
                 // side. Either way, there's a potential problem if the Platform expects return URLs to be known
@@ -190,9 +190,9 @@ public class WebSecurityConfig {
         }
 
         @Bean
-        public Config pac4jConfig() {
+        public Config lti3OidcConfig() {
             Config config = new Config(
-                    pac4jClients()
+                    lti3OidcClients()
             );
             config.setProfileManagerFactory(request -> new LTI3Pac4jSpringSecurityProfileManager(request, userDetailsManager));
             return config;
@@ -225,6 +225,9 @@ public class WebSecurityConfig {
 
                 // Write into the session at the end so we don't try to edit the profile once its already been placed
                 // into the session (problematic for distributed session stores).
+                // TODO a real-world implementation will likely need more control over the specific authentication token
+                //  type placed into the spring security context here -> in the end we probably can't extend
+                //  SpringSecurityProfileManager and will have to clone and modify SpringSecurityHelper
                 super.save(saveInSession, profile, multiProfile);
             }
 
@@ -235,6 +238,13 @@ public class WebSecurityConfig {
                 //   way a UserDetailsManager-backed impl would actually work would be to either use LTI IDs as
                 //   usernames (not plausible for a 'real' Tool) or depend on an extension of that interface that
                 //   takes more complex predicates. Maybe check to see what SpringSecurity OIDC mainline is doing here.
+                //
+                // TODO Also the persistence of grants doesn't make a whole lot of sense here. This is b/c at least a
+                //   subset of the LTI roles really only apply to the context being launched. So a real-world
+                //   implementation would probably need to:
+                //   a) create and store the user in some tenant-specific scope,
+                //   b) store some tenant-level roles (LTI "system" and "institution" roles) in that same scope,
+                //   c) store context-level roles in some content-specific scope, i.e. class enrollments
                 return profile.getEmail();
             }
 
@@ -272,18 +282,18 @@ public class WebSecurityConfig {
         }
 
         @Bean
-        public Clients pac4jClients() {
+        public Clients lti3OidcClients() {
             // TODO this might need to change to be more dynamic since in the Real World, a new Client could be
             //  added at any time and we don't want to bounce the app to pick up such a change. There's a kinda-sorta
             //  example of what this could look like at https://github.com/jkacer/pac4j-extensions. (Still requires
             //  reload, but at least demos what a re-implementation of Clients entails.
             return new Clients(
                     baseUrl + "oauth2/oidc/lti/authorization",
-                    newClient("Pac4jOidcClient", pacj4OidcConfiguration())
+                    newLti3OidcClient("Pac4jOidcClient", lti3OidcConfiguration())
             );
         }
 
-        private Client newClient(String name, OidcConfiguration config) {
+        private Client newLti3OidcClient(String name, OidcConfiguration config) {
             OidcClient client = new OidcClient<>(config);
             client.setName(name);
             client.setRedirectActionBuilder(new OidcRedirectActionBuilder(client.getConfiguration(), client) {
@@ -336,13 +346,64 @@ public class WebSecurityConfig {
                     super.internalInit();
                 }
             });
+            client.setAuthorizationGenerator(lti3OidcAuthorizationGenerator());
+
             return client;
+        }
+
+        @Bean
+        public AuthorizationGenerator lti3OidcAuthorizationGenerator() {
+            // TODO extract to external class
+            return new AuthorizationGenerator() {
+
+                // TODO can be made static once not defined on an inner class
+                // TODO https://www.imsglobal.org/spec/lti/v1p3#context-sub-roles, esp TA
+                private final Map<String,Set<String>> APP_ROLES_BY_LTI_ROLE =
+                        ImmutableMap.<String,Set<String>>builder()
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#Administrator", ImmutableSet.of("ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#None", ImmutableSet.of("USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator", ImmutableSet.of("ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Guest", ImmutableSet.of("USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#None", ImmutableSet.of("USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Other", ImmutableSet.of("USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Staff", ImmutableSet.of("STAFF"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Student", ImmutableSet.of("STUDENT"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator", ImmutableSet.of("ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper", ImmutableSet.of("AUTHOR"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor", ImmutableSet.of("INSTRUCTOR"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Learner", ImmutableSet.of("STUDENT"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Mentor", ImmutableSet.of("OBSERVER"))
+                                .build();
+
+                @Override
+                public CommonProfile generate(WebContext context, CommonProfile profile) {
+                    @SuppressWarnings("unchecked")
+                    List<String> ltiRoles = (List<String>)profile.getAttribute("https://purl.imsglobal.org/spec/lti/claim/roles");
+                    if (!(CollectionUtils.isEmpty(ltiRoles))) {
+
+                        ltiRoles
+                                .stream()
+                                .map(ltiRole -> mapLtiRoleToApplicationRole(ltiRole, context, profile))
+                                .flatMap(Set::stream)
+                                .map(String::toUpperCase)
+                                .forEach(profile::addRole);
+                    }
+                    return profile;
+                }
+
+                // TODO This mapping is naive. At a minimum, real world use would require control over
+                //   `APP_ROLES_BY_LTI_ROLE` for reasons listed there. e.g. just b/c you're a system or institution admin
+                //   doesn't mean you should automatically become an admin in whatever LTI context you launched into.
+                protected Set<String> mapLtiRoleToApplicationRole(String ltiRole, WebContext context, CommonProfile profile) {
+                    return APP_ROLES_BY_LTI_ROLE.getOrDefault(ltiRole, ImmutableSet.of());
+                }
+            };
         }
 
         // TODO this needs to be per-Client, so will need to change to not be a bean (will probably be encapsulated
         //   behind a custom Clients impl that reads Clients from the db).
         @Bean
-        public OidcConfiguration pacj4OidcConfiguration() {
+        public OidcConfiguration lti3OidcConfiguration() {
             OidcConfiguration oidcConfiguration = new OidcConfiguration();
 
             oidcConfiguration.setScope(OIDCScopeValue.OPENID.getValue());
