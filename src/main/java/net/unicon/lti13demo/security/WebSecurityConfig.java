@@ -35,7 +35,10 @@ import org.pac4j.core.client.Client;
 import org.pac4j.core.client.Clients;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.context.J2EContext;
+import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.engine.DefaultSecurityLogic;
+import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.core.http.callback.PathParameterCallbackUrlResolver;
 import org.pac4j.core.matching.Matcher;
 import org.pac4j.oidc.client.OidcClient;
@@ -44,6 +47,7 @@ import org.pac4j.oidc.profile.OidcProfile;
 import org.pac4j.oidc.profile.creator.OidcProfileCreator;
 import org.pac4j.oidc.profile.creator.TokenValidator;
 import org.pac4j.oidc.redirect.OidcRedirectActionBuilder;
+import org.pac4j.springframework.security.profile.SpringSecurityProfileManager;
 import org.pac4j.springframework.security.web.CallbackFilter;
 import org.pac4j.springframework.security.web.Pac4jEntryPoint;
 import org.pac4j.springframework.security.web.SecurityFilter;
@@ -103,34 +107,44 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         protected void configure(HttpSecurity http) throws Exception {
             // this is open
             http.antMatcher("/oauth2/oidc/lti/**")
-                    .exceptionHandling()
-                    .authenticationEntryPoint(pac4jEntryPoint())
-                    .and()
                     .addFilterBefore(newLti3OidcCallbackFilter(), BasicAuthenticationFilter.class)
                     .addFilterBefore(newLti3OidcSecurityFilter(), BasicAuthenticationFilter.class)
                     .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
                     .and()
-                    .csrf()
-                    .disable()
-                    .headers()
-                    .frameOptions()
-                    .disable();
+                        .csrf()
+                            .disable()
+                        .headers()
+                            .frameOptions()
+                                .disable();
 
-        }
-
-        @Bean
-        public AuthenticationEntryPoint pac4jEntryPoint() {
-            return new Pac4jEntryPoint(pac4jConfig(), null);
         }
 
         // You do not want your Servlet filters to be Beans, else they'll be added to request handling chains twice,
         // once here (and on the path we actually want) and once by ServletContextInitializingBeans.addAdaptableBeans()
         // (to a root path we don't want)
         private SecurityFilter newLti3OidcSecurityFilter() {
-            return new SecurityFilter(
+            SecurityFilter securityFilter = new SecurityFilter(
                     pac4jConfig(),
                     "Pac4jOidcClient" // TODO having to know list of client names at app startup is potentially a problem long-term since a real LTI app will grow that list at runtime
             );
+            securityFilter.setSecurityLogic(securityLogic());
+            return securityFilter;
+        }
+
+        @Bean
+        public SecurityLogic<Object, J2EContext> securityLogic() {
+            DefaultSecurityLogic<Object, J2EContext> securityLogic = new DefaultSecurityLogic<Object, J2EContext>() {
+                @Override
+                protected void saveRequestedUrl(final J2EContext context, final List<Client> currentClients) {
+                    String targetLinkUri = context.getRequestParameter("target_link_uri");
+                    context.getSessionStore().set(context, Pac4jConstants.REQUESTED_URL, targetLinkUri);
+                }
+            };
+
+            // ProfileManager factory injection is normally handled in the SecurityLogic constructor, where the default
+            // SecurityLogic is configured, so we have to repeat it here.
+            securityLogic.setProfileManagerFactory(SpringSecurityProfileManager::new);
+            return securityLogic;
         }
 
 
