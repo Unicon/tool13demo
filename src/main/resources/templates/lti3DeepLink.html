@@ -1,0 +1,249 @@
+<!--
+
+    Copyright 2019 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag -->
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+<head>
+    <title>LTI 3 </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<h4>Lti 3 was succesful and we have this: </h4>
+
+
+<div>
+<ul class="list-group">
+    <li class="list-group-item ">
+        <label><strong>iss:</strong></label>
+        <span th:text="${lTI3Request.iss}"/>
+    </li>
+    <li class="list-group-item ">
+        <label><strong>aud:</strong></label>
+        <span th:text="${lTI3Request.aud}"/>
+    </li>
+    <li class="list-group-item ">
+        <label><strong>iat:</strong></label>
+        <span th:text="${lTI3Request.iat}"/>
+    </li>
+    <li class="list-group-item ">
+        <label><strong>exp:</strong></label>
+        <span th:text="${lTI3Request.exp}"/>
+    </li>
+    <li class="list-group-item ">
+        <label><strong>sub:</strong></label>
+        <span th:text="${lTI3Request.sub}"/>
+    </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiMessageType:</strong></label>
+            <span th:text="${lTI3Request.ltiMessageType}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiVersion:</strong></label>
+            <span th:text="${lTI3Request.ltiVersion}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiGivenName:</strong></label>
+            <span th:text="${lTI3Request.ltiGivenName}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiFamilyName:</strong></label>
+            <span th:text="${lTI3Request.ltiFamilyName}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiMiddleName:</strong></label>
+            <span th:text="${lTI3Request.ltiMiddleName}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiPicture:</strong></label>
+            <span th:text="${lTI3Request.ltiPicture}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiEmail:</strong></label>
+            <span th:text="${lTI3Request.ltiEmail}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>locale:</strong></label>
+            <span th:text="${lTI3Request.locale}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>nonce</strong></label>
+            <span th:text="${lTI3Request.nonce}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>lti11LegacyUserId</strong></label>
+            <span th:text="${lTI3Request.lti11LegacyUserId}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiTargetLinkUrl</strong></label>
+            <span th:text="${lTI3Request.ltiTargetLinkUrl}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>Roles, is a list:</strong></label>
+            <span th:text="${lTI3Request.ltiRoles}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
+            <span th:text="${lTI3Request.ltiRoleScopeMentor}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiResourceLink, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiResourceLink}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiContext, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiContext}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiToolPlatform, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiToolPlatform}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiEndpoint, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiEndpoint}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiNamesRoleService, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiNamesRoleService}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiCaliperEndpointService}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiLaunchPresentation, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiLaunchPresentation}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiExtension, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiExtension}"/>
+        </li>
+    </ul>
+</div>
+
+<p>&nbsp;</p>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>ltiCustom, is a map:</strong></label>
+            <span th:text="${lTI3Request.ltiCustom}"/>
+        </li>
+    </ul>
+</div>
+
+
+<p>&nbsp;</p>
+
+
+<h4>SESSION</h4>
+
+<p>We added some parameters in the session too:</p>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>user_id</strong></label>
+            <span th:text="${#session.getAttribute('user_id')}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>user_role</strong></label>
+            <span th:text="${#session.getAttribute('user_role')}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>The Lti context id:</strong></label>
+            <span th:text="${#session.getAttribute('context_id')}"/>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

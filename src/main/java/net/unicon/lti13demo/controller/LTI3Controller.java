@@ -16,6 +16,7 @@ package net.unicon.lti13demo.controller;
 
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti13demo.service.LTIJWTService;
+import net.unicon.lti13demo.utils.LtiStrings;
 import net.unicon.lti13demo.utils.lti.LTI3Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,9 @@ public class LTI3Controller {
             ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance();
             model.addAttribute("lTI3Request", lti3Request);
+            if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
+                return "lti3DeepLink";
+            }
             return "lti3Result";
         } catch (SignatureException ex){
             model.addAttribute("Error", ex.getMessage());
