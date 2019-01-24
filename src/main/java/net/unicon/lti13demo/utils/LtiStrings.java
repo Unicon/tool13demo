@@ -123,6 +123,7 @@ public class LtiStrings {
     public static final String LTI_PICTURE = "picture";
     public static final String LTI_EMAIL = "email";
     public static final String LTI_LOCALE = "locale";
+    public static final String LTI_AZP = "azp";
     public static final String LTI_ENDPOINT = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
     public static final String LTI_ENDPOINT_SCOPE = "scope";
     public static final String LTI_ENDPOINT_LINEITEMS = "lineitems";
@@ -141,7 +142,19 @@ public class LtiStrings {
     public static final String LTI_CONSUMER_KEY = "oauth_consumer_key";
 
     public static final String LTI_MESSAGE_TYPE_RESOURCE_LINK = "LtiResourceLinkRequest";
+    public static final String LTI_MESSAGE_TYPE_DEEP_LINKING = "LtiDeepLinkingRequest";
     public static final String LTI_VERSION_3 = "1.3.0";
     public static final String LTI_TARGET_LINK_URI =  "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
+
+    public static final String DEEP_LINKING_SETTINGS = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
+    public static final String DEEP_LINK_RETURN_URL = "deep_link_return_url";
+    public static final String DEEP_LINK_ACCEPT_TYPES = "accept_types";
+    public static final String DEEP_LINK_ACCEPT_MEDIA_TYPES = "accept_media_types";
+    public static final String DEEP_LINK_DOCUMENT_TARGETS = "accept_presentation_document_targets";
+    public static final String DEEP_LINK_ACCEPT_MULTIPLE = "accept_multiple";
+    public static final String DEEP_LINK_AUTO_CREATE = "auto_create";
+    public static final String DEEP_LINK_TITLE = "title";
+    public static final String DEEP_LINK_TEXT = "text";
+    public static final String DEEP_LINK_DATA = "data";
 
 }

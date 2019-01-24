@@ -103,6 +103,14 @@ public class LTI3Request {
 
     // these are populated on construct
 
+    String iss;
+    String aud;
+    Date iat;
+    Date exp;
+    String sub;
+    String kid;
+    String azp;
+
     String ltiMessageType;
     String ltiVersion;
     String ltiDeploymentId;
@@ -150,13 +158,6 @@ public class LTI3Request {
     String ltiCaliperEndpointServiceUrl;
     String ltiCaliperEndpointServiceSessionId;
 
-    String iss;
-    String aud;
-    Date iat;
-    Date exp;
-    String sub;
-    String kid;
-
     String lti11LegacyUserId;
 
     String nonce;
@@ -171,6 +172,17 @@ public class LTI3Request {
 
     Map<String, Object> ltiExtension;
     Map<String, Object> ltiCustom;
+
+    Map<String, Object> deepLinkingSettings;
+    String deepLinkReturnUrl;
+    List<String> deepLinkAcceptTypes;
+    String deepLinkAcceptMediaTypes;
+    List<String> deepLinkAcceptPresentationDocumentTargets;
+    String deepLinkAcceptMultiple;
+    String deepLinkAutoCreate;
+    String deepLinkTitle;
+    String deepLinkText;
+    String deepLinkData;
 
     String ltiTargetLinkUrl;
 
@@ -286,7 +298,7 @@ public class LTI3Request {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
         String isLTI3Request = isLTI3Request(jws);
-        if (!isLTI3Request.equals("true")) {
+        if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
         }
         String processRequestParameters = processRequestParameters(request,jws);
@@ -294,10 +306,12 @@ public class LTI3Request {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
 
-        //Load data from DB related with this request and update it if needed with the new values.
-        ltiDataService.loadLTIDataFromDB(this);
-        if (update) {
-            ltiDataService.updateLTIDataInDB(this);
+        if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+            //Load data from DB related with this request and update it if needed with the new values.
+            ltiDataService.loadLTIDataFromDB(this);
+            if (update) {
+                ltiDataService.updateLTIDataInDB(this);
+            }
         }
     }
 
@@ -317,6 +331,16 @@ public class LTI3Request {
 
         //First we get all the possible values, and we set null in the ones empty.
         // Later we will review those values to check if the request is valid or not.
+
+        //LTI3 CORE
+
+        iss = jws.getBody().getIssuer();
+        aud = jws.getBody().getAudience();
+        iat = jws.getBody().getIssuedAt();
+        exp = jws.getBody().getExpiration();
+        sub = jws.getBody().getSubject();
+        nonce = getStringFromLTIRequest(jws, LtiStrings.LTI_NONCE);
+        azp = getStringFromLTIRequest(jws, LtiStrings.LTI_AZP);
 
         ltiMessageType = getStringFromLTIRequest(jws, LtiStrings.LTI_MESSAGE_TYPE);
         ltiVersion = getStringFromLTIRequest(jws, LtiStrings.LTI_VERSION);
@@ -371,12 +395,7 @@ public class LTI3Request {
         ltiCaliperEndpointServiceSessionId = getStringFromLTIRequestMap(ltiCaliperEndpointService, LtiStrings.LTI_CALIPER_ENDPOINT_SERVICE_SESSION_ID);
 
 
-        iss = jws.getBody().getIssuer();
-        aud = jws.getBody().getAudience();
-        iat = jws.getBody().getIssuedAt();
-        exp = jws.getBody().getExpiration();
-        sub = jws.getBody().getSubject();
-        nonce = getStringFromLTIRequest(jws, LtiStrings.LTI_NONCE);
+
 
         lti11LegacyUserId = getStringFromLTIRequest(jws, LtiStrings.LTI_11_LEGACY_USER_ID);
 
@@ -398,6 +417,20 @@ public class LTI3Request {
 
         ltiTargetLinkUrl = getStringFromLTIRequest(jws, LtiStrings.LTI_TARGET_LINK_URI);
 
+        //LTI3 DEEP LINKING
+
+        deepLinkingSettings = getMapFromLTIRequest(jws, LtiStrings.DEEP_LINKING_SETTINGS);
+        deepLinkReturnUrl = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_RETURN_URL);
+        deepLinkAcceptTypes = getListFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_ACCEPT_TYPES);
+        deepLinkAcceptMediaTypes = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_ACCEPT_MEDIA_TYPES);
+        deepLinkAcceptPresentationDocumentTargets = getListFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_DOCUMENT_TARGETS);
+        deepLinkAcceptMultiple = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_ACCEPT_MULTIPLE);
+        deepLinkAutoCreate = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_AUTO_CREATE);
+        deepLinkTitle = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_TITLE);
+        deepLinkText = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_TEXT);
+        deepLinkData = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_DATA);
+
+
         // A sample that shows how we can store some of this in the session
         HttpSession session = this.httpServletRequest.getSession();
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, aud);
@@ -415,10 +448,19 @@ public class LTI3Request {
         }
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, normalizedRoleName);
 
-        String isComplete = checkCompleteLTIRequest();
-        complete = (isComplete.equals("true"));
-        String isCorrect = checkCorrectLTIRequest();
-        correct = (isCorrect.equals("true"));
+        String isComplete;
+        String isCorrect;
+        if (ltiMessageType.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+            isComplete = checkCompleteLTIRequest();
+            complete = (isComplete.equals("true"));
+            isCorrect = checkCorrectLTIRequest();
+            correct = (isCorrect.equals("true"));
+        } else {  //DEEP Linking
+            isComplete = checkCompleteDeepLinkingRequest();
+            complete = (isComplete.equals("true"));
+            isCorrect = checkCorrectDeepLinkingRequest();
+            correct = (isCorrect.equals("true"));
+        }
         // This is a surely bad way to display the error... can be improved.
         if (complete && correct) {
             return "true";
@@ -556,6 +598,51 @@ public class LTI3Request {
     }
 
     /**
+     * Checks if this Deep Linking request object has a complete set of required LTI3 data,
+     * NOTE: this code is not the one I would create for production, it is more a didactic one
+     * to understand what is being checked.
+     *
+     * @return true if complete
+     */
+
+    public String checkCompleteDeepLinkingRequest() {
+
+        String completStr = "";
+
+        if (StringUtils.isEmpty(ltiDeploymentId)) {
+            completStr += " Lti Deployment Id is empty.\n ";
+        }
+        if (StringUtils.isEmpty(sub)) {
+            completStr += " User (sub) is empty.\n ";
+        }
+        if (exp == null ){
+            completStr += " Exp is empty or invalid.\n ";
+        }
+        if (iat == null ){
+            completStr += " Iat is empty or invalid.\n ";
+        }
+        if (deepLinkingSettings == null || deepLinkingSettings.isEmpty()){
+            completStr += " DeepLinkingSettings is empty or invalid.\n ";
+        }
+        if (StringUtils.isEmpty(deepLinkReturnUrl)) {
+            completStr += " deepLinkReturnUrl is empty.\n ";
+        }
+        if (deepLinkAcceptTypes == null || deepLinkAcceptTypes.isEmpty()){
+            completStr += " deepLink AcceptTypes is empty.\n ";
+        }
+        if (deepLinkAcceptPresentationDocumentTargets == null || deepLinkAcceptPresentationDocumentTargets.isEmpty()){
+            completStr += " deepLink AcceptPresentationDocumentTargets is empty.\n ";
+        }
+
+        if (completStr.equals("")) {
+            return "true";
+        } else {
+            return completStr;
+        }
+    }
+
+
+    /**
      * Checks if this LTI3 request object has correct values
      *
      * @return the string "true" if complete and the error message if not
@@ -569,6 +656,25 @@ public class LTI3Request {
 
         //TODO check things as:
         // Roles are correct roles
+        //
+
+        return correctStr;
+    }
+
+    /**
+     * Checks if this Deep Linking request object has correct values
+     *
+     * @return the string "true" if complete and the error message if not
+     */
+    //TODO update this to check the really complete conditions...!
+
+    private String checkCorrectDeepLinkingRequest() {
+
+        String correctStr = "true";
+
+
+        //TODO check anything needed to check if the request is valid:
+        //
         //
 
         return correctStr;
@@ -621,14 +727,16 @@ public class LTI3Request {
         String ltiMessageType = jws.getBody().get(LtiStrings.LTI_MESSAGE_TYPE,String.class);
         if (ltiMessageType == null) {errorDetail += "LTI Message Type = null. ";}
             if (ltiMessageType != null && ltiVersion != null) {
-            boolean goodMessageType = LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType);
+            boolean goodMessageType = (LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType) || LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(ltiMessageType));
             if (!goodMessageType) {errorDetail = "LTI Message Type is not right: " + ltiMessageType + ". ";}
             boolean goodLTIVersion = LtiStrings.LTI_VERSION_3.equals(ltiVersion);
             if (!goodLTIVersion) {errorDetail += "LTI Version is not right: " + ltiVersion;}
             valid = goodMessageType && goodLTIVersion;
         }
-        if (valid) {
-            return "true";
+        if (valid && LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType)) {
+            return LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK;
+        } else if (valid && LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(ltiMessageType)) {
+            return LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING;
         }else {
             return errorDetail;
         }
