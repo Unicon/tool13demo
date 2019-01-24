@@ -380,13 +380,13 @@ public class WebSecurityConfig {
                     @SuppressWarnings("unchecked")
                     List<String> ltiRoles = (List<String>)profile.getAttribute("https://purl.imsglobal.org/spec/lti/claim/roles");
                     if (!(CollectionUtils.isEmpty(ltiRoles))) {
-
                         ltiRoles
                                 .stream()
                                 .map(ltiRole -> mapLtiRoleToApplicationRole(ltiRole, context, profile))
                                 .flatMap(Set::stream)
                                 .map(String::toUpperCase)
                                 .forEach(profile::addRole);
+                        ltiRoles.add("LTI");
                     }
                     return profile;
                 }
@@ -490,6 +490,17 @@ public class WebSecurityConfig {
 //            // this ensures security context info (Principal, sec:authorize, etc.) is accessible on all paths
 //            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().headers().frameOptions().disable();
 //        }
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http
+                    .authorizeRequests()
+                        .anyRequest().authenticated()
+                    .and()
+                        .formLogin()
+                        .disable()
+                    .httpBasic()
+                        .disable();
+        }
     }
 
 }
