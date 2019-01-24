@@ -1,0 +1,64 @@
+<!--
+
+    Copyright 2014 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag -->
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+<head>
+    <title>LTI Starter</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+
+<!-- Lots of copy paste from https://github.com/ddelblanco/lti_starter/blob/master/src/main/resources/templates/home.html -->
+<p>Hello User <span th:text="${username}"/>! (<span th:text="${name}"/>)</p>
+
+<div><em>TBD: Logout link (since we currently have form login disabled)</em></div>
+<form th:action="@{/logout}" method="post">
+    <input type="submit" value="Logout"/>
+</form>
+
+<div>Request URI: <span th:text="${#request.getRequestURI()}"/></div>
+<p th:text="|Today: ${today}!|"/>
+
+<div>Username: <span sec:authentication="name">AZ</span></div>
+<div>Roles: <span sec:authentication="authorities">[ROLE_USER, ROLE_ADMIN]</span></div>
+
+<div sec:authorize="hasRole('ADMIN')">
+    This content is only shown to students (ADMIN).
+</div>
+<div sec:authorize="hasRole('USER')">
+    This content is only shown to students (USER).
+</div>
+<div sec:authorize="hasRole('STAFF')">
+    This content is only shown to students (STAFF).
+</div>
+<div sec:authorize="hasRole('AUTHOR')">
+    This content is only shown to students (STAFF).
+</div>
+<div sec:authorize="hasRole('INSTRUCTOR')">
+    This content is only shown to instructors (INSTRUCTORS).
+</div>
+<div sec:authorize="hasRole('STUDENT')">
+    This content is only shown to students (STUDENT).
+</div>
+<div sec:authorize="hasRole('OBSERVER')">
+    This content is only shown to observers (OBSERVER).
+</div>
+
+</body>
+</html>

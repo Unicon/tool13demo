@@ -358,21 +358,22 @@ public class WebSecurityConfig {
 
                 // TODO can be made static once not defined on an inner class
                 // TODO https://www.imsglobal.org/spec/lti/v1p3#context-sub-roles, esp TA
+                // TODO make use of `LTIStrings`
                 private final Map<String,Set<String>> APP_ROLES_BY_LTI_ROLE =
                         ImmutableMap.<String,Set<String>>builder()
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#Administrator", ImmutableSet.of("ADMIN"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#None", ImmutableSet.of("USER"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator", ImmutableSet.of("ADMIN"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Guest", ImmutableSet.of("USER"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#None", ImmutableSet.of("USER"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Other", ImmutableSet.of("USER"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Staff", ImmutableSet.of("STAFF"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Student", ImmutableSet.of("STUDENT"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator", ImmutableSet.of("ADMIN"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper", ImmutableSet.of("AUTHOR"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor", ImmutableSet.of("INSTRUCTOR"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Learner", ImmutableSet.of("STUDENT"))
-                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Mentor", ImmutableSet.of("OBSERVER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#Administrator", ImmutableSet.of("ROLE_ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/system/person#None", ImmutableSet.of("ROLE_USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Administrator", ImmutableSet.of("ROLE_ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Guest", ImmutableSet.of("ROLE_USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#None", ImmutableSet.of("ROLE_USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Other", ImmutableSet.of("ROLE_USER"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Staff", ImmutableSet.of("ROLE_STAFF"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/institution/person#Student", ImmutableSet.of("ROLE_STUDENT"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Administrator", ImmutableSet.of("ROLE_ADMIN"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper", ImmutableSet.of("ROLE_AUTHOR"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor", ImmutableSet.of("ROLE_INSTRUCTOR"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Learner", ImmutableSet.of("ROLE_STUDENT"))
+                                .put("http://purl.imsglobal.org/vocab/lis/v2/membership#Mentor", ImmutableSet.of("ROLE_OBSERVER"))
                                 .build();
 
                 @Override
@@ -499,7 +500,8 @@ public class WebSecurityConfig {
                         .formLogin()
                         .disable()
                     .httpBasic()
-                        .disable();
+                        .disable()
+                    .logout();
         }
     }
 
