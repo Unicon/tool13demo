@@ -25,9 +25,8 @@
 <body>
 
 <!-- Lots of copy paste from https://github.com/ddelblanco/lti_starter/blob/master/src/main/resources/templates/home.html -->
-<p>Hello User <span th:text="${username}"/>! (<span th:text="${name}"/>)</p>
+<p>Hello User <span sec:authentication="principal.typedId"/>! (<span th:text="${name}"/>)</p>
 
-<div><em>TBD: Logout link (since we currently have form login disabled)</em></div>
 <form th:action="@{/logout}" method="post">
     <input type="submit" value="Logout"/>
 </form>
