@@ -34,6 +34,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * LTI3 Redirect calls will be filtered on this class. We will check if the JWT is valid and then extract all the needed data.
@@ -76,11 +79,27 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
         try {
 
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+            Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+            log.info("-------------------------------------------------------------------------------------------------------");
+            while (sessionAtributes.hasMoreElements()) {
+                String attName = sessionAtributes.nextElement();
+                log.info(attName  + " : " + httpServletRequest.getSession().getAttribute(attName));
+
+            }
+            log.info("-------------------------------------------------------------------------------------------------------");
 
             //First we validate that the state is a good state. If good we retrieve the right key to process the JWT.
             // This is not a requirement in LTI, it is just a way to do it that I've implemented, but each one can use the
             // state in a different way. It can be just an ID pointing to some DB info... it doesn't need to be JWT at all.
             String state = httpServletRequest.getParameter("state");
+            if (httpServletRequest.getSession().getAttribute("lti_state") == null){
+                throw new IllegalStateException("LTI request doesn't contains the expected state");
+            }
+            List ltiState = (List)httpServletRequest.getSession().getAttribute("lti_state");
+            if (!ltiState.contains(state)) {
+                throw new IllegalStateException("LTI request doesn't contains the expected state");
+            }
+
             ltijwtService.validateState(state);
 
             //Once we have the state validated we have the key to check the JWT signature from the id_token,

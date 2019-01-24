@@ -14,23 +14,28 @@
  */
 package net.unicon.lti13demo.controller;
 
-import net.unicon.lti13demo.model.Nonce;
+import com.google.common.hash.Hashing;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
-import net.unicon.lti13demo.repository.NonceRepository;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.lti.LtiOidcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +47,7 @@ import java.util.UUID;
  * Sample Key "key" and secret "secret"
  */
 @Controller
+@Scope("session")
 @RequestMapping("/oidc")
 public class OIDCController {
 
@@ -55,9 +61,6 @@ public class OIDCController {
 
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
-
-    @Autowired
-    NonceRepository nonceRepository;
 
     @Autowired
     LTIDataService ltiDataService;
@@ -86,6 +89,45 @@ public class OIDCController {
                 Map<String, String> parameters = generateAuthRequestPayload(lti3KeyEntity, loginInitiationDTO);
                 model.addAllAttributes(parameters);
                 model.addAttribute("initiation_dto", loginInitiationDTO);
+                HttpSession session = req.getSession();
+                List<String> stateList;
+                List<String> nonceList;
+                String state = parameters.get("state");
+                String nonce = parameters.get("nonce");
+
+                if (session.getAttribute("lti_state") != null) {
+                    List<String> ltiState = (List)session.getAttribute("lti_state");
+                    if (ltiState.isEmpty()) {  //If not old states... then just the one we have created
+                        stateList = new ArrayList<>();
+                        stateList.add(state);
+                    } else if (!ltiState.contains(state)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
+                        stateList = ltiState;
+                        } else { // if it is a different state and there are more... we add it with the to the string.
+                            ltiState.add(state);
+                            stateList = ltiState;
+                    }
+                } else {
+                    stateList = new ArrayList<>();
+                    stateList.add(state);
+                }
+                session.setAttribute("lti_state", stateList);
+
+                if (session.getAttribute("lti_nonce") != null) {
+                    List<String> ltiNonce = (List)session.getAttribute("lti_nonce");
+                    if (ltiNonce.isEmpty()) {  //If not old states... then just the one we have created
+                        nonceList = new ArrayList<>();
+                        nonceList.add(nonce);
+                    } else if (!ltiNonce.contains(nonce)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
+                        nonceList = ltiNonce;
+                    } else { // if it is a different state and there are more... we add it with the to the string.
+                        ltiNonce.add(nonce);
+                        nonceList = ltiNonce;
+                    }
+                } else {
+                    nonceList = new ArrayList<>();
+                    nonceList.add(nonce);
+                }
+                session.setAttribute("lti_nonce", nonceList);
                 return "oicdRedirect";
             } catch (Exception ex) {
                 model.addAttribute("Error", ex.getMessage());
@@ -107,7 +149,12 @@ public class OIDCController {
         authRequestMap.put("client_id", platformDeployment.getClientId()); //As it came from the Platform
         authRequestMap.put("login_hint",loginInitiationDTO.getLoginHint()); //As it came from the Platform
         authRequestMap.put("lti_message_hint",loginInitiationDTO.getLtiMessageHint()); //As it came from the Platform
-        authRequestMap.put("nonce", nonceRepository.save(new Nonce()).getNonce());  //Just a nonce
+        String nonce = UUID.randomUUID().toString();
+        String nonceHash = Hashing.sha256()
+                .hashString(nonce, StandardCharsets.UTF_8)
+                .toString();
+        authRequestMap.put("nonce", nonce);  //Just a nonce
+        authRequestMap.put("nonce_hash", nonceHash);  //Just a nonce
         authRequestMap.put("prompt", none);  //Always this value
         authRequestMap.put("redirect_uri",loginInitiationDTO.getTargetLinkUri());  //As it came from the Platform
         authRequestMap.put("response_mode", formPost); //Always this value
@@ -135,7 +182,7 @@ public class OIDCController {
                 .append("&lti_message_hint=")
                 .append(model.get("lti_message_hint"))
                 .append("&nonce=")
-                .append(model.get("nonce"))
+                .append(model.get("nonce_hash"))
                 .append("&prompt=")
                 .append(model.get("prompt"))
                 .append("&redirect_uri=")

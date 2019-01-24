@@ -54,9 +54,6 @@ public class AllRepositories {
     @Autowired
     public PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    public NonceRepository nonces;
-
     @PersistenceContext
     public EntityManager entityManager;
 

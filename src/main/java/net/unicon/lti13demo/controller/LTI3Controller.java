@@ -17,21 +17,28 @@ package net.unicon.lti13demo.controller;
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.lti.LTI3Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.Enumeration;
 
 /**
  * This LTI 3 redirect controller will retrieve the LTI3 requests and redirect them to the right page.
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
 @Controller
+@Scope("session")
 @RequestMapping("/lti3")
 public class LTI3Controller {
+
+    static final Logger log = LoggerFactory.getLogger(LTI3Controller.class);
 
     @Autowired
     LTIJWTService ltijwtService;
@@ -40,6 +47,7 @@ public class LTI3Controller {
     public String home(HttpServletRequest req, Principal principal, Model model) {
 
         String state = req.getParameter("state");
+        Enumeration<String> sessionAtributes = req.getSession().getAttributeNames();
         try {
             ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance();

@@ -67,6 +67,12 @@
             <version>3.3.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>27.0.1-jre</version>
+        </dependency>
+
         <!-- OAuth -->
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
@@ -142,6 +148,7 @@
                         <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.md</exclude>
+                        <exclude>**/*.css</exclude>
                         <exclude>**/*.sql</exclude>
                         <exclude>**/js/jquery/**</exclude>
                     </excludes>

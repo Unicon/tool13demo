@@ -14,6 +14,7 @@
  */
 package net.unicon.lti13demo.utils.lti;
 
+import com.google.common.hash.Hashing;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.AsymmetricJWK;
 import com.nimbusds.jose.jwk.JWK;
@@ -47,12 +48,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -268,6 +271,16 @@ public class LTI3Request {
             }
         });
         Jws<Claims> jws = parser.parseClaimsJws(jwt);
+        Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+        log.info("----------------------BEFORE---------------------------------------------------------------------------------");
+        while (sessionAtributes.hasMoreElements()) {
+            String attName = sessionAtributes.nextElement();
+            log.info(attName  + " : " + httpServletRequest.getSession().getAttribute(attName));
+
+        }
+        log.info("-------------------------------------------------------------------------------------------------------");
+
+
         String checkNonce = checkNonce(jws);
         if (!checkNonce.equals("true")) {
             throw new IllegalStateException("Nonce error: " + checkNonce);
@@ -567,16 +580,31 @@ public class LTI3Request {
      */
     public String checkNonce(Jws<Claims> jws) {
 
+
+        Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+        List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
+        Boolean found = false;
         String nonce = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
-        if (nonce == null) {
-            return "Nonce = null.";
+        if (nonce == null || ListUtils.isEmpty(ltiNonce)) {
+            return "Nonce = null in the JWT or in the session.";
         } else {
-            if (ltiDataService.getRepos().nonces.existsById(nonce)) {
-                ltiDataService.getRepos().nonces.deleteById(nonce);
+
+            for (String nonceStored:ltiNonce) {
+                String nonceHash = Hashing.sha256()
+                        .hashString(nonceStored, StandardCharsets.UTF_8)
+                        .toString();
+                if (nonce.equals(nonceHash)) {
+                    found = true;
+                    ltiNonce.remove(nonceStored);
+                }
+            }
+            if (found) {
+                httpServletRequest.getSession().setAttribute("lti_nonce",ltiNonce);
                 return "true";
-            } else {
+            }else {
                 return "Unknown or already used nounce.";
             }
+
         }
     }
 
