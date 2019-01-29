@@ -135,7 +135,7 @@ public class DatabasePreload {
 
             PlatformDeployment iss2 = new PlatformDeployment();
             iss2.setClientId("imstestuser");
-            iss2.setIss("ltiadv-cert.imsglobal.org");
+            iss2.setIss("ltiadvantagevalidator.imsglobal.org");
             iss2.setJwksEndpoint("https://oauth2server.imsglobal.org/jwks");
             String iss3PublicKey = "";
             iss2.setOidcEndpoint("https://ltiadvantagevalidator.imsglobal.org/ltitool/oidcauthurl.html");

@@ -100,7 +100,7 @@ public class OIDCController {
                     if (ltiState.isEmpty()) {  //If not old states... then just the one we have created
                         stateList = new ArrayList<>();
                         stateList.add(state);
-                    } else if (!ltiState.contains(state)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
+                    } else if (ltiState.contains(state)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
                         stateList = ltiState;
                         } else { // if it is a different state and there are more... we add it with the to the string.
                             ltiState.add(state);
@@ -114,12 +114,10 @@ public class OIDCController {
 
                 if (session.getAttribute("lti_nonce") != null) {
                     List<String> ltiNonce = (List)session.getAttribute("lti_nonce");
-                    if (ltiNonce.isEmpty()) {  //If not old states... then just the one we have created
+                    if (ltiNonce.isEmpty()) {  //If not old nonces... then just the one we have created
                         nonceList = new ArrayList<>();
                         nonceList.add(nonce);
-                    } else if (!ltiNonce.contains(nonce)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
-                        nonceList = ltiNonce;
-                    } else { // if it is a different state and there are more... we add it with the to the string.
+                    } else {
                         ltiNonce.add(nonce);
                         nonceList = ltiNonce;
                     }

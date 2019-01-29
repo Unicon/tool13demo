@@ -583,6 +583,7 @@ public class LTI3Request {
 
         Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
         List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
+        List<String> ltiNonceNew = new ArrayList<>();
         Boolean found = false;
         String nonce = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
         if (nonce == null || ListUtils.isEmpty(ltiNonce)) {
@@ -595,11 +596,12 @@ public class LTI3Request {
                         .toString();
                 if (nonce.equals(nonceHash)) {
                     found = true;
-                    ltiNonce.remove(nonceStored);
+                } else {
+                    ltiNonceNew.add(nonceStored);
                 }
             }
             if (found) {
-                httpServletRequest.getSession().setAttribute("lti_nonce",ltiNonce);
+                httpServletRequest.getSession().setAttribute("lti_nonce",ltiNonceNew);
                 return "true";
             }else {
                 return "Unknown or already used nounce.";
