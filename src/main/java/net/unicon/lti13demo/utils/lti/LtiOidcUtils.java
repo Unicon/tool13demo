@@ -55,7 +55,7 @@ public class LtiOidcUtils {
                     .setHeaderParam("kid", "OWNKEY")  // The key id used to sign this
                     .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
                     .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
-                    .setAudience("Think about what goes here")  //TODO think about a useful value here
+                    .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setNotBefore(date) //a java.util.Date
                     .setIssuedAt(date) // for example, now

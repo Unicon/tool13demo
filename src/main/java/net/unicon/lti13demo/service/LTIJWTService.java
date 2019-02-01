@@ -103,7 +103,7 @@ public class LTIJWTService {
      * @param jwt
      * @return
      */
-    public Jws<Claims> validateJWT(String jwt) {
+    public Jws<Claims> validateJWT(String jwt, String clientId) {
 
         return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
 
@@ -114,12 +114,12 @@ public class LTIJWTService {
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByPlatformKid(header.getKeyId()).get(0);
+                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(clientId).get(0);
 
                     if (platformDeployment.getJwksEndpoint() != null) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
-                            JWK jwk = publicKeys.getKeyByKeyId(platformDeployment.getPlatformKid());
+                            JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
                             return ((AsymmetricJWK) jwk).toPublicKey();
                         } catch (JOSEException | ParseException | IOException ex) {
                             log.error("Error getting the iss public key", ex);
