@@ -246,12 +246,12 @@ public class LTI3Request {
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByPlatformKid(header.getKeyId()).get(0);
+                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByPlatformKid(claims.getAudience()).get(0);
 
                     if (platformDeployment.getJwksEndpoint() != null) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
-                            JWK jwk = publicKeys.getKeyByKeyId(platformDeployment.getPlatformKid());
+                            JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
                             PublicKey key = ((AsymmetricJWK) jwk).toPublicKey();
                             return key;
                         } catch (JOSEException ex) {
@@ -433,7 +433,7 @@ public class LTI3Request {
     }
 
     private String getStringFromLTIRequest(Jws<Claims> jws, String stringToGet) {
-        if (jws.getBody().containsKey(stringToGet)) {
+        if (jws.getBody().containsKey(stringToGet) && jws.getBody().get(stringToGet)!=null) {
             return jws.getBody().get(stringToGet, String.class);
         } else {
             return null;
@@ -441,7 +441,7 @@ public class LTI3Request {
     }
 
     private String getStringFromLTIRequestMap(Map map, String stringToGet) {
-        if (map.containsKey(stringToGet)) {
+        if (map.containsKey(stringToGet) && map.get(stringToGet)!=null) {
             return map.get(stringToGet).toString();
         } else {
             return null;

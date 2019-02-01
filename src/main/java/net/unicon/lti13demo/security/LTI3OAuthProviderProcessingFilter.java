@@ -100,13 +100,13 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
 
-            ltijwtService.validateState(state);
+            Jws<Claims> stateClaims = ltijwtService.validateState(state);
 
             //Once we have the state validated we have the key to check the JWT signature from the id_token,
             // and extract all the values in the LTI3Request object.
             String jwt = httpServletRequest.getParameter("id_token");
             if (StringUtils.hasText(jwt)) {
-                Jws<Claims> jws= ltijwtService.validateJWT(jwt);
+                Jws<Claims> jws= ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
                 if (jws != null) {
                     //Here we create the LTI3Request and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
