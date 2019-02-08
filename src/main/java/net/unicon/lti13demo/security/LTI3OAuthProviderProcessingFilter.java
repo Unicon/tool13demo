@@ -113,6 +113,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                     LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true); // IllegalStateException if invalid
                     httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one
                     httpServletRequest.setAttribute("lti3_valid", lti3Request.isLoaded() && lti3Request.isComplete()); // is LTI3 request totally valid and complete
+                    httpServletRequest.setAttribute("lti3_message_type", lti3Request.getLtiMessageType()); // is LTI3 request totally valid and complete
                     httpServletRequest.setAttribute(LTI3Request.class.getName(), lti3Request); // make the LTI3 data accessible later in the request if needed
                 }
             }

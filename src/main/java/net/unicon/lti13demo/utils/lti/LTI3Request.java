@@ -248,7 +248,7 @@ public class LTI3Request {
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(claims.getAudience()).get(0);
 
-                    if (platformDeployment.getJwksEndpoint() != null) {
+                    if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                             JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
