@@ -28,6 +28,7 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,13 +117,16 @@ public class LTIJWTService {
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(clientId).get(0);
 
-                    if (platformDeployment.getJwksEndpoint() != null) {
+                    if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                             JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
                             return ((AsymmetricJWK) jwk).toPublicKey();
                         } catch (JOSEException | ParseException | IOException ex) {
                             log.error("Error getting the iss public key", ex);
+                            return null;
+                        } catch (NullPointerException ex) {
+                            log.error("Kid not found in header",ex);
                             return null;
                         }
                     } else {

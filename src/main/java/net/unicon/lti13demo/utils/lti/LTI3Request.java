@@ -186,6 +186,12 @@ public class LTI3Request {
 
     String ltiTargetLinkUrl;
 
+    //DEEP LINKING RESPONSE
+    // We will return generate some hardcoded JWT's to test the standard, but the way this should work
+    // is with the tool allowing the user to select the contents to link and generating the JWT with the selection
+
+    Map<String, String> deepLinkJwts;
+
 
     /**
      * @return the current LTI3Request object if there is one available, null if there isn't one and this is not a valid LTI3 based request
@@ -260,7 +266,7 @@ public class LTI3Request {
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(claims.getAudience()).get(0);
 
-                    if (platformDeployment.getJwksEndpoint() != null) {
+                    if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                             JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
@@ -460,6 +466,16 @@ public class LTI3Request {
             complete = (isComplete.equals("true"));
             isCorrect = checkCorrectDeepLinkingRequest();
             correct = (isCorrect.equals("true"));
+            try {
+                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0), this);
+            } catch (GeneralSecurityException ex) {
+                log.error("Error creating the DeepLinking Response",ex);
+            } catch (IOException ex) {
+                log.error("Error creating the DeepLinking Response",ex);
+            } catch (NullPointerException ex) {
+                log.error("Error creating the DeepLinking Response",ex);
+            }
+
         }
         // This is a surely bad way to display the error... can be improved.
         if (complete && correct) {
