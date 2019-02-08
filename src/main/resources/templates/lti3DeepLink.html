@@ -56,6 +56,60 @@
 <div>
     <ul class="list-group">
         <li class="list-group-item ">
+            <label><strong>deepLinkingSettings (a map):</strong></label>
+            <span th:text="${lTI3Request.deepLinkingSettings}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkReturnUrl:</strong></label>
+            <span th:text="${lTI3Request.deepLinkReturnUrl}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkAcceptTypes (a List):</strong></label>
+            <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkAcceptMediaTypes:</strong></label>
+            <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkAcceptPresentationDocumentTargets (a List):</strong></label>
+            <span th:text="${lTI3Request.deepLinkAcceptMediaTypes}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkAcceptMultiple:</strong></label>
+            <span th:text="${lTI3Request.deepLinkAcceptMultiple}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkAutoCreate:</strong></label>
+            <span th:text="${lTI3Request.deepLinkAutoCreate}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkTitle:</strong></label>
+            <span th:text="${lTI3Request.deepLinkTitle}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkText:</strong></label>
+            <span th:text="${lTI3Request.deepLinkText}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>deepLinkData:</strong></label>
+            <span th:text="${lTI3Request.deepLinkData}"/>
+        </li>
+    </ul>
+</div>
+<p>&nbsp;</p>
+
+<form th:action="${lTI3Request.deepLinkReturnUrl}" method="post">
+    <div class="form-group">
+        <label for="item1">item1:</label>
+        <input type="text" id="item1"  th:value="${lTI3Request.deepLinkTitle}" class="form-control"/>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary">
+</form>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
             <label><strong>ltiMessageType:</strong></label>
             <span th:text="${lTI3Request.ltiMessageType}"/>
         </li>
