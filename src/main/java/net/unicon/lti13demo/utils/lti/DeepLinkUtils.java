@@ -53,7 +53,7 @@ public class DeepLinkUtils {
         // JWT 1:  Empty list of JSON
             String jwt1 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
-                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
+                    .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
@@ -74,7 +74,7 @@ public class DeepLinkUtils {
 
             String jwt2 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
-                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
+                    .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
@@ -94,7 +94,7 @@ public class DeepLinkUtils {
 
             String jwt3 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
-                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
+                    .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
