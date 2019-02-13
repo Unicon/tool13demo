@@ -1125,4 +1125,92 @@ public class LTI3Request {
     public void setUserRoleNumber(int userRoleNumber) {
         this.userRoleNumber = userRoleNumber;
     }
+
+    public Map<String, Object> getDeepLinkingSettings() {
+        return deepLinkingSettings;
+    }
+
+    public void setDeepLinkingSettings(Map<String, Object> deepLinkingSettings) {
+        this.deepLinkingSettings = deepLinkingSettings;
+    }
+
+    public String getDeepLinkReturnUrl() {
+        return deepLinkReturnUrl;
+    }
+
+    public void setDeepLinkReturnUrl(String deepLinkReturnUrl) {
+        this.deepLinkReturnUrl = deepLinkReturnUrl;
+    }
+
+    public List<String> getDeepLinkAcceptTypes() {
+        return deepLinkAcceptTypes;
+    }
+
+    public void setDeepLinkAcceptTypes(List<String> deepLinkAcceptTypes) {
+        this.deepLinkAcceptTypes = deepLinkAcceptTypes;
+    }
+
+    public String getDeepLinkAcceptMediaTypes() {
+        return deepLinkAcceptMediaTypes;
+    }
+
+    public void setDeepLinkAcceptMediaTypes(String deepLinkAcceptMediaTypes) {
+        this.deepLinkAcceptMediaTypes = deepLinkAcceptMediaTypes;
+    }
+
+    public List<String> getDeepLinkAcceptPresentationDocumentTargets() {
+        return deepLinkAcceptPresentationDocumentTargets;
+    }
+
+    public void setDeepLinkAcceptPresentationDocumentTargets(List<String> deepLinkAcceptPresentationDocumentTargets) {
+        this.deepLinkAcceptPresentationDocumentTargets = deepLinkAcceptPresentationDocumentTargets;
+    }
+
+    public String getDeepLinkAcceptMultiple() {
+        return deepLinkAcceptMultiple;
+    }
+
+    public void setDeepLinkAcceptMultiple(String deepLinkAcceptMultiple) {
+        this.deepLinkAcceptMultiple = deepLinkAcceptMultiple;
+    }
+
+    public String getDeepLinkAutoCreate() {
+        return deepLinkAutoCreate;
+    }
+
+    public void setDeepLinkAutoCreate(String deepLinkAutoCreate) {
+        this.deepLinkAutoCreate = deepLinkAutoCreate;
+    }
+
+    public String getDeepLinkTitle() {
+        return deepLinkTitle;
+    }
+
+    public void setDeepLinkTitle(String deepLinkTitle) {
+        this.deepLinkTitle = deepLinkTitle;
+    }
+
+    public String getDeepLinkText() {
+        return deepLinkText;
+    }
+
+    public void setDeepLinkText(String deepLinkText) {
+        this.deepLinkText = deepLinkText;
+    }
+
+    public String getDeepLinkData() {
+        return deepLinkData;
+    }
+
+    public void setDeepLinkData(String deepLinkData) {
+        this.deepLinkData = deepLinkData;
+    }
+
+    public Map<String, String> getDeepLinkJwts() {
+        return deepLinkJwts;
+    }
+
+    public void setDeepLinkJwts(Map<String, String> deepLinkJwts) {
+        this.deepLinkJwts = deepLinkJwts;
+    }
 }

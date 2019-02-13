@@ -1,3 +1,17 @@
+/**
+ * Copyright 2019 Unicon (R)
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package net.unicon.lti13demo.utils.lti;
 
 import io.jsonwebtoken.Jwts;
@@ -34,11 +48,12 @@ public class DeepLinkUtils {
         Date date = new Date();
         Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
         if (rsaKeyEntityOptional.isPresent()) {
-            Key issPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
+            Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
 
         // JWT 1:  Empty list of JSON
             String jwt1 = Jwts.builder()
-                    .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
+                    .setHeaderParam("typ","JWT")
+                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
@@ -47,9 +62,9 @@ public class DeepLinkUtils {
                     .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
                     .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
                     .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/data",lti3Request.deepLinkData)
+                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
                     .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",new HashMap<String,Object>())
-                    .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
+                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
             deepLinkJwtMap.put("jwt1",jwt1);
@@ -58,7 +73,8 @@ public class DeepLinkUtils {
 
 
             String jwt2 = Jwts.builder()
-                    .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
+                    .setHeaderParam("typ","JWT")
+                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
@@ -67,9 +83,9 @@ public class DeepLinkUtils {
                     .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
                     .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
                     .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/data",lti3Request.deepLinkData)
+                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
                     .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items", createOneDeepLink())
-                    .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
+                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
             deepLinkJwtMap.put("jwt2",jwt2);
@@ -77,7 +93,8 @@ public class DeepLinkUtils {
         //JWT 3: More than one link
 
             String jwt3 = Jwts.builder()
-                    .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
+                    .setHeaderParam("typ","JWT")
+                    .setIssuer("imstestuser")  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
@@ -86,9 +103,9 @@ public class DeepLinkUtils {
                     .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
                     .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
                     .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/data",lti3Request.deepLinkData)
+                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
                     .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",createMultipleDeepLink())
-                    .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
+                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
 

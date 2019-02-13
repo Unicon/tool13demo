@@ -53,7 +53,11 @@
     </ul>
 </div>
 <p>&nbsp;</p>
+
 <div>
+
+
+
     <ul class="list-group">
         <li class="list-group-item ">
             <label><strong>deepLinkingSettings (a map):</strong></label>
@@ -99,13 +103,35 @@
 </div>
 <p>&nbsp;</p>
 
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="post">
+<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
-        <label for="item1">item1:</label>
-        <input type="text" id="item1"  th:value="${lTI3Request.deepLinkTitle}" class="form-control"/>
+        <label for="JWT">item1:</label>
+        <input type="text" id="JWT" name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt1')}" class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
+
+
+<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+    <div class="form-group">
+        <label for="JWT2">item2:</label>
+        <input type="text" id="JWT2"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt2')}" class="form-control"/>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary">
+</form>
+
+
+
+<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+    <div class="form-group">
+        <label for="JWT2">item3:</label>
+        <input type="text" id="JWT3"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt3')}" class="form-control"/>
+    </div>
+    <input type="submit" value="Submit" class="btn btn-primary">
+</form>
+
+<p>&nbsp;</p>
+
 
 <div>
     <ul class="list-group">
