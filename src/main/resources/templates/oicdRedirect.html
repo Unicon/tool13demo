@@ -62,43 +62,43 @@
 <form th:action="${oicdEndpoint}" method="post">
     <div class="form-group">
         <label for="client_id">client_id:</label>
-        <input type="text" id="client_id"  th:value="${client_id}" class="form-control"/>
+        <input type="text" id="client_id" name="client_id"  th:value="${client_id}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="login_hint">login_hint:</label>
-        <input type="text" id="login_hint" th:value="${login_hint}" class="form-control"/>
+        <input type="text" id="login_hint" name="login_hint"  th:value="${login_hint}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="lti_message_hint">lti_message_hint:</label>
-        <input type="text" id="lti_message_hint" th:value="${lti_message_hint}" class="form-control"/>
+        <input type="text" id="lti_message_hint" name="lti_message_hint"  th:value="${lti_message_hint}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="nonce">nonce:</label>
-        <input type="text" id="nonce" th:value="${nonce_hash}" class="form-control"/>
+        <input type="text" id="nonce" name="nonce"  th:value="${nonce_hash}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="prompt">prompt:</label>
-        <input type="text" id="prompt" th:value="${prompt}" class="form-control"/>
+        <input type="text" id="prompt" name="prompt"  th:value="${prompt}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="redirect_uri">redirect_uri:</label>
-        <input type="text" id="redirect_uri" th:value="${redirect_uri}" class="form-control"/>
+        <input type="text" id="redirect_uri" name="redirect_uri"  th:value="${redirect_uri}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="response_mode">response_mode:</label>
-        <input type="text" id="response_mode" th:value="${response_mode}" class="form-control"/>
+        <input type="text" id="response_mode" name="response_mode"  th:value="${response_mode}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="response_type">response_type:</label>
-        <input type="text" id="response_type" th:value="${response_type}" class="form-control"/>
+        <input type="text" id="response_type" name="response_type"  th:value="${response_type}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="scope">scope:</label>
-        <input type="text" id="scope" th:value="${scope}" class="form-control"/>
+        <input type="text" id="scope" name="scope"  th:value="${scope}" class="form-control"/>
     </div>
     <div class="form-group">
         <label for="state">state:</label>
-        <input type="text" id="state" class="form-control" th:value="${state}"/>
+        <input type="text" id="state" class="form-control" name="state"  th:value="${state}"/>
     </div>
 <input type="submit" value="Submit" class="btn btn-primary">
 </form>
