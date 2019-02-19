@@ -186,6 +186,8 @@ public class LTI3Request {
 
     String ltiTargetLinkUrl;
 
+    Map<String, Object> ltiLis;
+
     //DEEP LINKING RESPONSE
     // We will return generate some hardcoded JWT's to test the standard, but the way this should work
     // is with the tool allowing the user to select the contents to link and generating the JWT with the selection
@@ -400,7 +402,7 @@ public class LTI3Request {
         ltiCaliperEndpointServiceUrl = getStringFromLTIRequestMap(ltiCaliperEndpointService, LtiStrings.LTI_CALIPER_ENDPOINT_SERVICE_URL);
         ltiCaliperEndpointServiceSessionId = getStringFromLTIRequestMap(ltiCaliperEndpointService, LtiStrings.LTI_CALIPER_ENDPOINT_SERVICE_SESSION_ID);
 
-
+        ltiLis = getMapFromLTIRequest(jws, LtiStrings.LTI_LIS);
 
 
         lti11LegacyUserId = getStringFromLTIRequest(jws, LtiStrings.LTI_11_LEGACY_USER_ID);
@@ -1212,5 +1214,13 @@ public class LTI3Request {
 
     public void setDeepLinkJwts(Map<String, String> deepLinkJwts) {
         this.deepLinkJwts = deepLinkJwts;
+    }
+
+    public Map<String, Object> getLtiLis() {
+        return ltiLis;
+    }
+
+    public void setLtiLis(Map<String, Object> ltiLis) {
+        this.ltiLis = ltiLis;
     }
 }
