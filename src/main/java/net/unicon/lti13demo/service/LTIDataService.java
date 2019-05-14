@@ -60,36 +60,65 @@ public class LTIDataService {
             return false;
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("SELECT k, c, l, m, u");
+        StringBuilder sbDeployment = new StringBuilder();
+        StringBuilder sbNoDeployment = new StringBuilder();
+        sbDeployment.append("SELECT k, c, l, m, u");
+        sbNoDeployment.append("SELECT k, c, l, m, u");
 
-        sb.append(" FROM PlatformDeployment k " +
+        sbDeployment.append(" FROM PlatformDeployment k " +
                 "LEFT JOIN k.contexts c ON c.contextKey = :context " + // LtiContextEntity
                 "LEFT JOIN c.links l ON l.linkKey = :link " + // LtiLinkEntity
                 "LEFT JOIN c.memberships m " + // LtiMembershipEntity
                 "LEFT JOIN m.user u ON u.userKey = :user "
         );
 
-        sb.append(" WHERE k.clientId = :clientId AND k.deploymentId = :deploymentId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))");
+        sbNoDeployment.append(" FROM PlatformDeployment k " +
+                "LEFT JOIN k.contexts c ON c.contextKey = :context " + // LtiContextEntity
+                "LEFT JOIN c.links l ON l.linkKey = :link " + // LtiLinkEntity
+                "LEFT JOIN c.memberships m " + // LtiMembershipEntity
+                "LEFT JOIN m.user u ON u.userKey = :user "
+        );
 
-        String sql = sb.toString();
-        Query q = repos.entityManager.createQuery(sql);
-        q.setMaxResults(1);
-        q.setParameter("clientId", lti.getAud());
-        q.setParameter("deploymentId", lti.getLtiDeploymentId());
-        q.setParameter("context", lti.getLtiContextId());
-        q.setParameter("link",lti.getLtiLinkId());
-        q.setParameter("user", lti.getSub());
-        q.setParameter("iss", lti.getIss());
+        sbDeployment.append(" WHERE k.clientId = :clientId AND k.deploymentId = :deploymentId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))");
+        sbNoDeployment.append(" WHERE k.clientId = :clientId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))");
+
+        String sqlDeployment = sbDeployment.toString();
+        String sqlNoDeployment = sbDeployment.toString();
+        Query qDeployment = repos.entityManager.createQuery(sqlDeployment);
+        qDeployment.setMaxResults(1);
+        qDeployment.setParameter("clientId", lti.getAud());
+        qDeployment.setParameter("deploymentId", lti.getLtiDeploymentId());
+        qDeployment.setParameter("context", lti.getLtiContextId());
+        qDeployment.setParameter("link",lti.getLtiLinkId());
+        qDeployment.setParameter("user", lti.getSub());
+        qDeployment.setParameter("iss", lti.getIss());
+
+        Query qNoDeployment = repos.entityManager.createQuery(sqlNoDeployment);
+        qNoDeployment.setMaxResults(1);
+        qNoDeployment.setParameter("clientId", lti.getAud());
+        qNoDeployment.setParameter("context", lti.getLtiContextId());
+        qNoDeployment.setParameter("link",lti.getLtiLinkId());
+        qNoDeployment.setParameter("user", lti.getSub());
+        qNoDeployment.setParameter("iss", lti.getIss());
+
 
         @SuppressWarnings("unchecked")
-        List<Object[]> rows = q.getResultList();
+        List<Object[]> rows = qDeployment.getResultList();
         if (rows == null || rows.isEmpty()) {
-            log.info("LTIload: No lti.results found for client_id: " + lti.getAud() + " and  deployment_id:" + lti.getLtiDeploymentId());
+            log.info("LTIload: No lti.results found for client_id: " + lti.getAud() + " and  deployment_id:" + lti.getLtiDeploymentId()
+                    + ". Let's try only with the clientId");
+            rows = qNoDeployment.getResultList();
+        }
+        if (rows == null || rows.isEmpty()) {
+            log.info("LTIload: No lti.results found for client_id: " + lti.getAud());
         } else {
             // k, c, l, m, u, s, r
             Object[] row = rows.get(0);
-            if (row.length > 0) lti.setKey((PlatformDeployment) row[0]);
+            if (row.length > 0) {
+                PlatformDeployment platformDeployment = (PlatformDeployment) row[0];
+                platformDeployment.setDeploymentId(lti.getLtiDeploymentId());
+                lti.setKey((PlatformDeployment) row[0]);
+            }
             if (row.length > 1) lti.setContext((LtiContextEntity) row[1]);
             if (row.length > 2) lti.setLink((LtiLinkEntity) row[2]);
             if (row.length > 3) lti.setMembership((LtiMembershipEntity) row[3]);

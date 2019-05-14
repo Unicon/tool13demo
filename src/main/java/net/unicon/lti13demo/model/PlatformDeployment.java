@@ -50,7 +50,7 @@ public class PlatformDeployment extends BaseEntity {
     @Column(name = "oAuth2_token_url", nullable = true, insertable = true, updatable = true)
     private String oAuth2TokenUrl;  // Where in the platform we need to ask for the oauth2 tokens
     @Basic
-    @Column(name = "deployment_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "deployment_id", nullable = true, insertable = true, updatable = true)
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
     @Basic
     @Column(name = "toolKid", nullable = true, insertable = true, updatable = true)

@@ -177,44 +177,42 @@ public class DatabasePreload {
 
 
             PlatformDeployment iss5 = new PlatformDeployment();
-            iss5.setClientId("e22e7d54-7280-4739-9575-9f7381125827");
-            //54e11a50-56ea-4fb8-935f-f3adb25bc60f
-            //pPn1MIWbhs3UZXzyp1gfKebc2u5gAJrW
+            iss5.setClientId("6482545f-91ec-4e33-8d9c-96f069995312");
             iss5.setIss("https://blackboard.com");
             String iss5PublicKey = "";
-            iss5.setJwksEndpoint("https://devportal-playground.saas.bbpd.io/api/v1/management/applications/e22e7d54-7280-4739-9575-9f7381125827/jwks.json");
-            iss5.setoAuth2TokenUrl("https://devportal-playground.saas.bbpd.io/api/v1/gateway/oauth2/jwttoken");
-            iss5.setOidcEndpoint("https://devportal-playground.saas.bbpd.io/api/v1/gateway/oauth2/jwttoken");
-            iss5.setDeploymentId("f51fea82-9cdc-4f11-8b91-9f3106bd7df9");
-            iss5.setToolKid("e22e7d54-7280-4739-9575-9f7381125827");
-            iss5.setPlatformKid("e22e7d54-7280-4739-9575-9f7381125827");
+            iss5.setJwksEndpoint("https://developer.blackboard.com/api/v1/management/applications/6482545f-91ec-4e33-8d9c-96f069995312/jwks.json");
+            iss5.setoAuth2TokenUrl("https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken");
+            iss5.setOidcEndpoint("https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken");
+            //iss5.setDeploymentId("b81107cf-a265-40f9-bf2d-91ee9245208c");
+            iss5.setToolKid("6482545f-91ec-4e33-8d9c-96f069995312");
+            iss5.setPlatformKid("6482545f-91ec-4e33-8d9c-96f069995312");
             String tool5PrivateString = "-----BEGIN PRIVATE KEY-----" +
-                    "MIIEwAIBADANBgkqhkiG9w0BAQEFAASCBKowggSmAgEAAoIBAQCSETeesKmwy7Je" +
-                    "dxc0+4hi6Z9jH4vanI6VCUkoSeRVFu+W1OxYuJ8Lp8V6arNoNVM7NpFKlb/B32z2" +
-                    "L1nbU2TupP2AhwJzJiBZyr2h9JrjCwO1CjrTxCARy0f2pVaNJd1cFsEy5ciqTDrr" +
-                    "+ew+GdGAyrW3lTvbUYJ9YiisLuDYLEz63ysQizXVJM6yP0w/L0LzQjV7Y1GUqgOi" +
-                    "4VO3cVDlYA9CnrXx/+A36eUoLlWEG4kqrxX6z6sYx5wvDkbZNsXW+NharwpCID4x" +
-                    "WDgHD+b147y3vUa5rhCMotplJCG4xe176nCW9cI5b1NnEdhoxz9YmqE73HRkbWCi" +
-                    "dWJ6jMfXAgMBAAECggEBAIaeN5SZXMsD8K//MfQyndALYEoKmOoxv3a7yCDJeRay" +
-                    "vL1WHzzlai9jwCzCifZQrxSzhdQnj0Mul02M9lOc2DjY9omt5CQbz1Tx9TN+LAFz" +
-                    "9Ua01uK0rpm3r+sxFkOf0hM9JXGzNO0+tE8nVwMk6GC6ch9v+mp3BLxp6vJFghO3" +
-                    "1wkC33y5uF9vK0nQJE2J4R3qD397Q1NtWC6UK7WVpqa6Hmobas0QMxc4kwC+YCL0" +
-                    "FmfbyQ8ljvqrkd7DtxOSodWKrvyhZ8+u/JWTpRKP0v2KDdj4FnuzDGT5Xu/u4QKV" +
-                    "Auh1znuILCr4MrSnFTtx95icYWTVMK6EOOX+McCefgECgYEA5JzXCcFtvO+ocMA6" +
-                    "WINenQnqg+w4mPzkWbyRI2WGUG3ZmUOFzkJBrjiADY0QOPaxV94M/aU2FfUtAggn" +
-                    "g/EC1ldWv/aCHyrwukVMkXRqIjSrovJs50F99OVOkBkuZ1DN+kBj8bVdm4czuON3" +
-                    "5EQL4jvkAo2I0q2+UEqlm2ZgVQcCgYEAo5DZxtiaoucU1iR+JQtv4eT0felzRVBK" +
-                    "8Brijop4NSyWPWvUhvJtBUbF0sBo6EMBG68F2K2PsIkCgjzIJvhv7bNj9Tt8LLr/" +
-                    "LenxOcWfkuwXKY8Jgk9kFmXdH5oXbZDnLTmFlalHsMDcvafF2wqXv4i5oQyg/Bg/" +
-                    "i5YrxOnskrECgYEAvjBlDa6oFvjijvq9D4orGkZ3nczVwSES8DzaGjKKLTtWPhVY" +
-                    "qiGg9sn2bk+e4WUKYOlQsWvStS3Fhd020qOdEqiSeR0hX8CfiLfCXXgWG+Lpr6Qz" +
-                    "SajImwZx95ubaURmN/19qEaUW6F9PCGxSmv53vqoVB9fZrY4kB+p6sCe/90CgYEA" +
-                    "kDN567a2zfuQASL3G02z+6FQc1lHSMp65qetKSGmzKpcYhYYrkg4GTjF2wHK+0ln" +
-                    "RrLNIrQRQ//meE+B3emVNCi9bUxeM0lBA4eGJfq2rl76JKd4KKw5fw2bHutI0E25" +
-                    "ocNepA0zqP6/HW02H+B83F172iI6I0Z1b2ibeeUJrmECgYEAwoVdi9jFRtKSw78T" +
-                    "fCSDgNELCWudY16zEHU1vfTjJddJNid8tk+5t2iVFgyTN6lvdIUB9VeVNjm3/JfZ" +
-                    "rAnWMIQobm6A51YH7Wu9vN6q5cWrpF2EEop869iY+swWPcM7H+wygnMveWHsujyw" +
-                    "4JuZ6t+pC9spPhpn3GtEn9YbMCE=" +
+                    "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCh3WHLNTXQ2U2h" +
+                    "c6EbRosOyXspKMFdOpKXCI5Doe+bm4kCcVeSFsGaworyMhvl9DmCVs9UeW6Ys32r" +
+                    "Y9znoQDV0g3PE1lfViOA825JaPgt3GxitugsGBHJX3tBrqQMyxBeBPpEVCoRUUSX" +
+                    "67S0tpwSmDX7ohPoKD5gdYkSjhU4W+YRqYTBsc4kA/DRxFxMPH94SSMWIIeFXhb4" +
+                    "ghOCzFsXKzcjgSnie70iBjHOOa94kQxr7icpJjdHMUadWXU/3qqCtlO8J6qPXlnh" +
+                    "vIlsYbNxc+cY0Z6yUbBcn6KIo+lctvcQm4lEoyV9Fv6n5V8eboKliuAE19RqfyNQ" +
+                    "7RJ0C5/DAgMBAAECggEAY2fJ/zoWasSJYHXaox2XmOUztftJhS/LhuXCONbih/Xl" +
+                    "FpL07Mr860Y+fq83Yumxx9H4UjChMzZIH1GdAMNn9+iggmOnp10HQNI/EOZeRAvy" +
+                    "pE0gGLRPeBQjZhsStKigzJzR9dSaYTg/n+0pdTIQd3ry7C6FezX72NFV9Qc9EPaj" +
+                    "zzHahSeztg8vkZiq87pa+CHCsJcgp+TFD5ZuKJj16ETE5HCvowl5Ap+B8ReHOqZs" +
+                    "q5U6UTHH90kU3GcM5N74+NAwsw+CTfNShkoh3IO1pSbI1J0wf9QqKVw2YKwpGQin" +
+                    "MqgcMeOT7FUao0aMHjYz9Sovgo2gHrtU8mMqtYVuAQKBgQDiQYvEQp+vUS7DxRE/" +
+                    "fuGBl+UYTggHiLHKylZn/d/sMi8qeS4NFBXwksHzIVQ75ikK4+etE6iR2jceA0XH" +
+                    "v2SXP1S4v7z9BQCuFv9kLFYfm8n/ylzljRXeiCn5wh5b8/FYVVXaSZGPZEXEpZJi" +
+                    "iACzksV8DGI4ma6ublSsAWibYwKBgQC3JM2MCm3pGo+705sQ6wnJzkv0rstm6Dvc" +
+                    "ty4tfAY9u3IenrAAcJxFSFSMunkdxEm76JeP31/fEjFKgcey6+ucwSkQJwF3KT4R" +
+                    "mgNDbuzhYIzcf1FTcj4/26UI0HqZ18pz3Z+nlvr05Ta/bQV+UBd+tIt0Rjqq2Yti" +
+                    "BYBZq+GIIQKBgQDRBZ7avHYLoCNk5u1NTKmGcM5MCuKuGyGtaAo1Xjv9WEtsoLDj" +
+                    "kjfGnb4iIBtSjwpBrlS895lWzVL4HivcIjwK4o4hc7ljwrhjHInqgG88Gk+eSNRT" +
+                    "mWinwgGNZEFpz86aPZPn6ulXoFo4FoJLFrwXKbPaKxKemZPgP7tngJGkYwKBgQCr" +
+                    "uEVGPm0p+O62NUWbClZmMxlC9jXfanbej58rpLORZFUvYqkx8GSGDbjBLwLrJyXf" +
+                    "m8moa9BPr5Yp/x/Ioq6Ljw26iGg2W6RICrlum+5dsBLDmFkfvemiJIdMiXW7E/tO" +
+                    "wom1MLpjrxuzRzy0X9J3yj9LqaHOmiW3peLfsWrJIQKBgQCLt5BX5XA1Wy2KtFA4" +
+                    "zdHyVSrWbKBYwm1Dsxx2hRqPVoVWGW5xwjtzRXEpWlKnnJF8el3lMppfNG5+65J/" +
+                    "pxfn/6nk1ofEFM/YEh+xLXeHuyH7d/1NYRkae03GZtat8YAfXbJ9JQIhAHdsOBY9" +
+                    "XvlT462gBx2/M2sXXNzEJY2oxg==" +
                     "-----END PRIVATE KEY-----";
             String tool5PublicString ="";
             rsaKeyRepository.saveAndFlush(new RSAKeyEntity("ec03af85-659a-4d2f-b5b0-79e9c5f8b0e7",true, tool5PublicString,tool5PrivateString));

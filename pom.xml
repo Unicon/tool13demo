@@ -95,7 +95,12 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>7.0</version>
+        </dependency>
+    </dependencies>
 
     <profiles>
         <profile>
