@@ -64,9 +64,6 @@ import java.util.Map;
 /**
  * LTI3 Request object holds all the details for a valid LTI3 request
  *
- * This is generally the only class that a developer will need to interact with but it will
- * only be available during incoming LTI3 requests (launches, etc.). Once the tool application
- * takes over and is servicing the requests on its own path this will no longer be available.
  *
  * Obtain this class using the static instance methods like so (recommended):
  * LTI3Request lti3Request = LTI3Request.getInstanceOrDie();
@@ -188,8 +185,8 @@ public class LTI3Request {
 
     Map<String, Object> ltiLis;
 
-    //DEEP LINKING RESPONSE
-    // We will return generate some hardcoded JWT's to test the standard, but the way this should work
+    //DEEP LINKING RESPONSE (FOR DEMO PURPOSES_
+    // We will return some hardcoded JWT's to test the deep Linking LTI Advanced Service standard, but the way this should work
     // is with the tool allowing the user to select the contents to link and generating the JWT with the selection
 
     Map<String, String> deepLinkJwts;
@@ -291,6 +288,7 @@ public class LTI3Request {
             }
         });
         Jws<Claims> jws = parser.parseClaimsJws(jwt);
+        //This is just for logging.
         Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
         log.info("----------------------BEFORE---------------------------------------------------------------------------------");
         while (sessionAtributes.hasMoreElements()) {
@@ -300,20 +298,22 @@ public class LTI3Request {
         }
         log.info("-------------------------------------------------------------------------------------------------------");
 
-
+        //Now we are going to check the if the nonce is valid.
         String checkNonce = checkNonce(jws);
         if (!checkNonce.equals("true")) {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
+        //We check that the LTI request is a valid LTI Request and has the right type.
         String isLTI3Request = isLTI3Request(jws);
         if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
         }
+        //Here we will populate the LTI3Request object
         String processRequestParameters = processRequestParameters(request,jws);
         if (!processRequestParameters.equals("true")){
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
-
+        // We update the database in case we have new values. (New users, new resources...etc)
         if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
             //Load data from DB related with this request and update it if needed with the new values.
             ltiDataService.loadLTIDataFromDB(this);
@@ -444,8 +444,8 @@ public class LTI3Request {
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, aud);
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
 
-        //TODO, surely we need a more elaborated code here based in the huge amount of roles avaliable.
-        //In any case, this is for the session... we still have the full list of roles in the ltiRoles list
+        // Surely we need a more elaborated code here based in the huge amount of roles avaliable.
+        // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
         String normalizedRoleName = LtiStrings.LTI_ROLE_GENERAL;
         if (isRoleAdministrator()) {
             normalizedRoleName = LtiStrings.LTI_ROLE_ADMIN;
@@ -456,6 +456,7 @@ public class LTI3Request {
         }
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, normalizedRoleName);
 
+        // And now we will check that all the mandatory fields are there and are correct
         String isComplete;
         String isCorrect;
         if (ltiMessageType.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
@@ -468,6 +469,7 @@ public class LTI3Request {
             complete = (isComplete.equals("true"));
             isCorrect = checkCorrectDeepLinkingRequest();
             correct = (isCorrect.equals("true"));
+            // NOTE: This is just to hardcode some demo information.
             try {
                 deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0), this);
             } catch (GeneralSecurityException ex) {
@@ -479,7 +481,7 @@ public class LTI3Request {
             }
 
         }
-        // This is a surely bad way to display the error... can be improved.
+        // This is an ugly way to display the error... can be improved.
         if (complete && correct) {
             return "true";
         } else {
@@ -704,8 +706,7 @@ public class LTI3Request {
      */
     public String checkNonce(Jws<Claims> jws) {
 
-
-        Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+        //We get all the nonces from the session, and compare.
         List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
         List<String> ltiNonceNew = new ArrayList<>();
         Boolean found = false;
@@ -713,14 +714,14 @@ public class LTI3Request {
         if (nonce == null || ListUtils.isEmpty(ltiNonce)) {
             return "Nonce = null in the JWT or in the session.";
         } else {
-
+            // Really, we send the hash of the nonce to the platform.
             for (String nonceStored:ltiNonce) {
                 String nonceHash = Hashing.sha256()
                         .hashString(nonceStored, StandardCharsets.UTF_8)
                         .toString();
                 if (nonce.equals(nonceHash)) {
                     found = true;
-                } else {
+                } else { //If not found, we add it to another list... so we keep the unused nonces.
                     ltiNonceNew.add(nonceStored);
                 }
             }

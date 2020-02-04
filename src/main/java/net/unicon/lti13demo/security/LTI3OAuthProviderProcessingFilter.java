@@ -72,12 +72,14 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException,
             ServletException {
 
+        // We filter all the LTI queries (not the launch) with this filter.
         if (!(servletRequest instanceof HttpServletRequest)) {
             throw new IllegalStateException("LTI request MUST be an HttpServletRequest (cannot only be a ServletRequest)");
         }
 
         try {
 
+            // This is just for logging.
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
             Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
             log.info("-------------------------------------------------------------------------------------------------------");
@@ -88,27 +90,35 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             }
             log.info("-------------------------------------------------------------------------------------------------------");
 
-            //First we validate that the state is a good state. If good we retrieve the right key to process the JWT.
-            // This is not a requirement in LTI, it is just a way to do it that I've implemented, but each one can use the
-            // state in a different way. It can be just an ID pointing to some DB info... it doesn't need to be JWT at all.
+            // First we validate that the state is a good state.
+
+            //First, we make sure that the query has an state
             String state = httpServletRequest.getParameter("state");
             if (httpServletRequest.getSession().getAttribute("lti_state") == null){
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
+            //Second, as the state is something that we have created, it should be in our list of states.
             List ltiState = (List)httpServletRequest.getSession().getAttribute("lti_state");
             if (!ltiState.contains(state)) {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
-
+            //Third, we validate the state to be sure that is correct
             Jws<Claims> stateClaims = ltijwtService.validateState(state);
 
-            //Once we have the state validated we have the key to check the JWT signature from the id_token,
+            // Once we have the state validated we need the key to check the JWT signature from the id_token,
             // and extract all the values in the LTI3Request object.
+            // Most of the platforms will provide a JWK repo URL and we will have it stored in configuration,
+            // where they store the public keys
+            // With that URL and the "kid" in the header of the jwt id_token, we can get the public key too.
+            // In our tool we have included a alternative mechanism for those platforms without JWK endpoint
+            // The state provides us the way to find that key in our repo. This is not a requirement in LTI, it is just a way to do it that we've implemented, but each one can use the
+            // state in a different way.
             String jwt = httpServletRequest.getParameter("id_token");
             if (StringUtils.hasText(jwt)) {
+                //Now we validate the JWT token
                 Jws<Claims> jws= ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
                 if (jws != null) {
-                    //Here we create the LTI3Request and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
+                    //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
                     LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true); // IllegalStateException if invalid
                     httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one

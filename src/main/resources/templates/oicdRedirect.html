@@ -50,8 +50,12 @@
             <span th:text="${initiation_dto.ltiMessageHint}"/>
         </li>
         <li class="list-group-item list-group-item-primary">
-            <label>deployment_id:</label>
-            <span th:text="${deployment_id}"/>
+            <label>client_id (received):</label>
+            <span th:text="${client_id_received}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>lti_deployment_id (received):</label>
+            <span th:text="${deployment_id_received}"/>
         </li>
     </ul>
 </div>

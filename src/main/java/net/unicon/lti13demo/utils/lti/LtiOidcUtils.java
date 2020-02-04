@@ -45,7 +45,7 @@ public class LtiOidcUtils {
      * @param loginInitiationDTO
      * @return
      */
-    public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String deploymentId) throws GeneralSecurityException, IOException {
+    public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
         Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId("OWNKEY",true));
@@ -64,7 +64,8 @@ public class LtiOidcUtils {
                     .claim("loginHint", loginInitiationDTO.getLoginHint())
                     .claim("ltiMessageHint", loginInitiationDTO.getLtiMessageHint())
                     .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
-                    .claim("deploymentId", deploymentId)
+                    .claim("clientId", clientIdValue)
+                    .claim("ltiDeploymentId", deploymentIdValue)
                     .claim("controller", "/oidc/login_initiations")
                     .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
                     .compact();

@@ -49,16 +49,26 @@ public class LTI3Controller {
     @RequestMapping({"", "/"})
     public String home(HttpServletRequest req, Principal principal, Model model) {
 
+        //First we will get the state, validate it
         String state = req.getParameter("state");
         Enumeration<String> sessionAtributes = req.getSession().getAttributeNames();
         try {
             Jws<Claims> claims = ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance();
-            //Checking that the deploymentId in the status matches the one coming with the ltiRequest.
-            if (!claims.getBody().get("deploymentId").equals(lti3Request.getLtiDeploymentId())) {
+            // This is just an extra check that we have added, but it is not necessary.
+            // Checking that the clientId in the status matches the one coming with the ltiRequest.
+            if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
+                model.addAttribute("Error", " Bad Client Id");
+                return "lti3Error";
+            }
+            // This is just an extra check that we have added, but it is not necessary.
+            // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
+            if (!claims.getBody().get("LtiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
                 model.addAttribute("Error", " Bad Deployment Id");
                 return "lti3Error";
             }
+            //We add the request to the model so it can be displayed. But, in a real application, we would start
+            // processing it here to generate the right answer.
             model.addAttribute("lTI3Request", lti3Request);
             if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
                 return "lti3DeepLink";

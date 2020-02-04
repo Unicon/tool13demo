@@ -22,22 +22,29 @@ public class LoginInitiationDTO {
     private String loginHint;
     private String targetLinkUri;
     private String ltiMessageHint;
+    private String clientId;
+    private String deploymentId;
 
     public LoginInitiationDTO() {
     }
 
-    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint) {
+    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId) {
         this.iss = iss;
         this.loginHint = loginHint;
         this.targetLinkUri = targetLinkUri;
         this.ltiMessageHint = ltiMessageHint;
+        this.clientId = clientId;
+        this.deploymentId = deploymentId;
     }
 
     public LoginInitiationDTO(HttpServletRequest req) {
         this(req.getParameter("iss"),
                 req.getParameter("login_hint"),
                 req.getParameter("target_link_uri"),
-                req.getParameter("lti_message_hint"));
+                req.getParameter("lti_message_hint"),
+                req.getParameter("client_id"),
+                req.getParameter("lti_deployment_id")
+                );
     }
 
     public String getIss() {
@@ -70,5 +77,21 @@ public class LoginInitiationDTO {
 
     public void setLtiMessageHint(String ltiMessageHint) {
         this.ltiMessageHint = ltiMessageHint;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
     }
 }

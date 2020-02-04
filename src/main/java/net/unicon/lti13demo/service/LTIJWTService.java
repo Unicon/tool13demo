@@ -62,7 +62,7 @@ public class LTIJWTService {
      * @param state
      * @return
      */
-    //TODO: Add other checks like expiration of the state.
+    //Here we could add other checks like expiration of the state (not implemented)
     public Jws<Claims> validateState(String state) {
         return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
                 // This is done because each state is signed with a different key based on the issuer... so
@@ -91,8 +91,6 @@ public class LTIJWTService {
             }
         }).parseClaimsJws(state);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
-        // TODO: Here is the point to check other things in the state if we want it.
-
     }
 
 
@@ -117,6 +115,7 @@ public class LTIJWTService {
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(clientId).get(0);
 
+                    // If the platform has a JWK Set endpoint... we try that.
                     if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
@@ -129,7 +128,7 @@ public class LTIJWTService {
                             log.error("Kid not found in header",ex);
                             return null;
                         }
-                    } else {
+                    } else { // If not, we get the key stored in our configuration
                         Optional<RSAKeyEntity> rsaKey = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false));
                         if (rsaKey.isPresent()) {
                            return OAuthUtils.loadPublicKey(rsaKey.get().getPublicKey());
