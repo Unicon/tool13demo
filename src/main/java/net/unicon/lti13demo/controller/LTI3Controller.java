@@ -14,6 +14,8 @@
  */
 package net.unicon.lti13demo.controller;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.LtiStrings;
@@ -50,8 +52,13 @@ public class LTI3Controller {
         String state = req.getParameter("state");
         Enumeration<String> sessionAtributes = req.getSession().getAttributeNames();
         try {
-            ltijwtService.validateState(state);
+            Jws<Claims> claims = ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance();
+            //Checking that the deploymentId in the status matches the one coming with the ltiRequest.
+            if (!claims.getBody().get("deploymentId").equals(lti3Request.getLtiDeploymentId())) {
+                model.addAttribute("Error", " Bad Deployment Id");
+                return "lti3Error";
+            }
             model.addAttribute("lTI3Request", lti3Request);
             if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
                 return "lti3DeepLink";

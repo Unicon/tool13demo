@@ -29,6 +29,8 @@ public interface PlatformDeploymentRepository extends JpaRepository<PlatformDepl
 
     List<PlatformDeployment> findByDeploymentId(String deploymentId);
 
+    List<PlatformDeployment> findByIssAndDeploymentId(String iss, String deploymentId);
+
     List<PlatformDeployment> findByToolKid(String keyId);
 
     List<PlatformDeployment> findByPlatformKid(String keyId);

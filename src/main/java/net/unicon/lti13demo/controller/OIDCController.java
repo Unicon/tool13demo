@@ -75,19 +75,27 @@ public class OIDCController {
     public String loginInitiations(HttpServletRequest req, Model model) {
 
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
-        // Search for the configuration for that issuer
-        List<PlatformDeployment> platformDeploymentListEntityList = platformDeploymentRepository.findByIss(loginInitiationDTO.getIss());
+        List<PlatformDeployment> platformDeploymentListEntityList = new ArrayList<>();
+        String deploymentId = req.getParameter("deployment_id");
+        if (deploymentId != null){
+           platformDeploymentListEntityList = platformDeploymentRepository.findByIssAndDeploymentId(loginInitiationDTO.getIss(), deploymentId);
+        } else {
+            //deployment_id should come in the url
+            model.addAttribute("Error","Deployment_id is null");
+            return "lti3Error";
+        }
         // We deal with some possible errors
         if (platformDeploymentListEntityList.isEmpty()) {  //If we don't have configuration
-            model.addAttribute("error_type","iss_nonexisting");
-            return "error";
+            model.addAttribute("Error","Iss/deploymentId pair doesn't exist");
+            return "lti3Error";
         } else {
-            // If we have more than one configuration for the same iss, at this moment we don't know about the client id, so we just pick the first one
+            // We should not have more than one in the list. So we get the first (and unique) result.
             PlatformDeployment lti3KeyEntity = platformDeploymentListEntityList.get(0);
             try {
-                Map<String, String> parameters = generateAuthRequestPayload(lti3KeyEntity, loginInitiationDTO);
+                Map<String, String> parameters = generateAuthRequestPayload(lti3KeyEntity, loginInitiationDTO, deploymentId);
                 model.addAllAttributes(parameters);
                 model.addAttribute("initiation_dto", loginInitiationDTO);
+                model.addAttribute("deployment_id", deploymentId);
                 HttpSession session = req.getSession();
                 List<String> stateList;
                 List<String> nonceList;
@@ -140,7 +148,7 @@ public class OIDCController {
      * @param loginInitiationDTO
      * @return
      */
-    private Map<String, String> generateAuthRequestPayload (PlatformDeployment platformDeployment, LoginInitiationDTO loginInitiationDTO) throws  GeneralSecurityException, IOException{
+    private Map<String, String> generateAuthRequestPayload (PlatformDeployment platformDeployment, LoginInitiationDTO loginInitiationDTO, String deploymentId) throws  GeneralSecurityException, IOException{
 
         Map<String, String> authRequestMap =  new HashMap<>();
         authRequestMap.put("client_id", platformDeployment.getClientId()); //As it came from the Platform
@@ -157,7 +165,7 @@ public class OIDCController {
         authRequestMap.put("response_mode", formPost); //Always this value
         authRequestMap.put("response_type", idToken); //Always this value
         authRequestMap.put("scope", openId);  //Always this value
-        String state = LtiOidcUtils.generateState(ltiDataService, platformDeployment, authRequestMap,loginInitiationDTO);
+        String state = LtiOidcUtils.generateState(ltiDataService, platformDeployment, authRequestMap,loginInitiationDTO, deploymentId);
         authRequestMap.put("state",state); //The state we use later to retrieve some useful information about the OICD request.
         authRequestMap.put("oicdEndpoint", platformDeployment.getOidcEndpoint());  //For the post
         authRequestMap.put("oicdEndpointComplete",generateCompleteUrl(authRequestMap));  //For the GET with all the query string parameters
