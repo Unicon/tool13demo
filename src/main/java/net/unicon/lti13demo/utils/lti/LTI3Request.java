@@ -441,7 +441,7 @@ public class LTI3Request {
 
         // A sample that shows how we can store some of this in the session
         HttpSession session = this.httpServletRequest.getSession();
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, aud);
+        session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
 
         // Surely we need a more elaborated code here based in the huge amount of roles avaliable.
