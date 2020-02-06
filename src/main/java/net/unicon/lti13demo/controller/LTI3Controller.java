@@ -63,7 +63,7 @@ public class LTI3Controller {
             }
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
-            if (!claims.getBody().get("LtiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
+            if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
                 model.addAttribute("Error", " Bad Deployment Id");
                 return "lti3Error";
             }

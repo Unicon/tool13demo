@@ -77,56 +77,57 @@ public class DatabasePreload {
 
             PlatformDeployment iss1 = new PlatformDeployment();
             iss1.setClientId("Ddbo123456");
-            iss1.setIss("https://sakai.org");
+            iss1.setIss("https://lti-ri.imsglobal.org/platforms/89/authorizations/new");
+            iss1.setoAuth2TokenUrl("https://lti-ri.imsglobal.org/platforms/281/access_tokens");
+            iss1.setJwksEndpoint("https://lti-ri.imsglobal.org/platforms/281/platform_keys/736.json");
             String iss2PublicKey = "-----BEGIN PUBLIC KEY-----" +
-                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwuvy1UpBbEzUF0C56CoA" +
-                    "m14BuBpUJGrJTTpSLbi4rS0xnUgAohkri9CRexbjpPNjbAYaSi4/171T2eHlfAi4" +
-                    "Qsv33jEdWgL8HfqFLqN09rHpxhBqWA8sFTARWgA1k7Ti/VeGclx41asCNxUnv0W+" +
-                    "mDeyOBSiox6cyx04LZlxs0MkmGBP1Xf4Saq8wGaBI/lUwY52aGtveMkvH/xN8DNQ" +
-                    "dk7Li9Q0tj3MCtpI7LE2c2h95Zl/DndDNrRAdHYgOdZg9EQcfiuWdRtUxufkdMoZ" +
-                    "mVoYDo7H96tulDMudC0JB0MvaOnnb+MU9jIVuvQkvrZ0jhGmTx8K0gvz2QAgWw6/" +
-                    "mwIDAQAB" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAycS0mTNqPHDF9oiuuhnL" +
+                    "4jt7qE3YGh70GW8xipQoI4aO3TZTe/jdzRz3wgS12x+FZ1b1mENVQG+Og6r1jOuO" +
+                    "QyNwH8UTvilUBTbxGVbXFLhQNM9hKuPfuEnzE0ALv4nMFXY6961bp2CvrwrI54bk" +
+                    "3VyBWDFB1o2Y4jtwtOMBoMpzunxWiaJLJRa1HAtVt0ZqFFFtlYfpZiUok3PEAhxE" +
+                    "EDvINjhzVkuYbSDjJ/HGm5PcE1HxlMKRzWT4px6vwmKyrAKnsK2mGtnBc3RwT3RS" +
+                    "gJvt0jKhBfkAGhv0J/+e2rVdSvnFMk7A+FvYzgQxmpOHiDDwSUdpcUyT49f6mHsw" +
+                    "AQIDAQAB" +
                     "-----END PUBLIC KEY-----";
-            iss1.setOidcEndpoint("https://lti-ri.imsglobal.org/platforms/89/authorizations/new");
+            iss1.setOidcEndpoint("https://lti-ri.imsglobal.org/platforms/281/authorizations/new");
             iss1.setDeploymentId("0002");
             iss1.setToolKid("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g");
             iss1.setPlatformKid("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g");
-            String tool2PrivateString = "-----BEGIN PRIVATE KEY-----" +
-                    "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC2QJCkV2gFoQD2" +
-                    "z7dQRq7g5qIxPaZJJZAJ07wPxdAJiyuWbo0bMOvH//5IqmOnUdal7iNYtDKwr9Cx" +
-                    "6UMqI34q6b080GPypyl058vR7Z31ZNv9d4csp81DJxW9UcSkuqTWbEDRvoHUXJLt" +
-                    "mhO+CokQSkS2oM1mWQeV1r3T73zPUsUq/QinK8SgGamFb+TbWQOIbqCymKwnt0no" +
-                    "2Vg7bqfelkAWXAIMBo9WoiNDiT7v3Ns7Fu8NJ64stXSYC8zzmTWbiUkx06SbJOKz" +
-                    "H0HC9NqZmeOwcDyStXYt6mVJg+bOtpctuikCZIkYeJuEwWkR9LqvAdoCs1kVnq8k" +
-                    "F1alNd35AgMBAAECggEALBamZvs2ENaIEyzgnazbtVBVwC+3wE4z8Aymm/Iwh36B" +
-                    "Rtzrib5l63YEH7QIc3uav31CU70T3iZKCB/zvYfkh6EPxFxtMVA6+Srx5ZDj+28w" +
-                    "wLpfmu/k+e/ElI3pUihMpAqAC71YTvUuHgh96iVGTwiIYt23kqDK8vaF6XUv7j8h" +
-                    "D1do+4eX9oZM03dqh2cZfC1z+xdhiEQzEOSu7qcNhml6d/rpS0EkILnmBekA1adw" +
-                    "UuaS/FQzcbggScSGtL2WL6CFB1gl82IGhJALqRASfRGWlkmlnTQ1fzYZdLLvWKlG" +
-                    "MM1mWu3zmOGxNSKQwpEHlxDpSxemFAf7RkgavA5EeQKBgQDihvyG1Ba9xtW9jO80" +
-                    "BPCpvyCmpX0SlhlP7kYKtZHqkEKd+SOvfzN8fxi/5BNRXnMmJFN3Mkc2sYssMzTx" +
-                    "MABii2e6r02AwkLUBu2DX5O/qauCbVlhr1LtvMbKTw6jnJYpGkZMqnTTS/933DPD" +
-                    "8xa8AsckFMsXiGRs9OpFpOF+cwKBgQDN9uUVbarh3o6xx4pABNp3QDLQeqllUlsr" +
-                    "Z4JqX26MELE1hA5qaccaLMtSY5Pq8Qh36tQJhZFAYz3isxvEhhIkAZZKmKi9MKDK" +
-                    "lf+u7vYWfpNYxUPwpB9ZRM4UCcquY24/FgKucorQI0KwYqOTJX2whKDBjiurINA2" +
-                    "x658s5TK4wKBgAQqQThla+mfX0y166wELzyfxATsZAlUczCyC92kiwNKFb971jki" +
-                    "2JqAZ78XfXdwiiN4ZYR6iy6pQwrUAjQxEsC9GXIoSP+GEt59Jh7VQg0zHHEwe4U9" +
-                    "SQQQBYOwwm8lsOkej45XUACWlCLrDJScwp1AW9MBAt7y5g3OzwPqzS6bAoGAFoVO" +
-                    "mz84liX9uFa3OTTOpodwhvdCmn+c1GwnCHaS4eHZXp6n7N7QFH6dZM7al6/vWx1k" +
-                    "Pf5K2Z2AYM9w09ZNGX7K7jEvEjDFBCHOqVQbuG3yspwvR5rKirpJRkujy9m3blJ7" +
-                    "zJNdtlCEtEC03hwVWD3ITiG7iKS336WJ4LzKIj0CgYBhhcvs9rnEx0pbMPyw3eK+" +
-                    "v2utJ02u3MsWmynJbvjqTSwZhRfBlDA2uzOLvPUNNOWiGjExCrAe+fFkuO8l72wu" +
-                    "T8RzsVTPwN9uKZOlm/sHd7KtETaMXRM94mT/uisQ9QahX48tw/c4miu+Sv2xWwQ1" +
-                    "sNJ4OXzO/tir0uLgMp6XcA==" +
-                    "-----END PRIVATE KEY-----";
+            String tool2PrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
+                    "MIIEpAIBAAKCAQEA1emJEYJebrnPAvrAf6FDCQAOldKF3W+LY8i91L3NvUPgrkKs" +
+                    "PjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig1k2bMmNHMgRGISf1rvgMEJA1k9Ri" +
+                    "GxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjrHmHmIzfZGsJG/i1AZ7EKOER90cxQ" +
+                    "G3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9D6xjlSTuk1V3uJbtEH4q2Zid8fA8" +
+                    "aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiyycVjI6LTTmzI4IB9Dkt6QS3jzxft" +
+                    "+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5EGQIDAQABAoIBAE0oUneNVbCMtv21" +
+                    "IrAmo75gVeJ2sDBiJp4Ub1yIJejJzgYtKGG9LsN0Cyh8Ar+bFQ+8Z7EsOKGRpfdu" +
+                    "qNrOjw0dqwguxSRmZEFbX4QAFqH20kyDQ+vPEykOVYnL76CvQxzrOWfGtFtYxfZx" +
+                    "Kc2jA6PO3ir/3wCG6QKPofaE5lHKwcpPfacV+1LL7I+NXa1uGzg5aZ2wKH7j2A3R" +
+                    "6BJvflwbHFJtDFbicFBtb11ZtHKX6qhMo6Keum/vDglGJam07nPEcCtT+WtPPhF9" +
+                    "yKVeMCbXlI9QxcdMyCpQSGt2Sm/8YO5zabnnyZVlws9SBqq5Zd3M520UHC8BQ4aY" +
+                    "kjFZ5P0CgYEA8erlhZyYNZysAv4HwynPSAdcY5W1nImQMvGm3NN2cBPs2fevl560" +
+                    "DeQn1G+60LGsYRpCl8aVok+mF9rc5yXsl823vB2NQu6/DoT4f753bt6sF6WlqkV5" +
+                    "9Cun3DToXxDU9IfcSEge21b4FxMYmwleSmtVfiB8p6n3qDrOoYB+mzMCgYEA4l1M" +
+                    "TsXBdJpQ2tU8mIA6HUDlzp7bnlrDWJzoZA+0rMGZZCZZ0D9V0icF3ht7oVMYqGY8" +
+                    "ROUDfYJbq7qHbcUOgog8Furs25+iNAM5nlcEsaowdz6kqPxFm2U2Koc0aQSWToPo" +
+                    "RLzL6ejggRacXRua5nUwnv8Vx3oKT7eua88fw4MCgYEA1BWZmNRbQI0U5B6u0XNj" +
+                    "DIOfhJKoQA79wxvFrM0ahVGCkOirISJ6Ob9vB7fYMMPDGvH5tbPcVQq80ycGCQNf" +
+                    "cwpf7OR/hlFmYCVE8kEZ1bITbzvCjA8SxnRLWitsGIPaHnLJNPk9TA/nudr89FZ3" +
+                    "Ooj0z3lNr3O78dl0c3QCCq8CgYEA23TaUxBUMqidNNtAqRS/wra1VXEbuFWER7ev" +
+                    "cbrsTgRPoxGvRz7wBBMDFEcOv+Og5zpeuehRTu//0ei//YLrQ0+y+gD+axpDlit+" +
+                    "Q+1XRquZ2zGnT5FsJnCkZ+y2ug3RbwNhPqrPAtJcPapfI8FslnsNDUh+o+rEbm7E" +
+                    "sg6XW+MCgYBDEQpTlxjBg6ulpfMkZ69SCJ00MFrNwVHbkDNMjLmjfYsstqYgJMUT" +
+                    "A/TVaslSL07p12NgjKcAQ4I1uoVM9CREiXLXN+RvXr8OfIvgsrpcwZ45/Vni/vLo" +
+                    "xDXNkg2Lf9/J5A4d/ibZCuZYoqapdjVIJ5L13Wo540Md7zLDKHyB9w==" +
+                    "-----END RSA PRIVATE KEY-----";
             String tool2PublicString ="-----BEGIN PUBLIC KEY-----" +
-                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtkCQpFdoBaEA9s+3UEau" +
-                    "4OaiMT2mSSWQCdO8D8XQCYsrlm6NGzDrx//+SKpjp1HWpe4jWLQysK/QselDKiN+" +
-                    "Kum9PNBj8qcpdOfL0e2d9WTb/XeHLKfNQycVvVHEpLqk1mxA0b6B1FyS7ZoTvgqJ" +
-                    "EEpEtqDNZlkHlda90+98z1LFKv0IpyvEoBmphW/k21kDiG6gspisJ7dJ6NlYO26n" +
-                    "3pZAFlwCDAaPVqIjQ4k+79zbOxbvDSeuLLV0mAvM85k1m4lJMdOkmyTisx9BwvTa" +
-                    "mZnjsHA8krV2LeplSYPmzraXLbopAmSJGHibhMFpEfS6rwHaArNZFZ6vJBdWpTXd" +
-                    "+QIDAQAB" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1emJEYJebrnPAvrAf6FD" +
+                    "CQAOldKF3W+LY8i91L3NvUPgrkKsPjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig" +
+                    "1k2bMmNHMgRGISf1rvgMEJA1k9RiGxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjr" +
+                    "HmHmIzfZGsJG/i1AZ7EKOER90cxQG3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9" +
+                    "D6xjlSTuk1V3uJbtEH4q2Zid8fA8aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiy" +
+                    "ycVjI6LTTmzI4IB9Dkt6QS3jzxft+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5E" +
+                    "GQIDAQAB" +
                     "-----END PUBLIC KEY-----";
             rsaKeyRepository.saveAndFlush(new RSAKeyEntity("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g",true, tool2PublicString,tool2PrivateString));
             rsaKeyRepository.saveAndFlush(new RSAKeyEntity("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g",false, iss2PublicKey,null));
