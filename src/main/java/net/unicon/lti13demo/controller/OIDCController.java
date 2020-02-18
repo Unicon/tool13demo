@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -120,6 +119,12 @@ public class OIDCController {
         }
         // If we have arrived here, it means that we have only one result (as expected)
         PlatformDeployment lti3KeyEntity = platformDeploymentListEntityList.get(0);
+        if (clientIdValue == null) {
+            clientIdValue = lti3KeyEntity.getClientId();
+        }
+        if (deploymentIdValue == null) {
+            deploymentIdValue =lti3KeyEntity.getDeploymentId();
+        }
         try {
             // We are going to create the OIDC request,
             Map<String, String> parameters = generateAuthRequestPayload(lti3KeyEntity, loginInitiationDTO, clientIdValue, deploymentIdValue);

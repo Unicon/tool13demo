@@ -16,7 +16,7 @@
 -->
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
 <head>
     <title>LTI 3 </title>
@@ -25,8 +25,13 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
-<h4>Lti 3 was succesful and we have this: </h4>
+<h4>Lti 3 was succesful and we have this content: </h4>
 
+<div>
+    <span th:text="${htmlContent}"/>
+</div>
+<p>&nbsp;</p>
+<h4>And this is the LTI Request received: </h4>
 
 <div>
 <ul class="list-group">

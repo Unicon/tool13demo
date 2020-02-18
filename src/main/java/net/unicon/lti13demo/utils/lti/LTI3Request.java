@@ -26,23 +26,22 @@ import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.config.ApplicationConfig;
-import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.LtiLinkEntity;
 import net.unicon.lti13demo.model.LtiMembershipEntity;
 import net.unicon.lti13demo.model.LtiResultEntity;
 import net.unicon.lti13demo.model.LtiUserEntity;
+import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.service.LTIDataService;
-import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import net.unicon.lti13demo.utils.LtiStrings;
+import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
-
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -195,10 +194,10 @@ public class LTI3Request {
     /**
      * @return the current LTI3Request object if there is one available, null if there isn't one and this is not a valid LTI3 based request
      */
-    public static synchronized LTI3Request getInstance() {
+    public static synchronized LTI3Request getInstance(String linkId) {
         LTI3Request ltiRequest = null;
         try {
-            ltiRequest = getInstanceOrDie();
+            ltiRequest = getInstanceOrDie(linkId);
         } catch (Exception e) {
             //Nothing to do here
         }
@@ -209,7 +208,7 @@ public class LTI3Request {
      * @return the current LTI3Request object if there is one available
      * @throws IllegalStateException if the LTI3Request cannot be obtained
      */
-    public static LTI3Request getInstanceOrDie() {
+    public static LTI3Request getInstanceOrDie(String linkId) {
         ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest req = sra.getRequest();
         if (req == null) {
@@ -226,7 +225,7 @@ public class LTI3Request {
             }
             try {
                 if (ltiDataService != null) {
-                    ltiRequest = new LTI3Request(req, ltiDataService, true);
+                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId);
                 } else { //THIS SHOULD NOT HAPPEN
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
@@ -246,7 +245,7 @@ public class LTI3Request {
      * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
      * @throws IllegalStateException if this is not an LTI request
      */
-    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update) {
+    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId) {
         if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
@@ -298,15 +297,20 @@ public class LTI3Request {
         }
         log.info("-------------------------------------------------------------------------------------------------------");
 
-        //Now we are going to check the if the nonce is valid.
-        String checkNonce = checkNonce(jws);
-        if (!checkNonce.equals("true")) {
-            throw new IllegalStateException("Nonce error: " + checkNonce);
-        }
         //We check that the LTI request is a valid LTI Request and has the right type.
         String isLTI3Request = isLTI3Request(jws);
         if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
+        }
+        //Now we are going to check the if the nonce is valid.
+        String checkNonce = checkNonce(jws);
+        // THIS IF IS HERE BECAUSE THE IMS REFERENCE IMPLEMENTATION TOOL
+        // IS NOT RETURNING THE RIGHT NONCE WHEN DEEP LINKING.
+        // TODO: REMOVE THIS IF when the problem is solved. And move it again before the LTI Request valid code.
+        if(!isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING) && this.getIss().equals("https://lti-ri.imsglobal.org/platforms/89/authorizations/new")) {
+            if (!checkNonce.equals("true")) {
+                throw new IllegalStateException("Nonce error: " + checkNonce);
+            }
         }
         //Here we will populate the LTI3Request object
         String processRequestParameters = processRequestParameters(request,jws);
@@ -314,11 +318,16 @@ public class LTI3Request {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
         // We update the database in case we have new values. (New users, new resources...etc)
-        if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+        if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
             //Load data from DB related with this request and update it if needed with the new values.
-            ltiDataService.loadLTIDataFromDB(this);
+            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(this.aud).get(0);
+            ltiDataService.loadLTIDataFromDB(this, linkId);
             if (update) {
-                ltiDataService.updateLTIDataInDB(this);
+                if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
+                } else {
+                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
+                }
             }
         }
     }

@@ -14,6 +14,8 @@
  */
 package net.unicon.lti13demo.utils.lti;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti13demo.model.PlatformDeployment;
@@ -68,10 +70,11 @@ public class DeepLinkUtils {
                     .compact();
 
             deepLinkJwtMap.put("jwt1",jwt1);
+
         //JWT 2: One link
 
 
-
+            List<Map<String,Object>> oneDeepLink = createOneDeepLink();
             String jwt2 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
                     .setIssuer(platformDeployment.getClientId())  //Client ID
@@ -84,14 +87,15 @@ public class DeepLinkUtils {
                     .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
                     .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
                     .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items", createOneDeepLink())
+                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items", oneDeepLink)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
             deepLinkJwtMap.put("jwt2",jwt2);
+            deepLinkJwtMap.put("jwt2Map",listMapToJson(oneDeepLink));
 
         //JWT 3: More than one link
-
+            List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink();
             String jwt3 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
                     .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
@@ -104,12 +108,14 @@ public class DeepLinkUtils {
                     .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
                     .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
                     .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",createMultipleDeepLink())
+                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",multipleDeepLink)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
 
             deepLinkJwtMap.put("jwt3",jwt3);
+            deepLinkJwtMap.put("jwt3Map",listMapToJson(multipleDeepLink));
+
 
             return deepLinkJwtMap;
         } else {
@@ -117,47 +123,25 @@ public class DeepLinkUtils {
         }
     }
 
-    static Map<String,Object> createOneDeepLink() {
+    static List<Map<String,Object>> createOneDeepLink() {
+        List<Map<String,Object>> deepLinks = new ArrayList<>();
         Map<String,Object> deepLink = new HashMap<>();
 
-        deepLink.put("type","link");
-        deepLink.put("title","My Home Page");
-        deepLink.put("url","https://something.example.com/page.html");
+        deepLink.put("type","ltiResourceLink");
+        deepLink.put("title","My test link");
+        deepLink.put("url","https://localhost:9090/lti3?link=1234");
 
-        Map<String,Object> icon = new HashMap<>();
-        icon.put("url","link");
-        icon.put("width",new Integer("100"));
-        icon.put("height",new Integer("100"));
-        deepLink.put("icon",icon);
-
-        Map<String,Object> thumbnail = new HashMap<>();
-        icon.put("url","link");
-        icon.put("width",new Integer("90"));
-        icon.put("height",new Integer("90"));
-
-
-        deepLink.put("thumbnail",thumbnail);
-
-        return deepLink;
+        deepLinks.add(deepLink);
+        return deepLinks;
 
 
     }
 
 
     static List<Map<String,Object>> createMultipleDeepLink() {
-        List<Map<String,Object>> deepLinks = new ArrayList<>();
-
-        deepLinks.add(createOneDeepLink());
-
-
-        Map<String,Object> deepLinkHtml = new HashMap<>();
-        deepLinkHtml.put("type","html");
-        deepLinkHtml.put("html","<h1>A Custom Title</h1>");
-        deepLinks.add(deepLinkHtml);
-
+        List<Map<String,Object>> deepLinks = createOneDeepLink();
 
         Map<String,Object> deepLink2 = new HashMap<>();
-
         deepLink2.put("type","link");
         deepLink2.put("url","https://www.youtube.com/watch?v=corV3-WsIro");
 
@@ -175,62 +159,12 @@ public class DeepLinkUtils {
         iframe.put("width",new Integer("560"));
         iframe.put("height",new Integer("315"));
         deepLink2.put("iframe",iframe);
-
         deepLinks.add(deepLink2);
 
-        Map<String,Object> deepLinkImage = new HashMap<>();
-        deepLinkHtml.put("type","image");
-
-        Map<String,Object> resourceMetadata = new HashMap<>();
-        resourceMetadata.put("url","https://www.example.com/image.png");
-        deepLinkImage.put("https://www.example.com/resourceMetadata",resourceMetadata);
-        deepLinks.add(deepLinkImage);
-
-
         Map<String,Object> ltiResourceLink = new HashMap<>();
-
         ltiResourceLink.put("type","ltiResourceLink");
-        ltiResourceLink.put("title","A title");
-        ltiResourceLink.put("url","https://lti.example.com/launchMe");
-
-        Map<String,Object> presentation = new HashMap<>();
-        presentation.put("documentTarget","iframe");
-        presentation.put("width",new Integer("500"));
-        presentation.put("height",new Integer("600"));
-        ltiResourceLink.put("presentation",presentation);
-
-        Map<String,Object> icon2 = new HashMap<>();
-        icon2.put("url","https://lti.example.com/image.jpg");
-        icon2.put("width",new Integer("100"));
-        icon2.put("height",new Integer("100"));
-        ltiResourceLink.put("icon",icon2);
-
-        Map<String,Object> thumbnail2 = new HashMap<>();
-        thumbnail2.put("url","https://lti.example.com/thumb.jpg");
-        thumbnail2.put("width",new Integer("90"));
-        thumbnail2.put("height",new Integer("90"));
-        ltiResourceLink.put("thumbnail",thumbnail2);
-
-        Map<String,Object> lineitem = new HashMap<>();
-        lineitem.put("label","Chapter 12 quiz");
-        lineitem.put("scoreMaximum",new Long("87"));
-        lineitem.put("resourceId","xyzpdq1234");
-        lineitem.put("tag","originality");
-        ltiResourceLink.put("lineitem",lineitem);
-
-        Map<String,Object> custom = new HashMap<>();
-        custom.put("quiz_id","az-123");
-        custom.put("duedate","$Resource.submission.endDateTime");
-        ltiResourceLink.put("custom",custom);
-
-        Map<String,Object> window2 = new HashMap<>();
-        window2.put("targetName","examplePublisherContent");
-        ltiResourceLink.put("window",window2);
-
-        Map<String,Object> iframe2 = new HashMap<>();
-        iframe2.put("width",new Integer("890"));
-        ltiResourceLink.put("iframe",iframe2);
-
+        ltiResourceLink.put("title","Another deep link");
+        ltiResourceLink.put("url","https://localhost:9090/lti3?link=4567");
         deepLinks.add(ltiResourceLink);
 
 
@@ -242,14 +176,19 @@ public class DeepLinkUtils {
         deepLinkFilr.put("expiresAt","2018-03-06T20:05:02Z");
         deepLinks.add(deepLinkFilr);
 
-        Map<String,Object> deepLinkCustom = new HashMap<>();
-        ltiResourceLink.put("type","https://www.example.com/custom_type");
-        ltiResourceLink.put("data","somedata");
-        deepLinks.add(deepLinkCustom);
-
-
         return deepLinks;
     }
 
+    private static String listMapToJson(List<Map<String,Object>> listMap){
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(listMap);
+            return json;
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 
 }

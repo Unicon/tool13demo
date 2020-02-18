@@ -14,7 +14,6 @@
  */
 package net.unicon.lti13demo.config;
 
-import net.unicon.lti13demo.repository.ConfigRepository;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

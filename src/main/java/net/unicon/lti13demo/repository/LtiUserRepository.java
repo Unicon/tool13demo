@@ -15,10 +15,13 @@
 package net.unicon.lti13demo.repository;
 
 import net.unicon.lti13demo.model.LtiUserEntity;
+import net.unicon.lti13demo.model.PlatformDeployment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface LtiUserRepository extends JpaRepository<LtiUserEntity, Long> {
+
+    LtiUserEntity findByUserKeyAndPlatformDeployment(String linkKey, PlatformDeployment platformDeployment);
 
 }

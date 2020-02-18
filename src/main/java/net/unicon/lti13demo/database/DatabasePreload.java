@@ -327,7 +327,7 @@ public class DatabasePreload {
             platformDeploymentRepository.saveAndFlush(iss7);
 
             // create our sample user
-            LtiUserEntity user = ltiUserRepository.saveAndFlush(new LtiUserEntity("azeckoski", null));
+            LtiUserEntity user = ltiUserRepository.saveAndFlush(new LtiUserEntity("azeckoski", null, null));
             ltiUserRepository.saveAndFlush(user);
         }
     }

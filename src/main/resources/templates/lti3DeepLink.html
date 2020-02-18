@@ -16,7 +16,7 @@
 -->
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
 <head>
     <title>LTI 3 </title>
@@ -25,8 +25,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
-<h4>Lti 3 was succesful and we have this: </h4>
-
+<h4>Lti 3 was successful and we have this: </h4>
 
 <div>
 <ul class="list-group">
@@ -101,25 +100,37 @@
 </div>
 <p>&nbsp;</p>
 
+<div>
+   <label><strong>JW1 content:</strong></label>
+   JW1 is Empty.
+</div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
-        <label for="JWT">item1:</label>
+        <label for="JWT">Item1:</label>
         <input type="text" id="JWT" name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt1')}" class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
 
-
+<p>&nbsp;</p>
+<div>
+    <label><strong>JW2 content:</strong></label>
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+</div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
-        <label for="JWT2">item2:</label>
+        <label for="JWT2">Item2:</label>
         <input type="text" id="JWT2"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt2')}" class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
 
 
-
+<p>&nbsp;</p>
+<div>
+    <label><strong>JW2 content:</strong></label>
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+</div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT2">item3:</label>
