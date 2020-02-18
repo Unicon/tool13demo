@@ -128,7 +128,7 @@
 
 <p>&nbsp;</p>
 <div>
-    <label><strong>JW2 content:</strong></label>
+    <label><strong>JW3 content:</strong></label>
     [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
