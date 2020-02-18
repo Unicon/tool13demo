@@ -66,6 +66,10 @@ public class LtiUserEntity extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<LtiResultEntity> results;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "key_id", referencedColumnName = "key_id", nullable = true)
+    private PlatformDeployment platformDeployment;
+
     protected LtiUserEntity() {
     }
 
@@ -73,10 +77,13 @@ public class LtiUserEntity extends BaseEntity {
      * @param userKey user identifier
      * @param loginAt date of user login
      */
-    public LtiUserEntity(String userKey, Date loginAt) {
+    public LtiUserEntity(String userKey, Date loginAt, PlatformDeployment platformDeployment1) {
         if (!StringUtils.isNotBlank(userKey)) throw new AssertionError();
         if (loginAt == null) {
             loginAt = new Date();
+        }
+        if (platformDeployment1 != null) {
+            this.platformDeployment = platformDeployment1;
         }
         this.userKey = userKey;
         this.loginAt = new Timestamp(loginAt.getTime());
@@ -152,6 +159,14 @@ public class LtiUserEntity extends BaseEntity {
 
     public void setResults(Set<LtiResultEntity> results) {
         this.results = results;
+    }
+
+    public PlatformDeployment getPlatformDeployment() {
+        return platformDeployment;
+    }
+
+    public void setPlatformDeployment(PlatformDeployment platformDeployment) {
+        this.platformDeployment = platformDeployment;
     }
 
     @Override

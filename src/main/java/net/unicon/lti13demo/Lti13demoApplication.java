@@ -15,6 +15,7 @@
 package net.unicon.lti13demo;
 
 import net.unicon.lti13demo.security.WebSecurityConfig;
+import org.h2.server.web.WebServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -23,8 +24,6 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-
-import org.h2.server.web.WebServlet;
 
 @SpringBootApplication( exclude = {SecurityAutoConfiguration.class} )
 @Import(WebSecurityConfig.class)

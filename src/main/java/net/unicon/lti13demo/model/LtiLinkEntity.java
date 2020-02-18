@@ -117,6 +117,18 @@ public class LtiLinkEntity extends BaseEntity {
         this.results = results;
     }
 
+
+    public String createHtmlFromLink() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Link Requested:\n");
+        sb.append("Link Key:");
+        sb.append(linkKey);
+        sb.append("\nLink Title:");
+        sb.append(title);
+        sb.append("\n");
+        return sb.toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -15,6 +15,7 @@
 package net.unicon.lti13demo.repository;
 
 import net.unicon.lti13demo.model.LtiContextEntity;
+import net.unicon.lti13demo.model.PlatformDeployment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +30,7 @@ public interface LtiContextRepository extends JpaRepository<LtiContextEntity, Lo
      * @return the LtiContextEntity OR null if there is no entity matching this key
      */
     LtiContextEntity findByContextKey(String key);
+    LtiContextEntity findByContextKeyAndPlatformDeployment(String contextKey, PlatformDeployment platformDeployment);
 
     /**
      * @param key the unique key

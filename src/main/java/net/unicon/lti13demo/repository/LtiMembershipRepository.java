@@ -14,11 +14,15 @@
  */
 package net.unicon.lti13demo.repository;
 
+import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.LtiMembershipEntity;
+import net.unicon.lti13demo.model.LtiUserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 public interface LtiMembershipRepository extends JpaRepository<LtiMembershipEntity, Long> {
+
+    LtiMembershipEntity findByUserAndContext(LtiUserEntity user, LtiContextEntity context);
 
 }

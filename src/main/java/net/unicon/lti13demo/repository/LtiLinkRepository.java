@@ -14,11 +14,19 @@
  */
 package net.unicon.lti13demo.repository;
 
+import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.LtiLinkEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Transactional
 public interface LtiLinkRepository extends JpaRepository<LtiLinkEntity, Long> {
+
+    List<LtiLinkEntity> findByLinkKey(String linkKey);
+
+    List<LtiLinkEntity> findByLinkKeyAndContext(String linkKey, LtiContextEntity context);
+
 
 }

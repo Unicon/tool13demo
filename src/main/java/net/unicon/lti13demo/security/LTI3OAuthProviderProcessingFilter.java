@@ -34,7 +34,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -94,6 +93,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
             //First, we make sure that the query has an state
             String state = httpServletRequest.getParameter("state");
+            String link = httpServletRequest.getParameter("link");
             if (httpServletRequest.getSession().getAttribute("lti_state") == null){
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
@@ -120,7 +120,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 if (jws != null) {
                     //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
-                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true); // IllegalStateException if invalid
+                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, link); // IllegalStateException if invalid
                     httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one
                     httpServletRequest.setAttribute("lti3_valid", lti3Request.isLoaded() && lti3Request.isComplete()); // is LTI3 request totally valid and complete
                     httpServletRequest.setAttribute("lti3_message_type", lti3Request.getLtiMessageType()); // is LTI3 request totally valid and complete
