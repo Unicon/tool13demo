@@ -134,6 +134,66 @@ public class DatabasePreload {
 
             platformDeploymentRepository.saveAndFlush(iss1);
 
+            PlatformDeployment iss1b = new PlatformDeployment();
+            iss1b.setClientId("Ddbo123456");
+            iss1b.setIss("https://lti-ri.imsglobal.org/platforms/774");
+            iss1b.setoAuth2TokenUrl("https://lti-ri.imsglobal.org/platforms/774/access_tokens");
+            iss1b.setJwksEndpoint("https://lti-ri.imsglobal.org/platforms/774/platform_keys/796.json");
+            String iss1bPublicKey = "-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAycS0mTNqPHDF9oiuuhnL" +
+                    "4jt7qE3YGh70GW8xipQoI4aO3TZTe/jdzRz3wgS12x+FZ1b1mENVQG+Og6r1jOuO" +
+                    "QyNwH8UTvilUBTbxGVbXFLhQNM9hKuPfuEnzE0ALv4nMFXY6961bp2CvrwrI54bk" +
+                    "3VyBWDFB1o2Y4jtwtOMBoMpzunxWiaJLJRa1HAtVt0ZqFFFtlYfpZiUok3PEAhxE" +
+                    "EDvINjhzVkuYbSDjJ/HGm5PcE1HxlMKRzWT4px6vwmKyrAKnsK2mGtnBc3RwT3RS" +
+                    "gJvt0jKhBfkAGhv0J/+e2rVdSvnFMk7A+FvYzgQxmpOHiDDwSUdpcUyT49f6mHsw" +
+                    "AQIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+            iss1b.setOidcEndpoint("https://lti-ri.imsglobal.org/platforms/774/authorizations/new");
+            iss1b.setDeploymentId("0002");
+            iss1b.setToolKid("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g");
+            iss1b.setPlatformKid("hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g");
+            String tool1bPrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
+                    "MIIEpAIBAAKCAQEA1emJEYJebrnPAvrAf6FDCQAOldKF3W+LY8i91L3NvUPgrkKs" +
+                    "PjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig1k2bMmNHMgRGISf1rvgMEJA1k9Ri" +
+                    "GxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjrHmHmIzfZGsJG/i1AZ7EKOER90cxQ" +
+                    "G3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9D6xjlSTuk1V3uJbtEH4q2Zid8fA8" +
+                    "aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiyycVjI6LTTmzI4IB9Dkt6QS3jzxft" +
+                    "+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5EGQIDAQABAoIBAE0oUneNVbCMtv21" +
+                    "IrAmo75gVeJ2sDBiJp4Ub1yIJejJzgYtKGG9LsN0Cyh8Ar+bFQ+8Z7EsOKGRpfdu" +
+                    "qNrOjw0dqwguxSRmZEFbX4QAFqH20kyDQ+vPEykOVYnL76CvQxzrOWfGtFtYxfZx" +
+                    "Kc2jA6PO3ir/3wCG6QKPofaE5lHKwcpPfacV+1LL7I+NXa1uGzg5aZ2wKH7j2A3R" +
+                    "6BJvflwbHFJtDFbicFBtb11ZtHKX6qhMo6Keum/vDglGJam07nPEcCtT+WtPPhF9" +
+                    "yKVeMCbXlI9QxcdMyCpQSGt2Sm/8YO5zabnnyZVlws9SBqq5Zd3M520UHC8BQ4aY" +
+                    "kjFZ5P0CgYEA8erlhZyYNZysAv4HwynPSAdcY5W1nImQMvGm3NN2cBPs2fevl560" +
+                    "DeQn1G+60LGsYRpCl8aVok+mF9rc5yXsl823vB2NQu6/DoT4f753bt6sF6WlqkV5" +
+                    "9Cun3DToXxDU9IfcSEge21b4FxMYmwleSmtVfiB8p6n3qDrOoYB+mzMCgYEA4l1M" +
+                    "TsXBdJpQ2tU8mIA6HUDlzp7bnlrDWJzoZA+0rMGZZCZZ0D9V0icF3ht7oVMYqGY8" +
+                    "ROUDfYJbq7qHbcUOgog8Furs25+iNAM5nlcEsaowdz6kqPxFm2U2Koc0aQSWToPo" +
+                    "RLzL6ejggRacXRua5nUwnv8Vx3oKT7eua88fw4MCgYEA1BWZmNRbQI0U5B6u0XNj" +
+                    "DIOfhJKoQA79wxvFrM0ahVGCkOirISJ6Ob9vB7fYMMPDGvH5tbPcVQq80ycGCQNf" +
+                    "cwpf7OR/hlFmYCVE8kEZ1bITbzvCjA8SxnRLWitsGIPaHnLJNPk9TA/nudr89FZ3" +
+                    "Ooj0z3lNr3O78dl0c3QCCq8CgYEA23TaUxBUMqidNNtAqRS/wra1VXEbuFWER7ev" +
+                    "cbrsTgRPoxGvRz7wBBMDFEcOv+Og5zpeuehRTu//0ei//YLrQ0+y+gD+axpDlit+" +
+                    "Q+1XRquZ2zGnT5FsJnCkZ+y2ug3RbwNhPqrPAtJcPapfI8FslnsNDUh+o+rEbm7E" +
+                    "sg6XW+MCgYBDEQpTlxjBg6ulpfMkZ69SCJ00MFrNwVHbkDNMjLmjfYsstqYgJMUT" +
+                    "A/TVaslSL07p12NgjKcAQ4I1uoVM9CREiXLXN+RvXr8OfIvgsrpcwZ45/Vni/vLo" +
+                    "xDXNkg2Lf9/J5A4d/ibZCuZYoqapdjVIJ5L13Wo540Md7zLDKHyB9w==" +
+                    "-----END RSA PRIVATE KEY-----";
+            String tool1bPublicString ="-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1emJEYJebrnPAvrAf6FD" +
+                    "CQAOldKF3W+LY8i91L3NvUPgrkKsPjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig" +
+                    "1k2bMmNHMgRGISf1rvgMEJA1k9RiGxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjr" +
+                    "HmHmIzfZGsJG/i1AZ7EKOER90cxQG3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9" +
+                    "D6xjlSTuk1V3uJbtEH4q2Zid8fA8aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiy" +
+                    "ycVjI6LTTmzI4IB9Dkt6QS3jzxft+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5E" +
+                    "GQIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("354a0d626b1523a193e5",true, tool1bPublicString,tool1bPrivateString));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("354a0d626b1523a193e5",false, iss1bPublicKey,null));
+
+            platformDeploymentRepository.saveAndFlush(iss1b);
+
+
             PlatformDeployment iss2 = new PlatformDeployment();
             iss2.setClientId("imstestuser");
             iss2.setIss("ltiadvantagevalidator.imsglobal.org");

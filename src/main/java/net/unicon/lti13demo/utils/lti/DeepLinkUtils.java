@@ -44,7 +44,7 @@ public class DeepLinkUtils {
 
      * @return
      */
-    public static Map<String,String> generateDeepLinkJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request) throws GeneralSecurityException, IOException {
+    public static Map<String,String> generateDeepLinkJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request, String localUrl) throws GeneralSecurityException, IOException {
 
         Map deepLinkJwtMap = new HashMap<>();
         Date date = new Date();
@@ -74,7 +74,7 @@ public class DeepLinkUtils {
         //JWT 2: One link
 
 
-            List<Map<String,Object>> oneDeepLink = createOneDeepLink();
+            List<Map<String,Object>> oneDeepLink = createOneDeepLink(localUrl);
             String jwt2 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
                     .setIssuer(platformDeployment.getClientId())  //Client ID
@@ -95,7 +95,7 @@ public class DeepLinkUtils {
             deepLinkJwtMap.put("jwt2Map",listMapToJson(oneDeepLink));
 
         //JWT 3: More than one link
-            List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink();
+            List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
             String jwt3 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
                     .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
@@ -123,13 +123,13 @@ public class DeepLinkUtils {
         }
     }
 
-    static List<Map<String,Object>> createOneDeepLink() {
+    static List<Map<String,Object>> createOneDeepLink(String localUrl) {
         List<Map<String,Object>> deepLinks = new ArrayList<>();
         Map<String,Object> deepLink = new HashMap<>();
 
         deepLink.put("type","ltiResourceLink");
         deepLink.put("title","My test link");
-        deepLink.put("url","https://localhost:9090/lti3?link=1234");
+        deepLink.put("url",localUrl + "?link=1234");
 
         deepLinks.add(deepLink);
         return deepLinks;
@@ -138,8 +138,8 @@ public class DeepLinkUtils {
     }
 
 
-    static List<Map<String,Object>> createMultipleDeepLink() {
-        List<Map<String,Object>> deepLinks = createOneDeepLink();
+    static List<Map<String,Object>> createMultipleDeepLink(String localUrl) {
+        List<Map<String,Object>> deepLinks = createOneDeepLink(localUrl);
 
         Map<String,Object> deepLink2 = new HashMap<>();
         deepLink2.put("type","link");
@@ -164,7 +164,7 @@ public class DeepLinkUtils {
         Map<String,Object> ltiResourceLink = new HashMap<>();
         ltiResourceLink.put("type","ltiResourceLink");
         ltiResourceLink.put("title","Another deep link");
-        ltiResourceLink.put("url","https://localhost:9090/lti3?link=4567");
+        ltiResourceLink.put("url",localUrl + "?link=4567");
         deepLinks.add(ltiResourceLink);
 
 

@@ -480,7 +480,7 @@ public class LTI3Request {
             correct = (isCorrect.equals("true"));
             // NOTE: This is just to hardcode some demo information.
             try {
-                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0), this);
+                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0), this, ltiTargetLinkUrl);
             } catch (GeneralSecurityException ex) {
                 log.error("Error creating the DeepLinking Response",ex);
             } catch (IOException ex) {
