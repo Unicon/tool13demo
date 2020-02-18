@@ -307,7 +307,7 @@ public class LTI3Request {
         // THIS IF IS HERE BECAUSE THE IMS REFERENCE IMPLEMENTATION TOOL
         // IS NOT RETURNING THE RIGHT NONCE WHEN DEEP LINKING.
         // TODO: REMOVE THIS IF when the problem is solved. And move it again before the LTI Request valid code.
-        if(!isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING) && this.getIss().equals("https://lti-ri.imsglobal.org/platforms/89/authorizations/new")) {
+        if(!isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
             if (!checkNonce.equals("true")) {
                 throw new IllegalStateException("Nonce error: " + checkNonce);
             }
