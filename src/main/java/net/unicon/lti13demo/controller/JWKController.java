@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Serving the public key of the tool
+ * Serving the public key of the tool.
  */
 @Controller
 @Scope("session")
