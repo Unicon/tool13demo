@@ -75,6 +75,7 @@ public class DatabasePreload {
                     getOwnPublicKey(),
                     getOwnPrivateKey()));
 
+            //Reference Implementation IMS
             PlatformDeployment iss1 = new PlatformDeployment();
             iss1.setClientId("Ddbo123456");
             iss1.setIss("https://lti-ri.imsglobal.org/platforms/89/authorizations/new");
@@ -134,6 +135,7 @@ public class DatabasePreload {
 
             platformDeploymentRepository.saveAndFlush(iss1);
 
+            //Reference Implementation IMS
             PlatformDeployment iss1b = new PlatformDeployment();
             iss1b.setClientId("Ddbo123456");
             iss1b.setIss("https://lti-ri.imsglobal.org/platforms/774");
@@ -193,17 +195,17 @@ public class DatabasePreload {
 
             platformDeploymentRepository.saveAndFlush(iss1b);
 
-
+            //Certification IMS
             PlatformDeployment iss2 = new PlatformDeployment();
-            iss2.setClientId("imstestuser");
-            iss2.setIss("ltiadvantagevalidator.imsglobal.org");
+            iss2.setClientId("imstester_320416f");
+            iss2.setIss("https://ltiadvantagevalidator.imsglobal.org");
             iss2.setJwksEndpoint("https://oauth2server.imsglobal.org/jwks");
             String iss3PublicKey = "";
             iss2.setOidcEndpoint("https://ltiadvantagevalidator.imsglobal.org/ltitool/oidcauthurl.html");
             iss2.setoAuth2TokenUrl("https://oauth2server.imsglobal.org/oauth2server/authcodejwt");
             iss2.setDeploymentId("testdeploy");
-            iss2.setToolKid("imstester_4");
-            iss2.setPlatformKid("imstester_4");
+            iss2.setToolKid("imstester_320416f");
+            iss2.setPlatformKid("imstester_320416f");
             String tool3PrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
                     "MIIEowIBAAKCAQEAsW3eobPIj5LsyHcMGckVSSC621uL+0zkeMoWfXfNmvTH+zt5" +
                     "WOeEIdz+X7fK+F+lO7ic5WdJEGmp9/cjAf0Z6SsmnvvHlHV/xsWtJm4DiuuF2MAa" +
@@ -232,11 +234,11 @@ public class DatabasePreload {
                     "ojAnnRJORDegdJjCBxJ59Fch6Qfd+e8742DVsJu8zVo2garUVMH3" +
                     "-----END RSA PRIVATE KEY-----";
             String tool3PublicKey ="";
-            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("imstester_4",true, tool3PublicKey,tool3PrivateString));
-            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("imstester_4",false, iss3PublicKey,null));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("imstester_320416f",true, tool3PublicKey,tool3PrivateString));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("imstester_320416f",false, iss3PublicKey,null));
             platformDeploymentRepository.saveAndFlush(iss2);
 
-
+            //blackboard developer instance
             PlatformDeployment iss5 = new PlatformDeployment();
             iss5.setClientId("6482545f-91ec-4e33-8d9c-96f069995312");
             iss5.setIss("https://blackboard.com");
@@ -281,52 +283,111 @@ public class DatabasePreload {
 
             platformDeploymentRepository.saveAndFlush(iss5);
 
-
+            //Canvas Unicon
             PlatformDeployment iss6 = new PlatformDeployment();
-            iss6.setClientId("97140000000000039");
+            iss6.setClientId("97140000000000049");
             iss6.setIss("https://canvas.instructure.com");
             String iss6PublicKey = "";
-            iss6.setJwksEndpoint("https://unicon.beta.instructure.com/api/lti/security/jwks");
-            iss6.setoAuth2TokenUrl("https://unicon.beta.instructure.com/api/lti/authorize");
-            iss6.setOidcEndpoint("https://unicon.beta.instructure.com/api/lti/authorize");
-            iss6.setDeploymentId("129:abe5b442f7a9c8b74990d5e9fddaa4eb7d662850");
-            iss6.setToolKid("97140000000000039");
-            iss6.setPlatformKid("97140000000000039");
-            String tool6PrivateString = "-----BEGIN PRIVATE KEY-----" +
-                    "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC2QJCkV2gFoQD2" +
-                    "z7dQRq7g5qIxPaZJJZAJ07wPxdAJiyuWbo0bMOvH//5IqmOnUdal7iNYtDKwr9Cx" +
-                    "6UMqI34q6b080GPypyl058vR7Z31ZNv9d4csp81DJxW9UcSkuqTWbEDRvoHUXJLt" +
-                    "mhO+CokQSkS2oM1mWQeV1r3T73zPUsUq/QinK8SgGamFb+TbWQOIbqCymKwnt0no" +
-                    "2Vg7bqfelkAWXAIMBo9WoiNDiT7v3Ns7Fu8NJ64stXSYC8zzmTWbiUkx06SbJOKz" +
-                    "H0HC9NqZmeOwcDyStXYt6mVJg+bOtpctuikCZIkYeJuEwWkR9LqvAdoCs1kVnq8k" +
-                    "F1alNd35AgMBAAECggEALBamZvs2ENaIEyzgnazbtVBVwC+3wE4z8Aymm/Iwh36B" +
-                    "Rtzrib5l63YEH7QIc3uav31CU70T3iZKCB/zvYfkh6EPxFxtMVA6+Srx5ZDj+28w" +
-                    "wLpfmu/k+e/ElI3pUihMpAqAC71YTvUuHgh96iVGTwiIYt23kqDK8vaF6XUv7j8h" +
-                    "D1do+4eX9oZM03dqh2cZfC1z+xdhiEQzEOSu7qcNhml6d/rpS0EkILnmBekA1adw" +
-                    "UuaS/FQzcbggScSGtL2WL6CFB1gl82IGhJALqRASfRGWlkmlnTQ1fzYZdLLvWKlG" +
-                    "MM1mWu3zmOGxNSKQwpEHlxDpSxemFAf7RkgavA5EeQKBgQDihvyG1Ba9xtW9jO80" +
-                    "BPCpvyCmpX0SlhlP7kYKtZHqkEKd+SOvfzN8fxi/5BNRXnMmJFN3Mkc2sYssMzTx" +
-                    "MABii2e6r02AwkLUBu2DX5O/qauCbVlhr1LtvMbKTw6jnJYpGkZMqnTTS/933DPD" +
-                    "8xa8AsckFMsXiGRs9OpFpOF+cwKBgQDN9uUVbarh3o6xx4pABNp3QDLQeqllUlsr" +
-                    "Z4JqX26MELE1hA5qaccaLMtSY5Pq8Qh36tQJhZFAYz3isxvEhhIkAZZKmKi9MKDK" +
-                    "lf+u7vYWfpNYxUPwpB9ZRM4UCcquY24/FgKucorQI0KwYqOTJX2whKDBjiurINA2" +
-                    "x658s5TK4wKBgAQqQThla+mfX0y166wELzyfxATsZAlUczCyC92kiwNKFb971jki" +
-                    "2JqAZ78XfXdwiiN4ZYR6iy6pQwrUAjQxEsC9GXIoSP+GEt59Jh7VQg0zHHEwe4U9" +
-                    "SQQQBYOwwm8lsOkej45XUACWlCLrDJScwp1AW9MBAt7y5g3OzwPqzS6bAoGAFoVO" +
-                    "mz84liX9uFa3OTTOpodwhvdCmn+c1GwnCHaS4eHZXp6n7N7QFH6dZM7al6/vWx1k" +
-                    "Pf5K2Z2AYM9w09ZNGX7K7jEvEjDFBCHOqVQbuG3yspwvR5rKirpJRkujy9m3blJ7" +
-                    "zJNdtlCEtEC03hwVWD3ITiG7iKS336WJ4LzKIj0CgYBhhcvs9rnEx0pbMPyw3eK+" +
-                    "v2utJ02u3MsWmynJbvjqTSwZhRfBlDA2uzOLvPUNNOWiGjExCrAe+fFkuO8l72wu" +
-                    "T8RzsVTPwN9uKZOlm/sHd7KtETaMXRM94mT/uisQ9QahX48tw/c4miu+Sv2xWwQ1" +
-                    "sNJ4OXzO/tir0uLgMp6XcA==" +
-                    "-----END PRIVATE KEY-----";
-            String tool6PublicString ="";
-            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000039",true, tool6PublicString,tool6PrivateString));
-            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000039",false, iss6PublicKey,null));
+            iss6.setJwksEndpoint("https://unicon.instructure.com/api/lti/security/jwks");
+            iss6.setoAuth2TokenUrl("https://unicon.instructure.com/api/lti/authorize");
+            iss6.setOidcEndpoint("https://unicon.instructure.com/api/lti/authorize");
+            iss6.setDeploymentId("207:5440a08422ab1ee7794a0588b5e4cb4a094c4256");
+            iss6.setToolKid("97140000000000049");
+            iss6.setPlatformKid("97140000000000049");
+            String tool6PrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
+                    "MIIEpAIBAAKCAQEA1emJEYJebrnPAvrAf6FDCQAOldKF3W+LY8i91L3NvUPgrkKs" +
+                    "PjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig1k2bMmNHMgRGISf1rvgMEJA1k9Ri" +
+                    "GxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjrHmHmIzfZGsJG/i1AZ7EKOER90cxQ" +
+                    "G3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9D6xjlSTuk1V3uJbtEH4q2Zid8fA8" +
+                    "aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiyycVjI6LTTmzI4IB9Dkt6QS3jzxft" +
+                    "+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5EGQIDAQABAoIBAE0oUneNVbCMtv21" +
+                    "IrAmo75gVeJ2sDBiJp4Ub1yIJejJzgYtKGG9LsN0Cyh8Ar+bFQ+8Z7EsOKGRpfdu" +
+                    "qNrOjw0dqwguxSRmZEFbX4QAFqH20kyDQ+vPEykOVYnL76CvQxzrOWfGtFtYxfZx" +
+                    "Kc2jA6PO3ir/3wCG6QKPofaE5lHKwcpPfacV+1LL7I+NXa1uGzg5aZ2wKH7j2A3R" +
+                    "6BJvflwbHFJtDFbicFBtb11ZtHKX6qhMo6Keum/vDglGJam07nPEcCtT+WtPPhF9" +
+                    "yKVeMCbXlI9QxcdMyCpQSGt2Sm/8YO5zabnnyZVlws9SBqq5Zd3M520UHC8BQ4aY" +
+                    "kjFZ5P0CgYEA8erlhZyYNZysAv4HwynPSAdcY5W1nImQMvGm3NN2cBPs2fevl560" +
+                    "DeQn1G+60LGsYRpCl8aVok+mF9rc5yXsl823vB2NQu6/DoT4f753bt6sF6WlqkV5" +
+                    "9Cun3DToXxDU9IfcSEge21b4FxMYmwleSmtVfiB8p6n3qDrOoYB+mzMCgYEA4l1M" +
+                    "TsXBdJpQ2tU8mIA6HUDlzp7bnlrDWJzoZA+0rMGZZCZZ0D9V0icF3ht7oVMYqGY8" +
+                    "ROUDfYJbq7qHbcUOgog8Furs25+iNAM5nlcEsaowdz6kqPxFm2U2Koc0aQSWToPo" +
+                    "RLzL6ejggRacXRua5nUwnv8Vx3oKT7eua88fw4MCgYEA1BWZmNRbQI0U5B6u0XNj" +
+                    "DIOfhJKoQA79wxvFrM0ahVGCkOirISJ6Ob9vB7fYMMPDGvH5tbPcVQq80ycGCQNf" +
+                    "cwpf7OR/hlFmYCVE8kEZ1bITbzvCjA8SxnRLWitsGIPaHnLJNPk9TA/nudr89FZ3" +
+                    "Ooj0z3lNr3O78dl0c3QCCq8CgYEA23TaUxBUMqidNNtAqRS/wra1VXEbuFWER7ev" +
+                    "cbrsTgRPoxGvRz7wBBMDFEcOv+Og5zpeuehRTu//0ei//YLrQ0+y+gD+axpDlit+" +
+                    "Q+1XRquZ2zGnT5FsJnCkZ+y2ug3RbwNhPqrPAtJcPapfI8FslnsNDUh+o+rEbm7E" +
+                    "sg6XW+MCgYBDEQpTlxjBg6ulpfMkZ69SCJ00MFrNwVHbkDNMjLmjfYsstqYgJMUT" +
+                    "A/TVaslSL07p12NgjKcAQ4I1uoVM9CREiXLXN+RvXr8OfIvgsrpcwZ45/Vni/vLo" +
+                    "xDXNkg2Lf9/J5A4d/ibZCuZYoqapdjVIJ5L13Wo540Md7zLDKHyB9w==" +
+                    "-----END RSA PRIVATE KEY-----";
+            String tool6PublicString ="-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1emJEYJebrnPAvrAf6FD" +
+                    "CQAOldKF3W+LY8i91L3NvUPgrkKsPjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig" +
+                    "1k2bMmNHMgRGISf1rvgMEJA1k9RiGxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjr" +
+                    "HmHmIzfZGsJG/i1AZ7EKOER90cxQG3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9" +
+                    "D6xjlSTuk1V3uJbtEH4q2Zid8fA8aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiy" +
+                    "ycVjI6LTTmzI4IB9Dkt6QS3jzxft+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5E" +
+                    "GQIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000049",true, tool6PublicString,tool6PrivateString));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000049",false, iss6PublicKey,null));
 
             platformDeploymentRepository.saveAndFlush(iss6);
 
+            //Canvas Unicon Beta (temporal)
+            PlatformDeployment iss6b = new PlatformDeployment();
+            iss6b.setClientId("97140000000000080");
+            iss6b.setIss("https://canvas.beta.instructure.com");
+            String iss6bPublicKey = "";
+            iss6b.setJwksEndpoint("https://unicon.beta.instructure.com/api/lti/security/jwks");
+            iss6b.setoAuth2TokenUrl("https://unicon.beta.instructure.com/api/lti/authorize");
+            iss6b.setOidcEndpoint("https://unicon.beta.instructure.com/api/lti/authorize");
+            iss6b.setDeploymentId("239:5440a08422ab1ee7794a0588b5e4cb4a094c4256");
+            iss6b.setToolKid("97140000000000080");
+            iss6b.setPlatformKid("97140000000000080");
+            String tool6bPrivateString = "-----BEGIN RSA PRIVATE KEY-----" +
+                    "MIIEpAIBAAKCAQEA1emJEYJebrnPAvrAf6FDCQAOldKF3W+LY8i91L3NvUPgrkKs" +
+                    "PjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig1k2bMmNHMgRGISf1rvgMEJA1k9Ri" +
+                    "GxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjrHmHmIzfZGsJG/i1AZ7EKOER90cxQ" +
+                    "G3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9D6xjlSTuk1V3uJbtEH4q2Zid8fA8" +
+                    "aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiyycVjI6LTTmzI4IB9Dkt6QS3jzxft" +
+                    "+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5EGQIDAQABAoIBAE0oUneNVbCMtv21" +
+                    "IrAmo75gVeJ2sDBiJp4Ub1yIJejJzgYtKGG9LsN0Cyh8Ar+bFQ+8Z7EsOKGRpfdu" +
+                    "qNrOjw0dqwguxSRmZEFbX4QAFqH20kyDQ+vPEykOVYnL76CvQxzrOWfGtFtYxfZx" +
+                    "Kc2jA6PO3ir/3wCG6QKPofaE5lHKwcpPfacV+1LL7I+NXa1uGzg5aZ2wKH7j2A3R" +
+                    "6BJvflwbHFJtDFbicFBtb11ZtHKX6qhMo6Keum/vDglGJam07nPEcCtT+WtPPhF9" +
+                    "yKVeMCbXlI9QxcdMyCpQSGt2Sm/8YO5zabnnyZVlws9SBqq5Zd3M520UHC8BQ4aY" +
+                    "kjFZ5P0CgYEA8erlhZyYNZysAv4HwynPSAdcY5W1nImQMvGm3NN2cBPs2fevl560" +
+                    "DeQn1G+60LGsYRpCl8aVok+mF9rc5yXsl823vB2NQu6/DoT4f753bt6sF6WlqkV5" +
+                    "9Cun3DToXxDU9IfcSEge21b4FxMYmwleSmtVfiB8p6n3qDrOoYB+mzMCgYEA4l1M" +
+                    "TsXBdJpQ2tU8mIA6HUDlzp7bnlrDWJzoZA+0rMGZZCZZ0D9V0icF3ht7oVMYqGY8" +
+                    "ROUDfYJbq7qHbcUOgog8Furs25+iNAM5nlcEsaowdz6kqPxFm2U2Koc0aQSWToPo" +
+                    "RLzL6ejggRacXRua5nUwnv8Vx3oKT7eua88fw4MCgYEA1BWZmNRbQI0U5B6u0XNj" +
+                    "DIOfhJKoQA79wxvFrM0ahVGCkOirISJ6Ob9vB7fYMMPDGvH5tbPcVQq80ycGCQNf" +
+                    "cwpf7OR/hlFmYCVE8kEZ1bITbzvCjA8SxnRLWitsGIPaHnLJNPk9TA/nudr89FZ3" +
+                    "Ooj0z3lNr3O78dl0c3QCCq8CgYEA23TaUxBUMqidNNtAqRS/wra1VXEbuFWER7ev" +
+                    "cbrsTgRPoxGvRz7wBBMDFEcOv+Og5zpeuehRTu//0ei//YLrQ0+y+gD+axpDlit+" +
+                    "Q+1XRquZ2zGnT5FsJnCkZ+y2ug3RbwNhPqrPAtJcPapfI8FslnsNDUh+o+rEbm7E" +
+                    "sg6XW+MCgYBDEQpTlxjBg6ulpfMkZ69SCJ00MFrNwVHbkDNMjLmjfYsstqYgJMUT" +
+                    "A/TVaslSL07p12NgjKcAQ4I1uoVM9CREiXLXN+RvXr8OfIvgsrpcwZ45/Vni/vLo" +
+                    "xDXNkg2Lf9/J5A4d/ibZCuZYoqapdjVIJ5L13Wo540Md7zLDKHyB9w==" +
+                    "-----END RSA PRIVATE KEY-----";
+            String tool6bPublicString ="-----BEGIN PUBLIC KEY-----" +
+                    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1emJEYJebrnPAvrAf6FD" +
+                    "CQAOldKF3W+LY8i91L3NvUPgrkKsPjjRO+g0B+sRqKsoWVaN8wZ2j0y+e2YX5+ig" +
+                    "1k2bMmNHMgRGISf1rvgMEJA1k9RiGxWuMeWrP9Aa/nYEs7Wau5dCB0SelGCPHEjr" +
+                    "HmHmIzfZGsJG/i1AZ7EKOER90cxQG3pG8tnQqWNordtxJ7Cqr2/jSAFb5zW++AV9" +
+                    "D6xjlSTuk1V3uJbtEH4q2Zid8fA8aAwaNPvL7QbW5IhrZw/chGxD/z3wHb1VQFiy" +
+                    "ycVjI6LTTmzI4IB9Dkt6QS3jzxft+AkTsJ4250xbCYr2lWsbd1n1+E3uzjipOS5E" +
+                    "GQIDAQAB" +
+                    "-----END PUBLIC KEY-----";
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000080",true, tool6bPublicString,tool6bPrivateString));
+            rsaKeyRepository.saveAndFlush(new RSAKeyEntity("97140000000000080",false, iss6bPublicKey,null));
 
+            platformDeploymentRepository.saveAndFlush(iss6b);
+
+            //Nightly Sakai
             PlatformDeployment iss7 = new PlatformDeployment();
             iss7.setClientId("0722ac4c-70ee-4e5c-bc28-6c825e6e339e");
             iss7.setIss("https://trunk-mysql.nightly.sakaiproject.org");

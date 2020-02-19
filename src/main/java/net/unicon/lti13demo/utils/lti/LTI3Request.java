@@ -39,6 +39,7 @@ import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
@@ -480,7 +481,8 @@ public class LTI3Request {
             correct = (isCorrect.equals("true"));
             // NOTE: This is just to hardcode some demo information.
             try {
-                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0), this, ltiTargetLinkUrl);
+                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0),
+                        this, ltiDataService.getLocalUrl());
             } catch (GeneralSecurityException ex) {
                 log.error("Error creating the DeepLinking Response",ex);
             } catch (IOException ex) {

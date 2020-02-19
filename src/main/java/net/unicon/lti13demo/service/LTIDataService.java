@@ -24,6 +24,7 @@ import net.unicon.lti13demo.utils.lti.LTI3Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,11 @@ public class LTIDataService {
 
     @Autowired
     AllRepositories repos;
+
+    //This will be used to create the deep links. Needs to be in the application properties.
+    //TODO change this to get it automatically.
+    @Value("${application.url}")
+    private String localUrl;
 
     /**
      * Allows convenient access to the DAO repositories which manage the stored LTI data
@@ -272,4 +278,11 @@ public class LTIDataService {
         return lti.getLoadingUpdates();
     }
 
+    public String getLocalUrl() {
+        return localUrl;
+    }
+
+    public void setLocalUrl(String localUrl) {
+        this.localUrl = localUrl;
+    }
 }

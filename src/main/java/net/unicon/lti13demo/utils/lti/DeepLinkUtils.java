@@ -55,6 +55,8 @@ public class DeepLinkUtils {
         // JWT 1:  Empty list of JSON
             String jwt1 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
+                    .setHeaderParam("kid", "000000000000000001")
+                    .setHeaderParam("alg", "RS256")
                     .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
@@ -77,6 +79,8 @@ public class DeepLinkUtils {
             List<Map<String,Object>> oneDeepLink = createOneDeepLink(localUrl);
             String jwt2 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
+                    .setHeaderParam("kid", "000000000000000001")
+                    .setHeaderParam("alg", "RS256")
                     .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
@@ -98,6 +102,8 @@ public class DeepLinkUtils {
             List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
             String jwt3 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
+                    .setHeaderParam("kid", "000000000000000001")
+                    .setHeaderParam("alg", "RS256")
                     .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
@@ -129,7 +135,7 @@ public class DeepLinkUtils {
 
         deepLink.put("type","ltiResourceLink");
         deepLink.put("title","My test link");
-        deepLink.put("url",localUrl + "?link=1234");
+        deepLink.put("url",localUrl + "/lti3?link=1234");
 
         deepLinks.add(deepLink);
         return deepLinks;
@@ -164,7 +170,7 @@ public class DeepLinkUtils {
         Map<String,Object> ltiResourceLink = new HashMap<>();
         ltiResourceLink.put("type","ltiResourceLink");
         ltiResourceLink.put("title","Another deep link");
-        ltiResourceLink.put("url",localUrl + "?link=4567");
+        ltiResourceLink.put("url",localUrl + "/lti3?link=4567");
         deepLinks.add(ltiResourceLink);
 
 
