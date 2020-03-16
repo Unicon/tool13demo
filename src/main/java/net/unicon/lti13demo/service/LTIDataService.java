@@ -148,7 +148,7 @@ public class LTIDataService {
                 log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
             }
         } else if (lti.getContext() != null) {
-            repos.entityManager.merge(lti.getContext()); // reconnect object for this transaction
+            lti.setContext(repos.entityManager.merge(lti.getContext())); // reconnect object for this transaction
             lti.setLtiContextId(lti.getContext().getContextKey());
             log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
         }
@@ -159,7 +159,19 @@ public class LTIDataService {
                 //Link is not in the lti request at this moment. Let's see if it exists:
                 List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link,lti.getContext());
                 if (ltiLinkEntityList.size()==0) {
-                    LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(), lti.getLtiLinkTitle(), null);
+                    //START HARDCODING VALUES
+                    //This is hardcoded because our database is not persistent
+                    //In a normal case, we would had it created previously and this code wouldn't be needed.
+                    String title = lti.getLtiLinkTitle();
+                    Float scoreMax = new Float(0);
+                    if (link.equals("1234")){
+                        title = "My Test Link";
+                        scoreMax =  new Float(50);
+                    } else if (link.equals("1234")){
+                        title = "Another Link";
+                    }
+                    //END HARDCODING VALUES
+                    LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title, scoreMax);
                     lti.setLink(repos.links.save(newLink));
                     inserts++;
                     log.info("LTIupdate: Inserted link id=" + link);
@@ -170,7 +182,7 @@ public class LTIDataService {
                     log.info("LTIupdate: Reconnected existing link id=" + link);
                 }
             } else if (lti.getLink() != null) {
-                repos.entityManager.merge(lti.getLink()); // reconnect object for this transaction
+                lti.setLink(repos.entityManager.merge(lti.getLink())); // reconnect object for this transaction
                 lti.setLtiLinkId(lti.getLink().getLinkKey());
                 log.info("LTIupdate: Reconnected existing link id=" + link);
             }
@@ -195,7 +207,7 @@ public class LTIDataService {
                 log.info("LTIupdate: Reconnected existing user id=" + lti.getSub());
             }
         } else if (lti.getUser() != null) {
-            repos.entityManager.merge(lti.getUser()); // reconnect object for this transaction
+            lti.setUser(repos.entityManager.merge(lti.getUser())); // reconnect object for this transaction
             lti.setSub(lti.getUser().getUserKey());
             lti.setLtiName(lti.getUser().getDisplayName());
             lti.setLtiEmail(lti.getUser().getEmail());
@@ -221,7 +233,7 @@ public class LTIDataService {
                 log.info("LTIupdate: Reconnected existing membership id=" + lti.getMembership().getMembershipId());
             }
         } else if (lti.getMembership() != null) {
-            repos.entityManager.merge(lti.getMembership()); // reconnect object for this transaction
+            lti.setMembership(repos.entityManager.merge(lti.getMembership())); // reconnect object for this transaction
             lti.setSub(lti.getUser().getUserKey());
             lti.setLtiContextId(lti.getContext().getContextKey());
             log.info("LTIupdate: Reconnected existing membership id=" + lti.getMembership().getMembershipId());

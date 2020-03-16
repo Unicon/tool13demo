@@ -41,6 +41,15 @@ import javax.annotation.PostConstruct;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
+    @Autowired
+    @Order(Ordered.HIGHEST_PRECEDENCE + 10)
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
+        auth.inMemoryAuthentication()
+                .withUser("admin").password("admin").roles("ADMIN", "USER")
+                .and().withUser("user").password("user").roles("USER");
+    }
+
     @Order(10) // VERY HIGH
     @Configuration
     public static class OICDAuthConfigurationAdapter extends WebSecurityConfigurerAdapter {

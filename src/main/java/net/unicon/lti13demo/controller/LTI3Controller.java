@@ -82,6 +82,7 @@ public class LTI3Controller {
 
             if (StringUtils.isNotBlank(link)){
                 List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
+                log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());
                 if (linkEntity.size()>0) {
                     model.addAttribute("htmlContent", linkEntity.get(0).createHtmlFromLink());
                 } else {
@@ -95,7 +96,6 @@ public class LTI3Controller {
                 //This should be done AFTER the user selects the link in the content selector, and we are doing it before
                 //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
                 // we create the LtiLinkEntity in our code after that.
-
                 LtiLinkEntity ltiLinkEntity = new LtiLinkEntity("1234", lti3Request.getContext(), "My Test Link", 50f);
                 if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity.getLinkKey(), ltiLinkEntity.getContext()).size()==0) {
                     ltiLinkRepository.save(ltiLinkEntity);
@@ -112,7 +112,6 @@ public class LTI3Controller {
             return "lti3Error";
         }
     }
-
 
 
 }
