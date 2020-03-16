@@ -1,0 +1,14 @@
+{
+  "createdAt": null,
+  "updatedAt": null,
+  "version": 0,
+  "keyId": null,
+  "iss": "https://trunk-mysql.nightly.sakaiproject.org",
+  "clientId": "0722ac4c-70ee-4e5c-bc28-6c825e6e339e",
+  "oidcEndpoint": "https://trunk-mysql.nightly.sakaiproject.org/imsoidc/lti13/oidc_auth",
+  "jwksEndpoint": null,
+  "oAuth2TokenUrl": "https://trunk-mysql.nightly.sakaiproject.org/imsoidc/lti13/oidc_auth",
+  "deploymentId": "1",
+  "toolKid": "472224775",
+  "platformKid": "472224775"
+}
