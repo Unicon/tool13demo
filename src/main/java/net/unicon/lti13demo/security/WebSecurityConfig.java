@@ -46,8 +46,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
-                .withUser("admin").password("admin").roles("ADMIN", "USER")
-                .and().withUser("user").password("user").roles("USER");
+                .withUser("admin").password("{noop}admin").roles("ADMIN", "USER")
+                .and().withUser("user").password("{noop}user").roles("USER");
     }
 
     @Order(10) // VERY HIGH
