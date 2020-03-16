@@ -116,10 +116,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Order(80) // LOWEST
     @Configuration
     public static class NoAuthConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring().antMatchers("/console/**");
-        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

@@ -24,6 +24,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -42,10 +43,10 @@ public class LtiContextEntity extends BaseEntity {
     @Basic
     @Column(name = "title", nullable = true, insertable = true, updatable = true, length = 4096)
     private String title;
-    @Basic
+    @Lob
     @Column(name = "json", nullable = true, insertable = true, updatable = true, length = 65535)
     private String json;
-    @Basic
+    @Lob
     @Column(nullable = true, length = 65535)
     private String settings;
 

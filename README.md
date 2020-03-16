@@ -40,3 +40,17 @@ Debugging
 To enable the debugging port (localhost:5050) when using spring-boot:run, use the maven profile: **-Pdebug**. Then you can attach any remote debugger (eclipse, intellij, etc.) to localhost:8000. NOTE that the application will pause until you connect the debugger to it.
 
     mvn clean install spring-boot:run -Pdebug
+
+Creating the database
+---------
+Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx
+Set the right values in the properties file.
+
+mysql> create database xxDATABASENAMExxx DEFAULT CHARACTER SET utf8 ;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> create user 'xxxuserNamexxx'@'%' identified by 'xxxPasswordxxx';
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> grant all on xxDATABASENAMExxx.* to 'xxxuserNamexxx'@'%';
+Query OK, 0 rows affected (0.00 sec)
