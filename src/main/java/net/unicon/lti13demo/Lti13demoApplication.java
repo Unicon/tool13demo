@@ -15,7 +15,6 @@
 package net.unicon.lti13demo;
 
 import net.unicon.lti13demo.security.WebSecurityConfig;
-import org.h2.server.web.WebServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -34,17 +33,6 @@ public class Lti13demoApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(Lti13demoApplication.class, args);
 	}
-
-    /**
-     * Allows access to the H2 console at: {server}/console/
-     * Enter this as the JDBC URL: jdbc:h2:mem:AZ
-     */
-    @Bean
-    public ServletRegistrationBean h2servletRegistration() {
-        ServletRegistrationBean registration = new ServletRegistrationBean(new WebServlet());
-        registration.addUrlMappings("/console/*");
-        return registration;
-    }
 
 }
 

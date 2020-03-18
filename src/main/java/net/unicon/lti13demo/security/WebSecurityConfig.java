@@ -46,8 +46,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
-                .withUser("admin").password("admin").roles("ADMIN", "USER")
-                .and().withUser("user").password("user").roles("USER");
+                .withUser("admin").password("{noop}admin").roles("ADMIN", "USER")
+                .and().withUser("user").password("{noop}user").roles("USER");
     }
 
     @Order(10) // VERY HIGH
@@ -116,10 +116,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Order(80) // LOWEST
     @Configuration
     public static class NoAuthConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.ignoring().antMatchers("/console/**");
-        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

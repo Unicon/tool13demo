@@ -149,7 +149,30 @@ public class ConfigurationController {
         }
     }
 
-    //TODO add the PUT and POST for the keys
+
+    @RequestMapping(value = "toolkey/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<RSAKeyEntity> updateToolKey(@PathVariable("id") long id, @RequestBody RSAKeyEntity rsaKeyEntity) {
+        log.info("Updating Key with id {}", id);
+
+        RSAKeyId key = new RSAKeyId(Long.toString(id), true);
+        Optional<RSAKeyEntity> keySearchResult = keyRepository.findById(key);
+
+        if (!keySearchResult.isPresent()) {
+            log.error("Unable to update. tool key with id {} not found.", id);
+            return new ResponseEntity("Unable to upate. Tool key with id " + id + " not found.",
+                    HttpStatus.NOT_FOUND);
+        }
+        RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();
+        rSAKeyEntityTochange.setPublicKey(rsaKeyEntity.getPublicKey());
+        rSAKeyEntityTochange.setPrivateKey(rsaKeyEntity.getPrivateKey());
+        rSAKeyEntityTochange.setKid(rsaKeyEntity.getKid());
+
+
+        keyRepository.saveAndFlush(rSAKeyEntityTochange);
+        return new ResponseEntity<>(rSAKeyEntityTochange, HttpStatus.OK);
+    }
+
+
 
     @RequestMapping(value = "platformkey/{id}", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
@@ -166,5 +189,24 @@ public class ConfigurationController {
         }
     }
 
-    //TODO add the PUT and POST for the keys
+    @RequestMapping(value = "platformkey/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<RSAKeyEntity> updatePlatformKey(@PathVariable("id") long id, @RequestBody RSAKeyEntity rsaKeyEntity) {
+        log.info("Updating Key with id {}", id);
+
+        RSAKeyId key = new RSAKeyId(Long.toString(id), false);
+        Optional<RSAKeyEntity> keySearchResult = keyRepository.findById(key);
+
+        if (!keySearchResult.isPresent()) {
+            log.error("Unable to update. Platform key with id {} not found.", id);
+            return new ResponseEntity("Unable to upate. Platform key with id " + id + " not found.",
+                    HttpStatus.NOT_FOUND);
+        }
+        RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();
+        rSAKeyEntityTochange.setPublicKey(rsaKeyEntity.getPublicKey());
+        rSAKeyEntityTochange.setPrivateKey(rsaKeyEntity.getPrivateKey());
+        rSAKeyEntityTochange.setKid(rsaKeyEntity.getKid());
+
+        keyRepository.saveAndFlush(rSAKeyEntityTochange);
+        return new ResponseEntity<>(rSAKeyEntityTochange, HttpStatus.OK);
+    }
 }

@@ -167,7 +167,7 @@ public class LTIDataService {
                     if (link.equals("1234")){
                         title = "My Test Link";
                         scoreMax =  new Float(50);
-                    } else if (link.equals("1234")){
+                    } else if (link.equals("4567")){
                         title = "Another Link";
                     }
                     //END HARDCODING VALUES

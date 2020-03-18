@@ -1,0 +1,11 @@
+{
+    "createdAt": null,
+    "updatedAt": null,
+    "version": 0,
+    "kid": {
+        "kid": "6482545f-91ec-4e33-8d9c-96f069995312",
+        "tool": false
+    },
+    "publicKey": null,
+    "privateKey": null
+}

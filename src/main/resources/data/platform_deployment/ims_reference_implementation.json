@@ -1,0 +1,14 @@
+{
+  "createdAt": null,
+  "updatedAt": null,
+  "version": 0,
+  "keyId": null,
+  "iss": "https://lti-ri.imsglobal.org/platforms/89/authorizations/new",
+  "clientId": "Ddbo123456",
+  "oidcEndpoint": "https://lti-ri.imsglobal.org/platforms/281/authorizations/new",
+  "jwksEndpoint": "https://lti-ri.imsglobal.org/platforms/281/platform_keys/736.json",
+  "oAuth2TokenUrl": "https://lti-ri.imsglobal.org/platforms/281/access_tokens",
+  "deploymentId": "0002",
+  "toolKid": "hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g",
+  "platformKid": "hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g"
+}
