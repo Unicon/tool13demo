@@ -7,7 +7,7 @@
   "clientId": "97140000000000049",
   "oidcEndpoint": "https://unicon.instructure.com/api/lti/authorize",
   "jwksEndpoint": "https://unicon.instructure.com/api/lti/security/jwks",
-  "oAuth2TokenUrl":"https://unicon.instructure.com/api/lti/authorize",
+  "oAuth2TokenUrl":"https://unicon.instructure.com/login/oauth2/auth",
   "deploymentId": "207:5440a08422ab1ee7794a0588b5e4cb4a094c4256",
   "toolKid": "97140000000000049",
   "platformKid": "97140000000000049"

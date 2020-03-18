@@ -137,11 +137,15 @@ public class LTIDataService {
             //Context is not in the lti request at this moment. Let's see if it exists:
             LtiContextEntity ltiContextEntity = repos.contexts.findByContextKeyAndPlatformDeployment(lti.getLtiContextId(), platformDeployment);
             if (ltiContextEntity==null) {
-                LtiContextEntity newContext = new LtiContextEntity(lti.getLtiContextId(), lti.getKey(), lti.getLtiContextTitle(), null);
+                LtiContextEntity newContext = new LtiContextEntity(lti.getLtiContextId(), lti.getKey(), lti.getLtiContextTitle(), lti.getLtiNamesRoleServiceContextMembershipsUrl(), lti.getLtiEndpointLineItems(), null);
                 lti.setContext(repos.contexts.save(newContext));
                 inserts++;
                 log.info("LTIupdate: Inserted context id=" + lti.getLtiContextId());
             } else {
+                //Update values from the request.
+                ltiContextEntity.setTitle(lti.getLtiContextTitle());
+                ltiContextEntity.setContext_memberships_url(lti.getLtiNamesRoleServiceContextMembershipsUrl());
+                ltiContextEntity.setLineitems(lti.getLtiEndpointLineItems());
                 lti.setContext(ltiContextEntity);
                 repos.entityManager.merge(lti.getContext()); // reconnect object for this transaction
                 lti.setLtiContextId(lti.getContext().getContextKey());

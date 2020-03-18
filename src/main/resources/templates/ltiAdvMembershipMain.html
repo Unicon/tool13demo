@@ -1,0 +1,95 @@
+<!--
+
+    Copyright 2019 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag -->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+<head>
+    <title>LTI 3 </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<h4>Membership: </h4>
+<p>&nbsp;</p>
+<h4>Contexts available for this user: </h4>
+<div>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">COURSE NAME</th>
+            <th scope="col">CONTEXT ID</th>
+            <th scope="col">ENROLLMENTS</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="context : ${contexts}">
+            <td scope="row" th:text="${context.title}"></td>
+            <td th:text="${context.contextKey}"></td>
+            <td><a th:href="@{/membership/{dK}/context/{cK}(dK=${deploymentKey},cK=${context.contextKey})}">Enrollments</a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:if="${results != null and !#lists.isEmpty(results)}">
+    <h4>Users </h4>
+    <table class="table table-striped">
+    <thead class="thead-dark">
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Name</th>
+        <th scope="col">userId</th>
+        <th scope="col">Role</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user,rowStat : ${results}">
+        <td scope="row" th:text="${rowStat.count}">1</td>
+        <td th:text="${user.name}"></td>
+        <td th:text="${user.userId}"></td>
+        <td th:text="${#strings.listJoin(user.roles,', ')}"></td>
+    </tr>
+    </tbody>
+    </table>
+</div>
+
+<div th:if="${results != null and #lists.isEmpty(results)}">
+    <p>We have no results for this context</p>
+</div>
+<p>&nbsp;</p>
+
+
+<h4>SESSION</h4>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>user_id</strong></label>
+            <span th:text="${#session.getAttribute('user_id')}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>user_role</strong></label>
+            <span th:text="${#session.getAttribute('user_role')}"/>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
