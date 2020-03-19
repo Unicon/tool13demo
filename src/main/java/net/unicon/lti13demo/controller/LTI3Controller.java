@@ -18,6 +18,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti13demo.model.LtiLinkEntity;
+import net.unicon.lti13demo.repository.LtiContextRepository;
 import net.unicon.lti13demo.repository.LtiLinkRepository;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.LtiStrings;
@@ -52,6 +53,9 @@ public class LTI3Controller {
 
     @Autowired
     LtiLinkRepository ltiLinkRepository;
+
+    @Autowired
+    LtiContextRepository ltiContextRepository;
 
     @RequestMapping({"", "/"})
     public String home(HttpServletRequest req, Principal principal, Model model) {
@@ -112,6 +116,5 @@ public class LTI3Controller {
             return "lti3Error";
         }
     }
-
 
 }

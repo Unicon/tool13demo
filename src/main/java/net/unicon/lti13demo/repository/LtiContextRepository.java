@@ -19,6 +19,8 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * NOTE: use of this interface magic makes all subclass-based (CGLIB) proxies fail
  */
@@ -31,6 +33,8 @@ public interface LtiContextRepository extends JpaRepository<LtiContextEntity, Lo
      */
     LtiContextEntity findByContextKey(String key);
     LtiContextEntity findByContextKeyAndPlatformDeployment(String contextKey, PlatformDeployment platformDeployment);
+    List<LtiContextEntity> findByPlatformDeployment(PlatformDeployment platformDeployment);
+
 
     /**
      * @param key the unique key

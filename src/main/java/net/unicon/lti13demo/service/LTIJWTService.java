@@ -22,13 +22,16 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
+import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +43,8 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.PublicKey;
 import java.text.ParseException;
+import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -146,6 +151,34 @@ public class LTIJWTService {
                 }
             }
         }).parseClaimsJws(jwt);
+    }
+
+    /**
+     * This JWT will contain the token request
+     * @param platformDeployment
+     * @return
+     */
+    public String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
+
+        Date date = new Date();
+        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
+        if (rsaKeyEntityOptional.isPresent()) {
+            Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
+            String state = Jwts.builder()
+                    .setIssuer("unicon.lti13demo")  //This is our own identifier, to know that we are the issuer.
+                    .setSubject(platformDeployment.getClientId()) // The clientId
+                    .setAudience(platformDeployment.getoAuth2TokenUrl())  //We send here the authToken url.
+                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                    .setNotBefore(date) //a java.util.Date
+                    .setIssuedAt(date) // for example, now
+                    .claim("jti", platformDeployment.getDeploymentId())  //This is an specific claim to ask for tokens tokens.
+                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
+                    .compact();
+            log.debug("Token Request: \n {} \n", state);
+            return state;
+        } else {
+            throw new GeneralSecurityException("Error retrieving the token request. No key was found.");
+        }
     }
 
 }

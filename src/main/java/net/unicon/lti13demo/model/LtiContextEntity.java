@@ -43,6 +43,13 @@ public class LtiContextEntity extends BaseEntity {
     @Basic
     @Column(name = "title", nullable = true, insertable = true, updatable = true, length = 4096)
     private String title;
+    @Basic
+    @Column(name = "context_memberships_url", nullable = true, insertable = true, updatable = true, length = 4096)
+    private String context_memberships_url;
+    @Basic
+    @Column(name = "lineitems", nullable = true, insertable = true, updatable = true, length = 4096)
+    private String lineitems;
+
     @Lob
     @Column(name = "json", nullable = true, insertable = true, updatable = true, length = 65535)
     private String json;
@@ -68,6 +75,17 @@ public class LtiContextEntity extends BaseEntity {
         this.contextKey = contextKey;
         this.platformDeployment = platformDeployment;
         this.title = title;
+        this.json = json;
+    }
+
+    public LtiContextEntity(String contextKey, PlatformDeployment platformDeployment, String title, String context_memberships_url, String lineitems, String json) {
+        if (!StringUtils.isNotBlank(contextKey)) throw new AssertionError();
+        if (platformDeployment == null) throw new AssertionError();
+        this.contextKey = contextKey;
+        this.platformDeployment = platformDeployment;
+        this.title = title;
+        this.context_memberships_url = context_memberships_url;
+        this.lineitems = lineitems;
         this.json = json;
     }
 
@@ -133,6 +151,22 @@ public class LtiContextEntity extends BaseEntity {
 
     public void setMemberships(Set<LtiMembershipEntity> memberships) {
         this.memberships = memberships;
+    }
+
+    public String getContext_memberships_url() {
+        return context_memberships_url;
+    }
+
+    public void setContext_memberships_url(String context_memberships_url) {
+        this.context_memberships_url = context_memberships_url;
+    }
+
+    public String getLineitems() {
+        return lineitems;
+    }
+
+    public void setLineitems(String lineitems) {
+        this.lineitems = lineitems;
     }
 
     @Override
