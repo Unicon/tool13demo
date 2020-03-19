@@ -27,29 +27,12 @@
 <body>
 <h4>Membership: </h4>
 <p>&nbsp;</p>
-<h4>Contexts available for this user: </h4>
-<div>
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">COURSE NAME</th>
-            <th scope="col">CONTEXT ID</th>
-            <th scope="col">ENROLLMENTS</th>
-
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="context : ${contexts}">
-            <td scope="row" th:text="${context.title}"></td>
-            <td th:text="${context.contextKey}"></td>
-            <td><a th:href="@{/membership/{dK}/context/{cK}(dK=${deploymentKey},cK=${context.contextKey})}">Enrollments</a></td>
-        </tr>
-        </tbody>
-    </table>
+<div th:if="${noSessionValues}">
+    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value in the course and the deployment. </p>
+    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership service without a session created. </p>
 </div>
-
 <div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>Users </h4>
+    <h4>Users on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
     <thead class="thead-dark">
     <tr>
@@ -71,7 +54,7 @@
 </div>
 
 <div th:if="${results != null and #lists.isEmpty(results)}">
-    <p>We have no results for this context</p>
+    <p>We are not receiving users for this context</p>
 </div>
 <p>&nbsp;</p>
 
@@ -87,6 +70,14 @@
         <li class="list-group-item ">
             <label><strong>user_role</strong></label>
             <span th:text="${#session.getAttribute('user_role')}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>The Lti context id:</strong></label>
+            <span th:text="${#session.getAttribute('context_id')}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>Our internal deployment key (our id in the database):</strong></label>
+            <span th:text="${#session.getAttribute('deployment_key')}"/>
         </li>
     </ul>
 </div>

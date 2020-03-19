@@ -75,46 +75,24 @@ public class AdvantageMembershipService {
 
     static final Logger log = LoggerFactory.getLogger(AdvantageMembershipService.class);
 
+    //Asking for a token with the right scope.
     public Token getToken(PlatformDeployment platformDeployment) throws ConnectionException {
-        Token token = null;
-        try {
-            RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
-            String scope = "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly";
-            HttpEntity request = advantageConnectorHelper.createTokenRequest(scope, platformDeployment);
-            final String POST_TOKEN_URL = platformDeployment.getoAuth2TokenUrl();
-            log.info("POST_TOKEN_URL -  "+ POST_TOKEN_URL);
-            ResponseEntity<Token> reportPostResponse = restTemplate.
-                    postForEntity(POST_TOKEN_URL, request, Token.class);
-            if (reportPostResponse != null) {
-                HttpStatus status = reportPostResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    token = reportPostResponse.getBody();
-                } else {
-                    String exceptionMsg = "Can get the token";
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
-            } else {
-                log.warn("Problem getting the token");
-            }
-        } catch (Exception e) {
-            StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can get the token");
-            log.error(exceptionMsg.toString());
-            throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
-        }
-        return token;
+        String scope = "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly";
+        return advantageConnectorHelper.getToken(platformDeployment, scope);
     }
 
-
+    //Calling the membership service and getting a paginated result of users.
     public CourseUsers callMembershipService(Token token, LtiContextEntity context) throws ConnectionException {
         CourseUsers courseUsers = new CourseUsers();
-        log.info("Token -  "+ token.getAccess_token());
+        log.debug("Token -  "+ token.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
+            //We add the token in the request with this.
             HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(token);
+            //The URL to get the course contents is stored in the context (in our database) because it came
+            // from the platform when we created the link to the context, and we saved it then.
             final String GET_MEMBERSHIP = context.getContext_memberships_url();
-            log.info("GET_MEMBERSHIP -  "+ GET_MEMBERSHIP);
+            log.debug("GET_MEMBERSHIP -  "+ GET_MEMBERSHIP);
             ResponseEntity<CourseUsers> membershipGetResponse = restTemplate.
                     exchange(GET_MEMBERSHIP, HttpMethod.GET, request, CourseUsers.class);
             List<CourseUser> courseUserList = new ArrayList<>();
@@ -123,16 +101,17 @@ public class AdvantageMembershipService {
                 if (status.is2xxSuccessful()) {
                     courseUsers = membershipGetResponse.getBody();
                     courseUserList.addAll(courseUsers.getCourseUserList());
-                    log.info("We have {} users",courseUsers.getCourseUserList().size());
+                    //We deal here with pagination
+                    log.debug("We have {} users",courseUsers.getCourseUserList().size());
                     String nextPage = advantageConnectorHelper.nextPage(membershipGetResponse.getHeaders());
-                    log.info("We have next page: " + nextPage);
+                    log.debug("We have next page: " + nextPage);
                     while (nextPage != null) {
                         ResponseEntity<CourseUsers> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
                                 request, CourseUsers.class);
                         CourseUsers nextCourseList = responseForNextPage.getBody();
                         List<CourseUser> nextCourseUsersList = nextCourseList
                                 .getCourseUserList();
-                        log.info("We have {} users in the next page",nextCourseList.getCourseUserList().size());
+                        log.debug("We have {} users in the next page",nextCourseList.getCourseUserList().size());
                         courseUserList.addAll(nextCourseUsersList);
                         nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                     }

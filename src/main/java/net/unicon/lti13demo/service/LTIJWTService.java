@@ -154,8 +154,7 @@ public class LTIJWTService {
     }
 
     /**
-     * The state will be returned when the tool makes the final call to us, so it is useful to send information
-     * to our own tool, to know about the request.
+     * This JWT will contain the token request
      * @param platformDeployment
      * @return
      */
@@ -166,15 +165,14 @@ public class LTIJWTService {
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String state = Jwts.builder()
-                    //.setHeaderParam("kid", "OWNKEY")  // The key id used to sign this
                     .setIssuer("unicon.lti13demo")  //This is our own identifier, to know that we are the issuer.
-                    .setSubject(platformDeployment.getClientId()) // We the clientId
+                    .setSubject(platformDeployment.getClientId()) // The clientId
                     .setAudience(platformDeployment.getoAuth2TokenUrl())  //We send here the authToken url.
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setNotBefore(date) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("jti", platformDeployment.getDeploymentId())  //All this claims are the information received in the OIDC initiation and some other useful things.
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                    .claim("jti", platformDeployment.getDeploymentId())  //This is an specific claim to ask for tokens tokens.
+                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
                     .compact();
             log.debug("Token Request: \n {} \n", state);
             return state;

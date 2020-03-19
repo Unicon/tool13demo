@@ -33,8 +33,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,44 +57,35 @@ public class MembershipController {
     @Autowired
     AdvantageMembershipService advantageMembershipService;
 
+    @RequestMapping({"", "/"})
+    public String membershipGet(HttpServletRequest req, Principal principal, Model model) throws ConnectionException {
 
-    @RequestMapping({"", "/{deployment}"})
-    public String membershipMain(@PathVariable("deployment") Long deployment, HttpServletRequest req, Principal principal, Model model) {
+        //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
+        //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
+        // to avoid access to all the courses and platforms.
+        HttpSession session = req.getSession();
+        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
+            model.addAttribute("noSessionValues", false);
+            Long deployment = (Long) session.getAttribute("deployment_key");
+            String contextId = (String) session.getAttribute("context_id");
+            //We find the right deployment:
+            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+            if (platformDeployment.isPresent()) {
+                //Get the context in the query
+                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
 
-        //Get the contexts available for this user
-        Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-        if (platformDeployment.isPresent()){
-            List<LtiContextEntity> contexts = ltiContextRepository.findByPlatformDeployment(platformDeployment.get());
-            model.addAttribute("contexts",contexts);
-        }
-        return "ltiAdvMembershipMain";
-    }
+                //Call the membership service to get the users on the context
+                // 1. Get the token
+                Token token = advantageMembershipService.getToken(platformDeployment.get());
 
-    @RequestMapping({"", "/{deployment}/context/{id}"})
-    public String membershipGet(@PathVariable("deployment") Long deployment, @PathVariable("id") String key, HttpServletRequest req, Principal principal, Model model) throws ConnectionException {
+                // 2. Call the service
+                CourseUsers courseUsers = advantageMembershipService.callMembershipService(token, context);
 
-        //Get the contexts available for this user
-        //Try to use session.
-        Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-        if (platformDeployment.isPresent()) {
-            List<LtiContextEntity> contexts = ltiContextRepository.findByPlatformDeployment(platformDeployment.get());
-            model.addAttribute("contexts",contexts);
-            model.addAttribute("deploymentKey",deployment);
-
-            //Get the context in the query
-            LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(key, platformDeployment.get());
-            model.addAttribute("contextToQuery", context);
-
-
-            //Call the membership service to get the users on the context
-            // 1. Get the token
-            Token token = advantageMembershipService.getToken(platformDeployment.get());
-
-            // 2. Call the service
-            CourseUsers courseUsers = advantageMembershipService.callMembershipService(token, context);
-
-            // 3. update the model
-            model.addAttribute("results", courseUsers.getCourseUserList());
+                // 3. update the model
+                model.addAttribute("results", courseUsers.getCourseUserList());
+            }
+        } else {
+            model.addAttribute("noSessionValues", true);
         }
         return "ltiAdvMembershipMain";
     }

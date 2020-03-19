@@ -453,6 +453,12 @@ public class LTI3Request {
         HttpSession session = this.httpServletRequest.getSession();
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
+        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
+        try {
+            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0).getKeyId());
+        } catch(Exception e) {
+            log.info("No deployment found");
+        }
 
         // Surely we need a more elaborated code here based in the huge amount of roles avaliable.
         // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
