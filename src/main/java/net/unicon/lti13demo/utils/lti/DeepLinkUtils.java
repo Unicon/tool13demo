@@ -76,7 +76,7 @@ public class DeepLinkUtils {
         //JWT 2: One ltiResourcelink
 
 
-            List<Map<String,Object>> oneDeepLink = createOneDeepLink(localUrl);
+            List<Map<String,Object>> oneDeepLink = createOneDeepLinkWithGrades(localUrl);
             String jwt2 = Jwts.builder()
                     .setHeaderParam("typ","JWT")
                     .setHeaderParam("kid", "000000000000000001")
@@ -191,6 +191,32 @@ public class DeepLinkUtils {
 
 
     }
+
+    static List<Map<String,Object>> createOneDeepLinkWithGrades(String localUrl) {
+        List<Map<String,Object>> deepLinks = new ArrayList<>();
+        Map<String,Object> deepLink = new HashMap<>();
+
+        deepLink.put("type","ltiResourceLink");
+        deepLink.put("title","My test link");
+        deepLink.put("url",localUrl + "/lti3?link=1234");
+        deepLink.put("lineItem", lineItem());
+
+        deepLinks.add(deepLink);
+        return deepLinks;
+
+
+    }
+
+    static Map<String,Object> lineItem() {
+        Map<String,Object> deepLink = new HashMap<>();
+
+        deepLink.put("scoreMaximum",87);
+        deepLink.put("label","LTI 1234 Quiz");
+        deepLink.put("resourceId","1234");
+        deepLink.put("tag","myquiztest");
+        return deepLink;
+    }
+
 
     static List<Map<String,Object>> createOneDeepLinkNoLti(String localUrl) {
         List<Map<String,Object>> deepLinks = new ArrayList<>();
