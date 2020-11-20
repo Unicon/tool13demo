@@ -118,7 +118,7 @@ public class LTIJWTService {
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(clientId).get(0);
+                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(),clientId).get(0);
 
                     // If the platform has a JWK Set endpoint... we try that.
                     if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
