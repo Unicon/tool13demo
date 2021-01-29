@@ -85,7 +85,7 @@ public class AdvantageConnectorHelper {
                 if (status.is2xxSuccessful()) {
                     token = reportPostResponse.getBody();
                 } else {
-                    String exceptionMsg = "Can get the token";
+                    String exceptionMsg = "Can't get the token";
                     log.error(exceptionMsg);
                     throw new ConnectionException(exceptionMsg);
                 }
@@ -94,7 +94,7 @@ public class AdvantageConnectorHelper {
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can get the token");
+            exceptionMsg.append("Can't get the token");
             log.error(exceptionMsg.toString());
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }

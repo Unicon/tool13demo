@@ -118,7 +118,7 @@ public class AdvantageMembershipService {
                     courseUsers = new CourseUsers();
                     courseUsers.getCourseUserList().addAll(courseUserList);
                 } else {
-                    String exceptionMsg = "Can get the membership";
+                    String exceptionMsg = "Can't get the membership";
                     log.error(exceptionMsg);
                     throw new ConnectionException(exceptionMsg);
                 }
@@ -127,7 +127,7 @@ public class AdvantageMembershipService {
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can get the token");
+            exceptionMsg.append("Can't get the token");
             log.error(exceptionMsg.toString(),e);
             e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
