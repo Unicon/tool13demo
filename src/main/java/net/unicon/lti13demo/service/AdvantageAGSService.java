@@ -72,8 +72,6 @@ public class AdvantageAGSService {
             log.debug("GET_LINEITEMS -  "+ GET_LINEITEMS);
             ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
                     exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
-            //ResponseEntity<String> lineItemsGetResponse2 = restTemplate.
-            //        exchange(GET_LINEITEMS, HttpMethod.GET, request, String.class);
             List<LineItem> lineItemsList = new ArrayList<>();
             if (lineItemsGetResponse != null) {
                 HttpStatus status = lineItemsGetResponse.getStatusCode();
