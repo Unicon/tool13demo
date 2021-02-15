@@ -25,14 +25,14 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
-<h4>Membership: </h4>
+<h4>Assignment and Grade Services: </h4>
 <p>&nbsp;</p>
 <div th:if="${noSessionValues}">
     <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value in the course and the deployment. </p>
     <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership service without a session created. </p>
 </div>
 <div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>Users on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+    <h4>LineItems on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
     <thead class="thead-dark">
     <tr>

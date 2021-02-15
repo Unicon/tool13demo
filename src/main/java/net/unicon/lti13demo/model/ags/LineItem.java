@@ -27,9 +27,9 @@ public class LineItem {
     private String scoreMaximum;
     @JsonProperty("label")
     private String label;
-    @JsonProperty("resourceId")
+    //@JsonProperty("resourceId")
     private String resourceId;
-    @JsonProperty("tag")
+    //@JsonProperty("tag")
     private String tag;
     @JsonProperty("resourceLinkId")
     private String resourceLinkId;

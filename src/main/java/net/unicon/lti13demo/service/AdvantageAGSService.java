@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -69,14 +70,15 @@ public class AdvantageAGSService {
             // from the platform when we created the link to the context, and we saved it then.
             final String GET_LINEITEMS = context.getLineitems();
             log.debug("GET_LINEITEMS -  "+ GET_LINEITEMS);
-            ResponseEntity<LineItems> lineItemsGetResponse = restTemplate.
-                    exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItems.class);
+            ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
+                    exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
+            //ResponseEntity<String> lineItemsGetResponse2 = restTemplate.
+            //        exchange(GET_LINEITEMS, HttpMethod.GET, request, String.class);
             List<LineItem> lineItemsList = new ArrayList<>();
             if (lineItemsGetResponse != null) {
                 HttpStatus status = lineItemsGetResponse.getStatusCode();
                 if (status.is2xxSuccessful()) {
-                    lineItems = lineItemsGetResponse.getBody();
-                    lineItemsList.addAll(lineItems.getLineItemList());
+                    lineItemsList.addAll(Arrays.asList(lineItemsGetResponse.getBody()));
                     //We deal here with pagination
                     log.debug("We have {} lineItems",lineItems.getLineItemList().size());
                     String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
