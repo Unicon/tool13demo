@@ -1,0 +1,7 @@
+Thanks to Oxford University for the tomcat valve that allows the cookies to work
+
+The code used with that purpose comes from
+
+https://github.com/oxctl/spring-security-lti13-demo
+
+and has been used following the Apache License requirements.

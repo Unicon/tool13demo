@@ -1,9 +1,5 @@
 /**
  * Copyright 2019 Unicon (R)
- *
- * This file has been copied from the Oxford University repo
- * https://github.com/oxctl/spring-security-lti13-demo
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package net.unicon.lti13demo.config;
 
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
