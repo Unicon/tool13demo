@@ -20,8 +20,6 @@ import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.ags.LineItem;
 import net.unicon.lti13demo.model.ags.LineItems;
-import net.unicon.lti13demo.model.membership.CourseUser;
-import net.unicon.lti13demo.model.membership.CourseUsers;
 import net.unicon.lti13demo.model.oauth2.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +56,8 @@ public class AdvantageAGSService {
         return advantageConnectorHelper.getToken(platformDeployment, scope);
     }
 
-    //Calling the membership service and getting a paginated result of users.
-    public LineItems callAGSService(Token token, LtiContextEntity context) throws ConnectionException {
+    //Calling the AGS service and getting a paginated result of lineitems.
+    public LineItems readLineItems(Token token, LtiContextEntity context) throws ConnectionException {
         LineItems lineItems = new LineItems();
         log.debug("Token -  "+ token.getAccess_token());
         try {
@@ -87,7 +85,7 @@ public class AdvantageAGSService {
                         LineItems nextLineItemsList = responseForNextPage.getBody();
                         List<LineItem> nextLineItems = nextLineItemsList
                                 .getLineItemList();
-                        log.debug("We have {} users in the next page",nextLineItemsList.getLineItemList().size());
+                        log.debug("We have {} lineitems in the next page",nextLineItemsList.getLineItemList().size());
                         lineItemsList.addAll(nextLineItems);
                         nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                     }
@@ -112,5 +110,21 @@ public class AdvantageAGSService {
     }
 
 
+    //POST LINEITEMS
+
+
+    //GET LINEITEM
+
+
+    //PUT LINEITEM
+
+
+    //DELETE LINEITEM
+
+
+    //GET RESULTS
+
+
+    //POST SCORES
 
 }

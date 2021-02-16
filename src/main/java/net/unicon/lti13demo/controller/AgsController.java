@@ -19,12 +19,10 @@ import net.unicon.lti13demo.exceptions.ConnectionException;
 import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.ags.LineItems;
-import net.unicon.lti13demo.model.membership.CourseUsers;
 import net.unicon.lti13demo.model.oauth2.Token;
 import net.unicon.lti13demo.repository.LtiContextRepository;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.AdvantageAGSService;
-import net.unicon.lti13demo.service.AdvantageMembershipService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,12 +73,12 @@ public class AgsController {
                 //Get the context in the query
                 LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
 
-                //Call the membership service to get the users on the context
+                //Call the ags service to get the users on the context
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
                 log.info("TOKEN: " + token.getAccess_token());
                 // 2. Call the service
-                LineItems lineItems = advantageAGSServiceService.callAGSService(token, context);
+                LineItems lineItems = advantageAGSServiceService.readLineItems(token, context);
 
                 // 3. update the model
                 model.addAttribute("results", lineItems.getLineItemList());
@@ -91,5 +89,17 @@ public class AgsController {
         return "ltiAdvAgsMain";
     }
 
+
+    // Create a new lineitem
+
+    // Get specific lineitem
+
+    // Edit specific lineitem
+
+    // Delete lineitem
+
+    // View scores
+
+    //Send scores
 
 }
