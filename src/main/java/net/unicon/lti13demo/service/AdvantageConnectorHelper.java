@@ -33,6 +33,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -105,17 +107,16 @@ public class AdvantageConnectorHelper {
     // This is specific to request a token.
     public HttpEntity createTokenRequest(String scope, PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        JSONObject parameterJson = new JSONObject();
-        // The grant type is client credentials always
-        parameterJson.put("grant_type", "client_credentials");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<String, String>();
+        map.add("grant_type", "client_credentials");
         // This is standard too
-        parameterJson.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+        map.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
         //This is special (see the generateTokenRequestJWT method for more comments)
-        parameterJson.put("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
+        map.add("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
-        parameterJson.put("scope", scope);
-        HttpEntity request = new HttpEntity<>(parameterJson.toString(), headers);
+        map.add("scope", scope);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
         return request;
     }
 

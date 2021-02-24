@@ -165,6 +165,7 @@ public class LTIJWTService {
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String state = Jwts.builder()
+                    .setHeaderParam("kid", "000000000000000001")
                     .setIssuer("unicon.lti13demo")  //This is our own identifier, to know that we are the issuer.
                     .setSubject(platformDeployment.getClientId()) // The clientId
                     .setAudience(platformDeployment.getoAuth2TokenUrl())  //We send here the authToken url.
