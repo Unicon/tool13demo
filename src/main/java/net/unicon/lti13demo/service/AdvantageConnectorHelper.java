@@ -17,6 +17,8 @@ package net.unicon.lti13demo.service;
 import net.unicon.lti13demo.exceptions.ConnectionException;
 import net.unicon.lti13demo.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti13demo.model.PlatformDeployment;
+import net.unicon.lti13demo.model.ags.LineItem;
+import net.unicon.lti13demo.model.ags.LineItems;
 import net.unicon.lti13demo.model.oauth2.Token;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -70,6 +72,22 @@ public class AdvantageConnectorHelper {
         return request;
     }
 
+    // We put the token in the Authorization as a simple Bearer one.
+    public HttpEntity<LineItem> createTokenizedRequestEntity(Token token, LineItem lineItem) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccess_token());
+        HttpEntity request = new HttpEntity<>(lineItem, headers);
+        return request;
+    }
+
+    // We put the token in the Authorization as a simple Bearer one.
+    public HttpEntity<LineItems> createTokenizedRequestEntity(Token token, LineItems lineItems) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccess_token());
+        HttpEntity request = new HttpEntity<>(lineItems, headers);
+        return request;
+    }
+
     //Asking for a token. The scope will come in the scope parameter
     //The platformDeployment has the URL to ask for the token.
     public Token getToken(PlatformDeployment platformDeployment, String scope) throws ConnectionException {
@@ -80,8 +98,19 @@ public class AdvantageConnectorHelper {
             HttpEntity request = createTokenRequest(scope, platformDeployment);
             final String POST_TOKEN_URL = platformDeployment.getoAuth2TokenUrl();
             log.debug("POST_TOKEN_URL -  "+ POST_TOKEN_URL);
-            ResponseEntity<Token> reportPostResponse = restTemplate.
-                    postForEntity(POST_TOKEN_URL, request, Token.class);
+            ResponseEntity<Token> reportPostResponse = null;
+            try{
+                reportPostResponse = restTemplate.
+                        postForEntity(POST_TOKEN_URL, request, Token.class);
+            } catch (Exception ex){
+                log.error("ERROR GETING THE TOKEN" , ex);
+                StringBuilder exceptionMsg = new StringBuilder();
+                exceptionMsg.append("Can't get the token. Exception. We will try again with a JSON Payload");
+                log.error(exceptionMsg.toString());
+                HttpEntity request2 = createTokenRequestJSON(scope, platformDeployment);
+                reportPostResponse = restTemplate.
+                        postForEntity(POST_TOKEN_URL, request2, Token.class);
+            }
             if (reportPostResponse != null) {
                 HttpStatus status = reportPostResponse.getStatusCode();
                 if (status.is2xxSuccessful()) {
@@ -117,6 +146,23 @@ public class AdvantageConnectorHelper {
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
         map.add("scope", scope);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+        return request;
+    }
+
+    // This is specific to request a token.
+    public HttpEntity createTokenRequestJSON(String scope, PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject parameterJson = new JSONObject();
+        // The grant type is client credentials always
+        parameterJson.put("grant_type", "client_credentials");
+        // This is standard too
+        parameterJson.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+        //This is special (see the generateTokenRequestJWT method for more comments)
+        parameterJson.put("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
+        //We need to pass the scope of the token, meaning, the service we want to allow with this token.
+        parameterJson.put("scope", scope);
+        HttpEntity request = new HttpEntity<>(parameterJson.toString(), headers);
         return request;
     }
 

@@ -33,17 +33,23 @@ public class LineItem {
     private String tag;
     @JsonProperty("resourceLinkId")
     private String resourceLinkId;
+    @JsonProperty("startDateTime")
+    private String startDateTime;
+    @JsonProperty("endDateTime")
+    private String endDateTime;
 
     public LineItem() {
     }
 
-    public LineItem(String id, String scoreMaximum, String label, String resourceId, String tag, String resourceLinkId) {
+    public LineItem(String id, String scoreMaximum, String label, String resourceId, String tag, String resourceLinkId, String startDateTime, String endDateTime) {
         this.id = id;
         this.scoreMaximum = scoreMaximum;
         this.label = label;
         this.resourceId = resourceId;
         this.tag = tag;
         this.resourceLinkId = resourceLinkId;
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
     }
 
     public String getId() {
@@ -92,5 +98,21 @@ public class LineItem {
 
     public void setResourceLinkId(String resourceLinkId) {
         this.resourceLinkId = resourceLinkId;
+    }
+
+    public String getStartDateTime() {
+        return startDateTime;
+    }
+
+    public void setStartDateTime(String startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+
+    public String getEndDateTime() {
+        return endDateTime;
+    }
+
+    public void setEndDateTime(String endDateTime) {
+        this.endDateTime = endDateTime;
     }
 }
