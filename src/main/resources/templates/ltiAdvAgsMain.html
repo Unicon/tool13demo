@@ -31,7 +31,15 @@
     <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value in the course and the deployment. </p>
     <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership service without a session created. </p>
 </div>
-<div th:if="${results != null and !#lists.isEmpty(results)}">
+
+<div th:if="${deleteResults != null and deleteResulst}">
+    <p>LineItem deleted</p>
+</div>
+<div th:if="${deleteResults != null and !deleteResulst}">
+    <p>LineItem NO deleted</p>
+</div>
+
+<div th:if="${results != null and !single and !#lists.isEmpty(results)}">
     <h4>LineItems on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
     <thead class="thead-dark">
@@ -43,6 +51,11 @@
         <th scope="col">resourceId</th>
         <th scope="col">tag</th>
         <th scope="col">resourceLinkId</th>
+        <th scope="col">startDateTime</th>
+        <th scope="col">endDateTime</th>
+        <!--<th scope="col">Delete</th>
+            <th scope="col">Get</th>
+            <th scope="col">Results</th>-->
     </tr>
     </thead>
     <tbody>
@@ -54,14 +67,59 @@
         <td th:text="${lineitem.resourceId}"></td>
         <td th:text="${lineitem.tag}"></td>
         <td th:text="${lineitem.resourceLinkId}"></td>
+        <td th:text="${lineitem.startDateTime}"></td>
+        <td th:text="${lineitem.endDateTime}"></td>
+        <!-- <td><a th:href="@{/ags/delete/}${lineitem.id}" target="_blank">DELETE</a></td>
+            <td><a th:href="@{/ags/${lineitem.id}}" target="_blank">GET</a></td>
+            <td><a th:href="@{/ags/results/}${lineitem.id}" target="_blank">RESULTS</a></td>-->
     </tr>
     </tbody>
+    </table>
+</div>
+
+<div th:if="${results != null and single and !#lists.isEmpty(results)}">
+    <h4>LineItem created/updated on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Id</th>
+            <th scope="col">scoreMaximum</th>
+            <th scope="col">label</th>
+            <th scope="col">resourceId</th>
+            <th scope="col">tag</th>
+            <th scope="col">resourceLinkId</th>
+            <th scope="col">startDateTime</th>
+            <th scope="col">endDateTime</th>
+            <!--<th scope="col">Delete</th>
+            <th scope="col">Get</th>
+            <th scope="col">Results</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="lineitem,rowStat : ${results}">
+            <td scope="row" th:text="${rowStat.count}">1</td>
+            <td th:text="${lineitem.id}"></td>
+            <td th:text="${lineitem.scoreMaximum}"></td>
+            <td th:text="${lineitem.label}"></td>
+            <td th:text="${lineitem.resourceId}"></td>
+            <td th:text="${lineitem.tag}"></td>
+            <td th:text="${lineitem.resourceLinkId}"></td>
+            <td th:text="${lineitem.startDateTime}"></td>
+            <td th:text="${lineitem.endDateTime}"></td>
+           <!-- <td><a th:href="@{/ags/delete/}${lineitem.id}" target="_blank">DELETE</a></td>
+            <td><a th:href="@{/ags/${lineitem.id}}" target="_blank">GET</a></td>
+            <td><a th:href="@{/ags/results/}${lineitem.id}" target="_blank">RESULTS</a></td>-->
+        </tr>
+        </tbody>
     </table>
 </div>
 
 <div th:if="${results != null and #lists.isEmpty(results)}">
     <p>We are not receiving lineitems for this context</p>
 </div>
+
+
 <p>&nbsp;</p>
 
 

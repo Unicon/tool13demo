@@ -152,6 +152,9 @@ public class LTIDataService {
                 log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
             }
         } else if (lti.getContext() != null) {
+            lti.getContext().setTitle(lti.getLtiContextTitle());
+            lti.getContext().setContext_memberships_url(lti.getLtiNamesRoleServiceContextMembershipsUrl());
+            lti.getContext().setLineitems(lti.getLtiEndpointLineItems());
             lti.setContext(repos.entityManager.merge(lti.getContext())); // reconnect object for this transaction
             lti.setLtiContextId(lti.getContext().getContextKey());
             log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
