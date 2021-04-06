@@ -35,6 +35,7 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * This manages all the data processing for the LTIRequest (and for LTI in general)
@@ -60,6 +62,9 @@ public class LTIJWTService {
     LTIDataService ltiDataService;
 
     String error;
+
+    @Value("${application.url}")
+    String iss;
 
     /**
      * This will check that the state has been signed by us and retrieve the issuer private key.
@@ -164,15 +169,28 @@ public class LTIJWTService {
         Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
+            String aud;
+            String issuer = iss;
+            //D2L needs a different aud, maybe others
+            if (platformDeployment.getoAuth2TokenAud() != null){
+                aud = platformDeployment.getoAuth2TokenAud();
+            } else {
+                aud = platformDeployment.getoAuth2TokenUrl();
+            }
+            //D2L needs the issuer to be the clientId (Surely we should store the platform type in the configuration so we can do these "if" better
+            //if (platformDeployment.getoAuth2TokenAud().equals("https://api.brightspace.com/auth/token") ){
+                issuer = platformDeployment.getClientId();
+            //}
             String state = Jwts.builder()
                     .setHeaderParam("kid", "000000000000000001")
-                    .setIssuer("unicon.lti13demo")  //This is our own identifier, to know that we are the issuer.
+                    .setHeaderParam("typ", "JWT")
+                    .setIssuer(issuer)  //This is our own identifier, to know that we are the issuer.
                     .setSubject(platformDeployment.getClientId()) // The clientId
-                    .setAudience(platformDeployment.getoAuth2TokenUrl())  //We send here the authToken url.
+                    .setAudience(aud)  //We send here the authToken url.
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setNotBefore(date) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("jti", platformDeployment.getDeploymentId())  //This is an specific claim to ask for tokens tokens.
+                    .claim("jti", UUID.randomUUID().toString())  //This is an specific claim to ask for tokens.
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
                     .compact();
             log.debug("Token Request: \n {} \n", state);

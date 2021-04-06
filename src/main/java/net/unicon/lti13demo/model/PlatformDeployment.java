@@ -48,6 +48,9 @@ public class PlatformDeployment extends BaseEntity {
     @Column(name = "oAuth2_token_url", nullable = true, insertable = true, updatable = true)
     private String oAuth2TokenUrl;  // Where in the platform we need to ask for the oauth2 tokens
     @Basic
+    @Column(name = "oAuth2_token_aud", nullable = true, insertable = true, updatable = true)
+    private String oAuth2TokenAud;  // Sometimes, for example D2L, has a different aud for the tokens.
+    @Basic
     @Column(name = "deployment_id", nullable = true, insertable = true, updatable = true)
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
     @Basic
@@ -108,6 +111,14 @@ public class PlatformDeployment extends BaseEntity {
 
     public void setoAuth2TokenUrl(String oAuth2TokenUrl) {
         this.oAuth2TokenUrl = oAuth2TokenUrl;
+    }
+
+    public String getoAuth2TokenAud() {
+        return oAuth2TokenAud;
+    }
+
+    public void setoAuth2TokenAud(String oAuth2TokenAud) {
+        this.oAuth2TokenAud = oAuth2TokenAud;
     }
 
     public String getDeploymentId() {

@@ -185,8 +185,6 @@ public class DeepLinkUtils {
         deepLink.put("type","ltiResourceLink");
         deepLink.put("title","My test link");
         deepLink.put("url",localUrl + "/lti3?link=1234");
-
-        deepLinks.add(deepLink);
         return deepLinks;
 
 
@@ -200,7 +198,19 @@ public class DeepLinkUtils {
         deepLink.put("title","My test link");
         deepLink.put("url",localUrl + "/lti3?link=1234");
         deepLink.put("lineItem", lineItem());
+        Map<String,String> availableDates = new HashMap<>();
+        Map<String,String> submissionDates = new HashMap<>();
+        Map<String,String> custom = new HashMap<>();
 
+        availableDates.put("startDateTime","2018-03-07T20:00:03Z");
+        availableDates.put("endDateTime","2022-03-07T20:00:03Z");
+        submissionDates.put("startDateTime","2019-03-07T20:00:03Z");
+        submissionDates.put("endDateTime","2021-08-07T20:00:03Z");
+        custom.put("dueDate","$Resource.submission.endDateTime");
+        custom.put("controlValue","This is whatever I want to write here");
+        deepLink.put("available", availableDates);
+        deepLink.put("submission", submissionDates);
+        deepLink.put("custom", custom);
         deepLinks.add(deepLink);
         return deepLinks;
 

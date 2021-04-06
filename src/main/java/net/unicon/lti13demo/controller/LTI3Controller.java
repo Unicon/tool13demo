@@ -83,7 +83,9 @@ public class LTI3Controller {
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
             model.addAttribute("lTI3Request", lti3Request);
-
+            if (link == null){
+                link = lti3Request.getLtiTargetLinkUrl().substring((lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
+            }
             if (StringUtils.isNotBlank(link)){
                 List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
                 log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());

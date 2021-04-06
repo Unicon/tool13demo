@@ -8,6 +8,7 @@
   "oidcEndpoint": "https://lti-ri.imsglobal.org/platforms/281/authorizations/new",
   "jwksEndpoint": "https://lti-ri.imsglobal.org/platforms/281/platform_keys/736.json",
   "oAuth2TokenUrl": "https://lti-ri.imsglobal.org/platforms/281/access_tokens",
+  "oAuth2TokenAud": null,
   "deploymentId": "0002",
   "toolKid": "hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g",
   "platformKid": "hf8Sisblt0zj0KhjY8oAIH0ylU2PuYwnegc8Y9vJq9g"
