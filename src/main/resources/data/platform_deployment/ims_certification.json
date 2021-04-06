@@ -8,6 +8,7 @@
   "oidcEndpoint": "https://ltiadvantagevalidator.imsglobal.org/ltitool/oidcauthurl.html",
   "jwksEndpoint": "https://oauth2server.imsglobal.org/jwks",
   "oAuth2TokenUrl": "https://oauth2server.imsglobal.org/oauth2server/authcodejwt",
+  "oAuth2TokenAud": null,
   "deploymentId": "testdeploy",
   "toolKid": "imstester_320416f",
   "platformKid": "imstester_320416f"

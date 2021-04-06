@@ -60,6 +60,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
+    @Order(15) // VERY HIGH
+    @Configuration
+    public static class DynamicRegistrationConfigurationAdapter extends WebSecurityConfigurerAdapter {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            // this is open
+            http.antMatcher("/registration/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+        }
+    }
+
     @Order(20) // VERY HIGH
     @Configuration
     public static class JWKConfigurationAdapter extends WebSecurityConfigurerAdapter {

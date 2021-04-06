@@ -1,0 +1,125 @@
+<!--
+
+    Copyright 2019 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag -->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+<head>
+    <title>LTI Starter Oicd Redirect</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<h4>LTI Dynamic Registration Redirect</h4>
+
+<h5>This is what we received from the platform</h5>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-primary">
+            <label>openid_configuration:</label>
+            <span th:text="${openid_configuration}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>registration_token: </label>
+            <span th:text="${registration_token}"/>
+        </li>
+    </ul>
+</div>
+
+<h5>This is the platform configuration returned in the previous endpoint</h5>
+<div>
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-primary">
+            <label>issuer:</label>
+            <span th:text="${platform_configuration.issuer}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>authorization_endpoint: </label>
+            <span th:text="${platform_configuration.authorization_endpoint}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>token_endpoint: </label>
+            <span th:text="${platform_configuration.token_endpoint}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>token_endpoint_auth_methods_supported: </label>
+            <span th:text="${platform_configuration.token_endpoint_auth_methods_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>jwks_uri: </label>
+            <span th:text="${platform_configuration.jwks_uri}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>registration_endpoint: </label>
+            <span th:text="${platform_configuration.registration_endpoint}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>scopes_supported: </label>
+            <span th:text="${platform_configuration.scopes_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>response_types_supported: </label>
+            <span th:text="${platform_configuration.response_types_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>subject_types_supported: </label>
+            <span th:text="${platform_configuration.subject_types_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>id_token_signing_alg_values_supported: </label>
+            <span th:text="${platform_configuration.id_token_signing_alg_values_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>claims_supported: </label>
+            <span th:text="${platform_configuration.claims_supported}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>authorization_server: </label>
+            <span th:text="${platform_configuration.authorization_server}"/>
+        </li>
+        <li class="list-group-item list-group-item-primary">
+            <label>https://purl.imsglobal.org/spec/lti-platform-configuration: </label>
+            <span th:text="${platform_configuration.platformConfiguration}"/>
+        </li>
+    </ul>
+</div>
+
+
+<p>&nbsp;</p>
+<h5>This is what we are going to send to the Registration Endpoint</h5>
+
+<div>
+    <ul class="list-group">
+        <li class="list-group-item list-group-item-primary">
+            <label>tool configuration:</label>
+            <span th:text="${tool_configuration}"/>
+        </li>
+    </ul>
+</div>
+
+
+
+<form th:action="${own_redirect_post_endpoint}" method="post">
+
+<input type="submit" value="Submit" class="btn btn-primary">
+</form>
+
+<p>&nbsp;</p>
+</body>
+</html>

@@ -8,6 +8,7 @@
   "oidcEndpoint": "https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken",
   "jwksEndpoint": "https://developer.blackboard.com/api/v1/management/applications/6482545f-91ec-4e33-8d9c-96f069995312/jwks.json",
   "oAuth2TokenUrl": "https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken",
+  "oAuth2TokenAud": null,
   "deploymentId": null,
   "toolKid": "6482545f-91ec-4e33-8d9c-96f069995312",
   "platformKid": "6482545f-91ec-4e33-8d9c-96f069995312"

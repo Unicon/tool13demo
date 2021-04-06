@@ -53,6 +53,7 @@ public class LtiOidcUtils {
             Key issPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String state = Jwts.builder()
                     .setHeaderParam("kid", "OWNKEY")  // The key id used to sign this
+                    .setHeaderParam("typ", "JWT") // The type
                     .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
                     .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
                     .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
