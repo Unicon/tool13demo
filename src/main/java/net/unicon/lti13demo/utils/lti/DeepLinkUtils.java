@@ -23,6 +23,7 @@ import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.LtiStrings;
+import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
@@ -38,6 +39,10 @@ import java.util.Optional;
 
 public class DeepLinkUtils {
 
+    private DeepLinkUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      *
      * @param lti3Request
@@ -46,7 +51,7 @@ public class DeepLinkUtils {
      */
     public static Map<String,String> generateDeepLinkJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request, String localUrl) throws GeneralSecurityException, IOException {
 
-        Map deepLinkJwtMap = new HashMap<>();
+        Map<String,String> deepLinkJwtMap = new HashMap<>();
         Date date = new Date();
         Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
         if (rsaKeyEntityOptional.isPresent()) {
@@ -54,20 +59,20 @@ public class DeepLinkUtils {
 
         // JWT 1:  Empty list of JSON
             String jwt1 = Jwts.builder()
-                    .setHeaderParam("typ","JWT")
-                    .setHeaderParam("kid", "000000000000000001")
-                    .setHeaderParam("alg", "RS256")
+                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
                     .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("nonce",lti3Request.getNonce())
-                    .claim("azp",lti3Request.getIss())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",new HashMap<String,Object>())
+                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                    .claim(LtiStrings.LTI_CONTENT_ITEMS,new HashMap<String,Object>())
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
@@ -78,20 +83,20 @@ public class DeepLinkUtils {
 
             List<Map<String,Object>> oneDeepLink = createOneDeepLinkWithGrades(localUrl);
             String jwt2 = Jwts.builder()
-                    .setHeaderParam("typ","JWT")
-                    .setHeaderParam("kid", "000000000000000001")
-                    .setHeaderParam("alg", "RS256")
+                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
                     .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("nonce",lti3Request.getNonce())
-                    .claim("azp",lti3Request.getIss())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items", oneDeepLink)
+                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                    .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLink)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
@@ -100,22 +105,22 @@ public class DeepLinkUtils {
 
             //JWT 2b: One link (not ltiResourcelink)
 
-            List<Map<String,Object>> oneDeepLinkNoLti = createOneDeepLinkNoLti(localUrl);
+            List<Map<String,Object>> oneDeepLinkNoLti = createOneDeepLinkNoLti();
             String jwt2b = Jwts.builder()
-                    .setHeaderParam("typ","JWT")
-                    .setHeaderParam("kid", "000000000000000001")
-                    .setHeaderParam("alg", "RS256")
+                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
                     .setIssuer(platformDeployment.getClientId())  //Client ID
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("nonce",lti3Request.getNonce())
-                    .claim("azp",lti3Request.getIss())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items", oneDeepLinkNoLti)
+                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                    .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLinkNoLti)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
@@ -125,20 +130,20 @@ public class DeepLinkUtils {
         //JWT 3: More than one link
             List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
             String jwt3 = Jwts.builder()
-                    .setHeaderParam("typ","JWT")
-                    .setHeaderParam("kid", "000000000000000001")
-                    .setHeaderParam("alg", "RS256")
+                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
                     .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("nonce",lti3Request.getNonce())
-                    .claim("azp",lti3Request.getIss())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",multipleDeepLink)
+                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                    .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLink)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
@@ -150,20 +155,20 @@ public class DeepLinkUtils {
             //JWT 3b: More than one link but only ltiresourceLinks
             List<Map<String,Object>> multipleDeepLinkOnlyLti = createMultipleDeepLinkOnlyLti(localUrl);
             String jwt3b = Jwts.builder()
-                    .setHeaderParam("typ","JWT")
-                    .setHeaderParam("kid", "000000000000000001")
-                    .setHeaderParam("alg", "RS256")
+                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
                     .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
                     .setAudience(lti3Request.getIss())
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                     .setIssuedAt(date) // for example, now
-                    .claim("nonce",lti3Request.getNonce())
-                    .claim("azp",lti3Request.getIss())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/deployment_id",lti3Request.getLtiDeploymentId())
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/message_type", LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim("https://purl.imsglobal.org/spec/lti/claim/version",LtiStrings.LTI_VERSION_3)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/data",lti3Request.deepLinkData)
-                    .claim("https://purl.imsglobal.org/spec/lti-dl/claim/content_items",multipleDeepLinkOnlyLti)
+                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                    .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLinkOnlyLti)
                     .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
                     .compact();
 
@@ -182,9 +187,9 @@ public class DeepLinkUtils {
         List<Map<String,Object>> deepLinks = new ArrayList<>();
         Map<String,Object> deepLink = new HashMap<>();
 
-        deepLink.put("type","ltiResourceLink");
-        deepLink.put("title","My test link");
-        deepLink.put("url",localUrl + "/lti3?link=1234");
+        deepLink.put(LtiStrings.DEEP_LINK_TYPE,LtiStrings.DEEP_LINK_LTIRESOURCELINK);
+        deepLink.put(LtiStrings.DEEP_LINK_TITLE,"My test link");
+        deepLink.put(LtiStrings.DEEP_LINK_URL,localUrl + "/lti3?link=1234");
         return deepLinks;
 
 
@@ -194,9 +199,9 @@ public class DeepLinkUtils {
         List<Map<String,Object>> deepLinks = new ArrayList<>();
         Map<String,Object> deepLink = new HashMap<>();
 
-        deepLink.put("type","ltiResourceLink");
-        deepLink.put("title","My test link");
-        deepLink.put("url",localUrl + "/lti3?link=1234");
+        deepLink.put(LtiStrings.DEEP_LINK_TYPE,LtiStrings.DEEP_LINK_LTIRESOURCELINK);
+        deepLink.put(LtiStrings.DEEP_LINK_TITLE,"My test link");
+        deepLink.put(LtiStrings.DEEP_LINK_URL,localUrl + "/lti3?link=1234");
         deepLink.put("lineItem", lineItem());
         Map<String,String> availableDates = new HashMap<>();
         Map<String,String> submissionDates = new HashMap<>();
@@ -228,12 +233,12 @@ public class DeepLinkUtils {
     }
 
 
-    static List<Map<String,Object>> createOneDeepLinkNoLti(String localUrl) {
+    static List<Map<String,Object>> createOneDeepLinkNoLti() {
         List<Map<String,Object>> deepLinks = new ArrayList<>();
 
         Map<String,Object> deepLink2b = new HashMap<>();
-        deepLink2b.put("type","link");
-        deepLink2b.put("url","https://www.youtube.com/watch?v=corV3-WsIro");
+        deepLink2b.put(LtiStrings.DEEP_LINK_TYPE,"link");
+        deepLink2b.put(LtiStrings.DEEP_LINK_URL,"https://www.youtube.com/watch?v=corV3-WsIro");
 
         deepLinks.add(deepLink2b);
         return deepLinks;
@@ -246,8 +251,8 @@ public class DeepLinkUtils {
         List<Map<String,Object>> deepLinks = createOneDeepLink(localUrl);
 
         Map<String,Object> deepLink2 = new HashMap<>();
-        deepLink2.put("type","link");
-        deepLink2.put("url","https://www.youtube.com/watch?v=corV3-WsIro");
+        deepLink2.put(LtiStrings.DEEP_LINK_TYPE,"link");
+        deepLink2.put(LtiStrings.DEEP_LINK_URL,"https://www.youtube.com/watch?v=corV3-WsIro");
 
         Map<String,Object> embed = new HashMap<>();
         embed.put("html","<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/corV3-WsIro\" frameborder=\"0\" allow=\"autoplay; encrypted-media\" allowfullscreen></iframe>");
@@ -266,16 +271,16 @@ public class DeepLinkUtils {
         deepLinks.add(deepLink2);
 
         Map<String,Object> ltiResourceLink = new HashMap<>();
-        ltiResourceLink.put("type","ltiResourceLink");
-        ltiResourceLink.put("title","Another deep link");
-        ltiResourceLink.put("url",localUrl + "/lti3?link=4567");
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_TYPE,LtiStrings.DEEP_LINK_LTIRESOURCELINK);
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_TITLE,"Another deep link");
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_URL,localUrl + "/lti3?link=4567");
         deepLinks.add(ltiResourceLink);
 
 
         Map<String,Object> deepLinkFilr = new HashMap<>();
-        deepLinkFilr.put("type","file");
-        deepLinkFilr.put("title","A file like a PDF that is my assignment submissions");
-        deepLinkFilr.put("url","http://www.imsglobal.org/sites/default/files/ipr/imsipr_policyFinal.pdf");
+        deepLinkFilr.put(LtiStrings.DEEP_LINK_TYPE,"file");
+        deepLinkFilr.put(LtiStrings.DEEP_LINK_TITLE,"A file like a PDF that is my assignment submissions");
+        deepLinkFilr.put(LtiStrings.DEEP_LINK_URL,"http://www.imsglobal.org/sites/default/files/ipr/imsipr_policyFinal.pdf");
         deepLinkFilr.put("mediaType","application/pdf");
         deepLinks.add(deepLinkFilr);
 
@@ -286,9 +291,9 @@ public class DeepLinkUtils {
         List<Map<String,Object>> deepLinks = createOneDeepLink(localUrl);
 
         Map<String,Object> ltiResourceLink = new HashMap<>();
-        ltiResourceLink.put("type","ltiResourceLink");
-        ltiResourceLink.put("title","Another deep link");
-        ltiResourceLink.put("url",localUrl + "/lti3?link=4567");
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_TYPE,LtiStrings.DEEP_LINK_LTIRESOURCELINK);
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_TITLE,"Another deep link");
+        ltiResourceLink.put(LtiStrings.DEEP_LINK_URL,localUrl + "/lti3?link=4567");
         deepLinks.add(ltiResourceLink);
         return deepLinks;
     }
@@ -297,8 +302,7 @@ public class DeepLinkUtils {
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(listMap);
-            return json;
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(listMap);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return "";

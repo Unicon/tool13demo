@@ -27,13 +27,13 @@ import javax.persistence.Table;
 public class ConfigEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "config_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "config_id", nullable = false)
     private long id;
     @Basic
-    @Column(name = "config_name", nullable = false, insertable = true, updatable = true, length = 255)
+    @Column(name = "config_name", nullable = false)
     private String name;
     @Basic
-    @Column(name = "config_value", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "config_value", length = 4096)
     private String value;
 
     public ConfigEntity() {

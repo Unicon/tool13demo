@@ -42,8 +42,7 @@ public class RSAKeyEntity extends BaseEntity {
      * @param privateKey the plain text private key
      */
     public RSAKeyEntity(String kid, Boolean tool, String publicKey, String privateKey) {
-        RSAKeyId rsaKeyId = new RSAKeyId(kid,tool);
-        this.kid = rsaKeyId;
+        this.kid = new RSAKeyId(kid,tool);
         this.publicKey = publicKey;
         this.privateKey = privateKey;
     }

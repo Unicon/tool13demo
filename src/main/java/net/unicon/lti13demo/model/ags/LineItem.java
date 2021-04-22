@@ -17,8 +17,6 @@ package net.unicon.lti13demo.model.ags;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LineItem {
     @JsonProperty("id")
@@ -38,18 +36,7 @@ public class LineItem {
     @JsonProperty("endDateTime")
     private String endDateTime;
 
-    public LineItem() {
-    }
-
-    public LineItem(String id, String scoreMaximum, String label, String resourceId, String tag, String resourceLinkId, String startDateTime, String endDateTime) {
-        this.id = id;
-        this.scoreMaximum = scoreMaximum;
-        this.label = label;
-        this.resourceId = resourceId;
-        this.tag = tag;
-        this.resourceLinkId = resourceLinkId;
-        this.startDateTime = startDateTime;
-        this.endDateTime = endDateTime;
+    public LineItem() { //Empty on purpose
     }
 
     public String getId() {

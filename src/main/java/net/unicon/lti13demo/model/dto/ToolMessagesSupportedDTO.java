@@ -25,16 +25,7 @@ public class ToolMessagesSupportedDTO {
     private Map<String,String> custom_parameters;
     List<String> placements;
 
-    public ToolMessagesSupportedDTO() {
-    }
-
-    public ToolMessagesSupportedDTO(String type, String target_link_uri, String label, String icon_uri, Map<String, String> custom_parameters, List<String> placements) {
-        this.type = type;
-        this.target_link_uri = target_link_uri;
-        this.label = label;
-        this.icon_uri = icon_uri;
-        this.custom_parameters = custom_parameters;
-        this.placements = placements;
+    public ToolMessagesSupportedDTO() {//Empty on purpose
     }
 
     public String getType() {

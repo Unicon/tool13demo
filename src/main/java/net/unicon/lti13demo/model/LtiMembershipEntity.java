@@ -33,13 +33,13 @@ public class LtiMembershipEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "membership_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "membership_id", nullable = false)
     private long membershipId;
     @Basic
-    @Column(name = "role", nullable = true, insertable = true, updatable = true)
+    @Column(name = "role")
     private Integer role;
     @Basic
-    @Column(name = "role_override", nullable = true, insertable = true, updatable = true)
+    @Column(name = "role_override")
     private Integer roleOverride;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

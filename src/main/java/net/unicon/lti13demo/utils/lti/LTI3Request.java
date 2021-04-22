@@ -26,6 +26,7 @@ import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.config.ApplicationConfig;
+import net.unicon.lti13demo.exceptions.DataServiceException;
 import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.LtiLinkEntity;
 import net.unicon.lti13demo.model.LtiMembershipEntity;
@@ -39,7 +40,6 @@ import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
@@ -51,7 +51,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
-import java.security.PublicKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -246,7 +245,7 @@ public class LTI3Request {
      * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
      * @throws IllegalStateException if this is not an LTI request
      */
-    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId) {
+    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId) throws DataServiceException {
         if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
@@ -260,7 +259,7 @@ public class LTI3Request {
             // we don't know the key and we need to check it pre-extracting the claims and finding the kid
             @Override
             public Key resolveSigningKey(JwsHeader header, Claims claims) {
-                try {
+
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(),claims.getAudience()).get(0);
@@ -269,8 +268,7 @@ public class LTI3Request {
                         try {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                             JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
-                            PublicKey key = ((AsymmetricJWK) jwk).toPublicKey();
-                            return key;
+                            return ((AsymmetricJWK) jwk).toPublicKey();
                         } catch (JOSEException ex) {
                             log.error("Error getting the iss public key", ex);
                             return null;
@@ -279,12 +277,14 @@ public class LTI3Request {
                             return null;
                         }
                     } else {
-                        return OAuthUtils.loadPublicKey(ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false)).get().getPublicKey());
+                        try {
+                            return OAuthUtils.loadPublicKey(ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false)).get().getPublicKey());
+                        } catch (GeneralSecurityException e) {
+                            log.error("Error generating the tool public key", e);
+                            return null;
+                        }
                     }
-                } catch (GeneralSecurityException ex) {
-                    log.error("Error generating the tool public key", ex);
-                    return null;
-                }
+
             }
         });
         Jws<Claims> jws = parser.parseClaimsJws(jwt);
@@ -305,13 +305,8 @@ public class LTI3Request {
         }
         //Now we are going to check the if the nonce is valid.
         String checkNonce = checkNonce(jws);
-        // THIS IF IS HERE BECAUSE THE IMS REFERENCE IMPLEMENTATION TOOL
-        // IS NOT RETURNING THE RIGHT NONCE WHEN DEEP LINKING.
-        // TODO: REMOVE THIS IF when the problem is solved. And move it again before the LTI Request valid code.
-        if(!isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
-            if (!checkNonce.equals("true")) {
-                throw new IllegalStateException("Nonce error: " + checkNonce);
-            }
+        if (!checkNonce.equals("true")) {
+            throw new IllegalStateException("Nonce error: " + checkNonce);
         }
         //Here we will populate the LTI3Request object
         String processRequestParameters = processRequestParameters(request,jws);
@@ -462,15 +457,8 @@ public class LTI3Request {
 
         // Surely we need a more elaborated code here based in the huge amount of roles avaliable.
         // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
-        String normalizedRoleName = LtiStrings.LTI_ROLE_GENERAL;
-        if (isRoleAdministrator()) {
-            normalizedRoleName = LtiStrings.LTI_ROLE_ADMIN;
-        } else if (isRoleInstructor()) {
-            normalizedRoleName = LtiStrings.LTI_ROLE_INSTRUCTOR;
-        } else if (isRoleLearner()) {
-            normalizedRoleName = LtiStrings.LTI_ROLE_LEARNER;
-        }
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, normalizedRoleName);
+
+        session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, getNormalizedRoleName());
 
         // And now we will check that all the mandatory fields are there and are correct
         String isComplete;
@@ -489,11 +477,7 @@ public class LTI3Request {
             try {
                 deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0),
                         this, ltiDataService.getLocalUrl());
-            } catch (GeneralSecurityException ex) {
-                log.error("Error creating the DeepLinking Response",ex);
-            } catch (IOException ex) {
-                log.error("Error creating the DeepLinking Response",ex);
-            } catch (NullPointerException ex) {
+            } catch (GeneralSecurityException | IOException | NullPointerException ex) {
                 log.error("Error creating the DeepLinking Response",ex);
             }
 
@@ -511,6 +495,18 @@ public class LTI3Request {
         }
     }
 
+    private String getNormalizedRoleName(){
+        String normalizedRoleName = LtiStrings.LTI_ROLE_GENERAL;
+        if (isRoleAdministrator()) {
+            normalizedRoleName = LtiStrings.LTI_ROLE_ADMIN;
+        } else if (isRoleInstructor()) {
+            normalizedRoleName = LtiStrings.LTI_ROLE_INSTRUCTOR;
+        } else if (isRoleLearner()) {
+            normalizedRoleName = LtiStrings.LTI_ROLE_LEARNER;
+        }
+        return normalizedRoleName;
+    }
+
     private String getStringFromLTIRequest(Jws<Claims> jws, String stringToGet) {
         if (jws.getBody().containsKey(stringToGet) && jws.getBody().get(stringToGet)!=null) {
             return jws.getBody().get(stringToGet, String.class);
@@ -519,7 +515,7 @@ public class LTI3Request {
         }
     }
 
-    private String getStringFromLTIRequestMap(Map map, String stringToGet) {
+    private String getStringFromLTIRequestMap(Map<String, Object> map, String stringToGet) {
         if (map.containsKey(stringToGet) && map.get(stringToGet)!=null) {
             return map.get(stringToGet).toString();
         } else {
@@ -527,7 +523,7 @@ public class LTI3Request {
         }
     }
 
-    private Integer getIntegerFromLTIRequestMap(Map map, String integerToGet) {
+    private Integer getIntegerFromLTIRequestMap(Map<String, Object> map, String integerToGet) {
         if (map.containsKey(integerToGet)) {
             try {
                 return Integer.valueOf(map.get(integerToGet).toString());
@@ -540,10 +536,10 @@ public class LTI3Request {
         }
     }
 
-    private List<String> getListFromLTIRequestMap(Map map, String listToGet) {
+    private List<String> getListFromLTIRequestMap(Map<String, Object> map, String listToGet) {
         if (map.containsKey(listToGet)) {
             try {
-                return (List)map.get(listToGet);
+                return (List<String>)map.get(listToGet);
             }catch (Exception ex) {
                 log.error("No list when expected in: {0} Returning null", listToGet);
                 return new ArrayList<>();
@@ -688,14 +684,12 @@ public class LTI3Request {
 
     private String checkCorrectLTIRequest() {
 
-        String correctStr = "true";
-
 
         //TODO check things as:
         // Roles are correct roles
         //
 
-        return correctStr;
+        return "true";
     }
 
     /**
@@ -707,14 +701,12 @@ public class LTI3Request {
 
     private String checkCorrectDeepLinkingRequest() {
 
-        String correctStr = "true";
-
 
         //TODO check anything needed to check if the request is valid:
         //
         //
 
-        return correctStr;
+        return "true";
     }
 
     /**
@@ -727,8 +719,8 @@ public class LTI3Request {
         List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
         List<String> ltiNonceNew = new ArrayList<>();
         Boolean found = false;
-        String nonce = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
-        if (nonce == null || ListUtils.isEmpty(ltiNonce)) {
+        String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
+        if (nonceToCheck == null || ListUtils.isEmpty(ltiNonce)) {
             return "Nonce = null in the JWT or in the session.";
         } else {
             // Really, we send the hash of the nonce to the platform.
@@ -736,7 +728,7 @@ public class LTI3Request {
                 String nonceHash = Hashing.sha256()
                         .hashString(nonceStored, StandardCharsets.UTF_8)
                         .toString();
-                if (nonce.equals(nonceHash)) {
+                if (nonceToCheck.equals(nonceHash)) {
                     found = true;
                 } else { //If not found, we add it to another list... so we keep the unused nonces.
                     ltiNonceNew.add(nonceStored);

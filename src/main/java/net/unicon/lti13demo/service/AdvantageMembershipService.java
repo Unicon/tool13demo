@@ -14,29 +14,14 @@
  */
 package net.unicon.lti13demo.service;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.AsymmetricJWK;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.SigningKeyResolverAdapter;
-import net.minidev.json.JSONObject;
 import net.unicon.lti13demo.exceptions.ConnectionException;
 import net.unicon.lti13demo.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.model.membership.CourseUser;
 import net.unicon.lti13demo.model.membership.CourseUsers;
 import net.unicon.lti13demo.model.oauth2.Token;
-import net.unicon.lti13demo.repository.LtiContextRepository;
-import net.unicon.lti13demo.utils.oauth.OAuthUtils;
-import org.apache.commons.lang3.StringUtils;
+import net.unicon.lti13demo.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,21 +29,11 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
-import java.net.URL;
-import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.PublicKey;
-import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This manages all the Membership call for the LTIRequest (and for LTI in general)
@@ -84,7 +59,7 @@ public class AdvantageMembershipService {
     //Calling the membership service and getting a paginated result of users.
     public CourseUsers callMembershipService(Token token, LtiContextEntity context) throws ConnectionException {
         CourseUsers courseUsers = new CourseUsers();
-        log.debug("Token -  "+ token.getAccess_token());
+        log.debug(TextConstants.TOKEN + token.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -129,7 +104,6 @@ public class AdvantageMembershipService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get the membership");
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return courseUsers;

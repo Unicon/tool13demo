@@ -44,21 +44,7 @@ public class CourseUser {
     @JsonProperty("roles")
     private List<String> roles;
 
-    public CourseUser() {
-    }
-
-    public CourseUser(String status, String name, String picture, String givenName, String familyName, String middleName, String email, String userId, String lisPersonSourcedid, String lti11LegacyUserId, List<String> roles) {
-        this.status = status;
-        this.name = name;
-        this.picture = picture;
-        this.givenName = givenName;
-        this.familyName = familyName;
-        this.middleName = middleName;
-        this.email = email;
-        this.userId = userId;
-        this.lisPersonSourcedid = lisPersonSourcedid;
-        this.lti11LegacyUserId = lti11LegacyUserId;
-        this.roles = roles;
+    public CourseUser() {//Empty on purpose
     }
 
     public String getStatus() {

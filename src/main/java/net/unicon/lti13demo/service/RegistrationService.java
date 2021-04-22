@@ -16,13 +16,7 @@ package net.unicon.lti13demo.service;
 
 import net.unicon.lti13demo.exceptions.ConnectionException;
 import net.unicon.lti13demo.exceptions.helper.ExceptionMessageGenerator;
-import net.unicon.lti13demo.model.LtiContextEntity;
-import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.dto.ToolConfigurationDTO;
 import net.unicon.lti13demo.model.dto.ToolRegistrationDTO;
-import net.unicon.lti13demo.model.membership.CourseUser;
-import net.unicon.lti13demo.model.membership.CourseUsers;
-import net.unicon.lti13demo.model.oauth2.Token;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +29,6 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This manages the Registration call
@@ -68,7 +59,6 @@ public class RegistrationService {
             log.debug("Endpoint -  "+ endpoint);
             ResponseEntity<String> registrationRequest = restTemplate.
                     exchange(endpoint, HttpMethod.POST, request, String.class);
-            List<CourseUser> courseUserList = new ArrayList<>();
             if (registrationRequest != null) {
                 HttpStatus status = registrationRequest.getStatusCode();
                 if (status.is2xxSuccessful()) {
@@ -85,7 +75,6 @@ public class RegistrationService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Problem during the registration");
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return answer;

@@ -35,26 +35,26 @@ import java.util.Set;
 public class LtiContextEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "context_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "context_id", nullable = false)
     private long contextId;
     @Basic
-    @Column(name = "context_key", nullable = false, insertable = true, updatable = true, length = 4096)
+    @Column(name = "context_key", nullable = false, length = 4096)
     private String contextKey;
     @Basic
-    @Column(name = "title", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "title", length = 4096)
     private String title;
     @Basic
-    @Column(name = "context_memberships_url", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "context_memberships_url", length = 4096)
     private String context_memberships_url;
     @Basic
-    @Column(name = "lineitems", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "lineitems", length = 4096)
     private String lineitems;
 
     @Lob
-    @Column(name = "json", nullable = true, insertable = true, updatable = true, length = 65535)
+    @Column(name = "json", length = 65535)
     private String json;
     @Lob
-    @Column(nullable = true, length = 65535)
+    @Column(length = 65535)
     private String settings;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

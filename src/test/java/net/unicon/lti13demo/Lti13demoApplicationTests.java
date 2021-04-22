@@ -24,7 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class Lti13demoApplicationTests {
 
 	@Test
-	public void contextLoads() {
+	public void contextLoads() { //Empty on purpose. No tests by the moment.
 	}
 
 }

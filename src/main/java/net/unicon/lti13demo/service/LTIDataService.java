@@ -14,6 +14,7 @@
  */
 package net.unicon.lti13demo.service;
 
+import net.unicon.lti13demo.exceptions.DataServiceException;
 import net.unicon.lti13demo.model.LtiContextEntity;
 import net.unicon.lti13demo.model.LtiLinkEntity;
 import net.unicon.lti13demo.model.LtiMembershipEntity;
@@ -85,8 +86,6 @@ public class LTIDataService {
         qDeployment.setParameter("clientId", lti.getAud());
         qDeployment.setParameter("deploymentId", lti.getLtiDeploymentId());
         qDeployment.setParameter("context", lti.getLtiContextId());
-        // Here we need to get the link from the url, and not from the claim/resource_link -> id (that is the lms internal id)... but it would be good to be able to search by that id
-        //qDeployment.setParameter("link",lti.getLtiLinkId());
         qDeployment.setParameter("link",link);
         qDeployment.setParameter("user", lti.getSub());
         qDeployment.setParameter("iss", lti.getIss());
@@ -120,9 +119,12 @@ public class LTIDataService {
 
     @Transactional
     // We update the information for the context, user, membership, link (if received), etc...  with new information on the LTI Request.
-    public int upsertLTIDataInDB(LTI3Request lti, PlatformDeployment platformDeployment, String link) {
-        assert repos != null : "access to the repos is required";
-        assert platformDeployment != null : "Key data must not be null to update data";
+    public int upsertLTIDataInDB(LTI3Request lti, PlatformDeployment platformDeployment, String link) throws DataServiceException {
+        if (repos == null) {
+            throw new DataServiceException("access to the repos is required");
+        }
+        if (platformDeployment == null)
+            throw new DataServiceException("Key data must not be null to update dara");
         if (lti.getKey()==null) {
             lti.setKey(platformDeployment);
         }
@@ -170,10 +172,10 @@ public class LTIDataService {
                     //This is hardcoded because our database is not persistent
                     //In a normal case, we would had it created previously and this code wouldn't be needed.
                     String title = lti.getLtiLinkTitle();
-                    Float scoreMax = new Float(0);
+                    Float scoreMax = Float.valueOf(0);
                     if (link.equals("1234")){
                         title = "My Test Link";
-                        scoreMax =  new Float(50);
+                        scoreMax =  Float.valueOf(50);
                     } else if (link.equals("4567")){
                         title = "Another Link";
                     }
@@ -289,6 +291,7 @@ public class LTIDataService {
         }
 
         // need to recheck and see if we are complete now
+        //TODO: Review this line of code. Not doing anything.
         lti.checkCompleteLTIRequest(true);
 
         lti.setLoadingUpdates(inserts + updates);

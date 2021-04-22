@@ -18,6 +18,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
+import net.unicon.lti13demo.exceptions.DataServiceException;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.lti.LTI3Request;
@@ -98,7 +99,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
             //Second, as the state is something that we have created, it should be in our list of states.
-            List ltiState = (List)httpServletRequest.getSession().getAttribute("lti_state");
+            List<String> ltiState = (List<String>)httpServletRequest.getSession().getAttribute("lti_state");
             if (!ltiState.contains(state)) {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
@@ -139,6 +140,8 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             log.info("Invalid JWT signature: {0}" , ex.getMessage());
             log.debug("Exception " + ex.getMessage(), ex);
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (DataServiceException e) {
+            log.error("Error in the Data Service", e);
         }
     }
 

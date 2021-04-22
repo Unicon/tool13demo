@@ -20,9 +20,9 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.ags.LineItem;
 import net.unicon.lti13demo.model.ags.LineItems;
 import net.unicon.lti13demo.model.oauth2.Token;
+import net.unicon.lti13demo.utils.TextConstants;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,33 +59,29 @@ public class AdvantageConnectorHelper {
 
     public HttpEntity createRequestEntity(String apiKey) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey);
-        HttpEntity request = new HttpEntity<>(headers);
-        return request;
+        headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + apiKey);
+        return new HttpEntity<>(headers);
     }
 
     // We put the token in the Authorization as a simple Bearer one.
     public HttpEntity createTokenizedRequestEntity(Token token) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccess_token());
-        HttpEntity request = new HttpEntity<>(headers);
-        return request;
+        headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + token.getAccess_token());
+        return new HttpEntity<>(headers);
     }
 
     // We put the token in the Authorization as a simple Bearer one.
     public HttpEntity<LineItem> createTokenizedRequestEntity(Token token, LineItem lineItem) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccess_token());
-        HttpEntity request = new HttpEntity<>(lineItem, headers);
-        return request;
+        headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + token.getAccess_token());
+        return new HttpEntity<>(lineItem, headers);
     }
 
     // We put the token in the Authorization as a simple Bearer one.
     public HttpEntity<LineItems> createTokenizedRequestEntity(Token token, LineItems lineItems) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token.getAccess_token());
-        HttpEntity request = new HttpEntity<>(lineItems, headers);
-        return request;
+        headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + token.getAccess_token());
+        return new HttpEntity<>(lineItems, headers);
     }
 
     //Asking for a token. The scope will come in the scope parameter
@@ -93,24 +89,12 @@ public class AdvantageConnectorHelper {
     public Token getToken(PlatformDeployment platformDeployment, String scope) throws ConnectionException {
         Token token = null;
         try {
-            RestTemplate restTemplate = createRestTemplate();
+
             // We need an specific request for the token.
             HttpEntity request = createTokenRequest(scope, platformDeployment);
             final String POST_TOKEN_URL = platformDeployment.getoAuth2TokenUrl();
             log.debug("POST_TOKEN_URL -  "+ POST_TOKEN_URL);
-            ResponseEntity<Token> reportPostResponse = null;
-            try{
-                reportPostResponse = restTemplate.
-                        postForEntity(POST_TOKEN_URL, request, Token.class);
-            } catch (Exception ex){
-                log.error("ERROR GETING THE TOKEN" , ex);
-                StringBuilder exceptionMsg = new StringBuilder();
-                exceptionMsg.append("Can't get the token. Exception. We will try again with a JSON Payload");
-                log.error(exceptionMsg.toString());
-                HttpEntity request2 = createTokenRequestJSON(scope, platformDeployment);
-                reportPostResponse = restTemplate.
-                        postForEntity(POST_TOKEN_URL, request2, Token.class);
-            }
+            ResponseEntity<Token> reportPostResponse = postEntity(POST_TOKEN_URL, request, platformDeployment, scope);
             if (reportPostResponse != null) {
                 HttpStatus status = reportPostResponse.getStatusCode();
                 if (status.is2xxSuccessful()) {
@@ -133,6 +117,25 @@ public class AdvantageConnectorHelper {
         return token;
     }
 
+
+    private ResponseEntity<Token> postEntity(String POST_TOKEN_URL, HttpEntity request, PlatformDeployment platformDeployment, String scope) throws GeneralSecurityException, IOException {
+        ResponseEntity<Token> reportPostResponse = null;
+        RestTemplate restTemplate = createRestTemplate();
+        try{
+            reportPostResponse = restTemplate.
+                    postForEntity(POST_TOKEN_URL, request, Token.class);
+        } catch (Exception ex){
+            log.error("ERROR GETING THE TOKEN" , ex);
+            StringBuilder exceptionMsg = new StringBuilder();
+            exceptionMsg.append("Can't get the token. Exception. We will try again with a JSON Payload");
+            log.error(exceptionMsg.toString());
+            HttpEntity request2 = createTokenRequestJSON(scope, platformDeployment);
+            reportPostResponse = restTemplate.
+                    postForEntity(POST_TOKEN_URL, request2, Token.class);
+        }
+        return reportPostResponse;
+    }
+
     // This is specific to request a token.
     public HttpEntity createTokenRequest(String scope, PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
         HttpHeaders headers = new HttpHeaders();
@@ -145,8 +148,7 @@ public class AdvantageConnectorHelper {
         map.add("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
         map.add("scope", scope);
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-        return request;
+        return new HttpEntity<>(map, headers);
     }
 
     // This is specific to request a token.
@@ -162,14 +164,12 @@ public class AdvantageConnectorHelper {
         parameterJson.put("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
         parameterJson.put("scope", scope);
-        HttpEntity request = new HttpEntity<>(parameterJson.toString(), headers);
-        return request;
+        return new HttpEntity<>(parameterJson.toString(), headers);
     }
 
     public RestTemplate createRestTemplate() {
-        RestTemplate restTemplate = new RestTemplate(
+        return new RestTemplate(
                 new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
-        return restTemplate;
     }
 
     public String nextPage(HttpHeaders headers) {
@@ -182,7 +182,7 @@ public class AdvantageConnectorHelper {
                 try {
                     return URLDecoder.decode(url, "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
+                    log.error("Error decoding the url for the next page",e);
                 }
             }
         }

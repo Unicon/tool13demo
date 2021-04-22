@@ -38,27 +38,9 @@ public class ToolRegistrationDTO {
     private ToolConfigurationDTO toolConfiguration;
     private List<String> scope;
 
-    public ToolRegistrationDTO() {
-    }
 
-    public ToolRegistrationDTO(String application_type, List<String> grant_types, List<String> response_types, List<String> redirect_uris, String initiate_login_uri, String client_name, String jwks_uri, String logo_uri, String token_endpoint_auth_method, List<String> contacts, String client_uri, String tos_uri, String policy_uri, ToolConfigurationDTO toolConfiguration, List<String> scope) {
-        this.application_type = application_type;
-        this.grant_types = grant_types;
-        this.response_types = response_types;
-        this.redirect_uris = redirect_uris;
-        this.initiate_login_uri = initiate_login_uri;
-        this.client_name = client_name;
-        this.jwks_uri = jwks_uri;
-        this.logo_uri = logo_uri;
-        this.token_endpoint_auth_method = token_endpoint_auth_method;
-        this.contacts = contacts;
-        this.client_uri = client_uri;
-        this.tos_uri = tos_uri;
-        this.policy_uri = policy_uri;
-        this.toolConfiguration = toolConfiguration;
-        this.scope = scope;
+    public ToolRegistrationDTO() {//Empty on purpose
     }
-
     public String getApplication_type() {
         return application_type;
     }

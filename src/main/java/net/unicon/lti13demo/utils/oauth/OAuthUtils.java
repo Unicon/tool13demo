@@ -47,11 +47,10 @@ public class OAuthUtils {
     }
 
     public static RSAPublicKey loadPublicKey(String key) throws GeneralSecurityException {
-        String publicKeyContent = key.replaceAll("\\n", "").replace("-----BEGIN PUBLIC KEY-----", "").replace("-----END PUBLIC KEY-----", "");
+        String publicKeyContent = key.replace("\\n", "").replace("-----BEGIN PUBLIC KEY-----", "").replace("-----END PUBLIC KEY-----", "");
         KeyFactory kf = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec keySpecX509 = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
-        RSAPublicKey pubKey = (RSAPublicKey) kf.generatePublic(keySpecX509);
-        return pubKey;
+        return (RSAPublicKey) kf.generatePublic(keySpecX509);
     }
 
     public static PrivateKey loadPrivateKey(String privateKeyPem) throws GeneralSecurityException, IOException {

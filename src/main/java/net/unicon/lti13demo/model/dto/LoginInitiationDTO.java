@@ -25,7 +25,8 @@ public class LoginInitiationDTO {
     private String clientId;
     private String deploymentId;
 
-    public LoginInitiationDTO() {
+
+    public LoginInitiationDTO() {//Empty on purpose
     }
 
     public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId) {

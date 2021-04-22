@@ -24,6 +24,8 @@ import net.unicon.lti13demo.model.oauth2.Token;
 import net.unicon.lti13demo.repository.LtiContextRepository;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.AdvantageAGSService;
+import net.unicon.lti13demo.utils.LtiStrings;
+import net.unicon.lti13demo.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +47,14 @@ import java.util.Optional;
  * This LTI 3 redirect controller will retrieve the LTI3 requests and redirect them to the right page.
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
+@SuppressWarnings("SameReturnValue")
 @Controller
 @Scope("session")
 @RequestMapping("/ags")
 public class AgsController {
 
     static final Logger log = LoggerFactory.getLogger(AgsController.class);
+    static final String LTIADVAGSMAIN ="ltiAdvAgsMain";
 
     @Autowired
     LtiContextRepository ltiContextRepository;
@@ -68,10 +72,10 @@ public class AgsController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) !=null){
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
             //We find the right deployment:
             Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
             if (platformDeployment.isPresent()) {
@@ -81,18 +85,18 @@ public class AgsController {
                 //Call the ags service to get the users on the context
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
-                log.info("TOKEN: " + token.getAccess_token());
+                log.info(TextConstants.TOKEN + token.getAccess_token());
                 // 2. Call the service
                 LineItems lineItemsResult = advantageAGSServiceService.getLineItems(token, context);
 
                 // 3. update the model
-                model.addAttribute("single", false);
-                model.addAttribute("results", lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.SINGLE, false);
+                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
             }
         } else {
-            model.addAttribute("noSessionValues", true);
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return "ltiAdvAgsMain";
+        return LTIADVAGSMAIN;
     }
 
 
@@ -104,10 +108,10 @@ public class AgsController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) !=null){
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
             //We find the right deployment:
             Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
             if (platformDeployment.isPresent()) {
@@ -117,19 +121,19 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
-                log.info("TOKEN: " + token.getAccess_token());
+                log.info(TextConstants.TOKEN + token.getAccess_token());
 
                 // 2. Call the service
                 LineItems lineItemsResult = advantageAGSServiceService.postLineItems(token, context, lineItems);
 
                 // 3. update the model
-                model.addAttribute("single", false);
-                model.addAttribute("results", lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.SINGLE, false);
+                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
             }
         } else {
-            model.addAttribute("noSessionValues", true);
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return "ltiAdvAgsMain";
+        return LTIADVAGSMAIN;
     }
 
 
@@ -142,10 +146,10 @@ public class AgsController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) !=null){
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
             //We find the right deployment:
             Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
             if (platformDeployment.isPresent()) {
@@ -155,19 +159,19 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
-                log.info("TOKEN: " + token.getAccess_token());
+                log.info(TextConstants.TOKEN + token.getAccess_token());
 
                 // 2. Call the service
                 LineItem lineItemsResult = advantageAGSServiceService.getLineItem(token, context, id);
 
                 // 3. update the model
-                model.addAttribute("single", true);
-                model.addAttribute("results", Collections.singletonList(lineItemsResult));
+                model.addAttribute(TextConstants.SINGLE, true);
+                model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
             }
         } else {
-            model.addAttribute("noSessionValues", true);
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return "ltiAdvAgsMain";
+        return LTIADVAGSMAIN;
     }
 
 
@@ -180,10 +184,10 @@ public class AgsController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) !=null){
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
             //We find the right deployment:
             Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
             if (platformDeployment.isPresent()) {
@@ -193,20 +197,20 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
-                log.info("TOKEN: " + token.getAccess_token());
+                log.info(TextConstants.TOKEN + token.getAccess_token());
 
                 // 2. Call the service
                 lineItem.setId(id);
                 LineItem lineItemsResult = advantageAGSServiceService.putLineItem(token, context, lineItem);
 
                 // 3. update the model
-                model.addAttribute("single", true);
-                model.addAttribute("results", Collections.singletonList(lineItemsResult));
+                model.addAttribute(TextConstants.SINGLE, true);
+                model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
             }
         } else {
-            model.addAttribute("noSessionValues", true);
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return "ltiAdvAgsMain";
+        return LTIADVAGSMAIN;
     }
 
 
@@ -219,10 +223,10 @@ public class AgsController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) !=null){
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
             //We find the right deployment:
             Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
             if (platformDeployment.isPresent()) {
@@ -232,21 +236,21 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 Token token = advantageAGSServiceService.getToken(platformDeployment.get());
-                log.info("TOKEN: " + token.getAccess_token());
+                log.info(TextConstants.TOKEN + token.getAccess_token());
 
                 // 2. Call the service
                 Boolean deleteResult = advantageAGSServiceService.deleteLineItem(token, context, id);
                 LineItems lineItemsResult = advantageAGSServiceService.getLineItems(token, context);
 
                 // 3. update the model
-                model.addAttribute("single", false);
-                model.addAttribute("results", lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.SINGLE, false);
+                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
                 model.addAttribute("deleteResults", deleteResult);
             }
         } else {
-            model.addAttribute("noSessionValues", true);
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return "ltiAdvAgsMain";
+        return LTIADVAGSMAIN;
     }
 
 

@@ -17,7 +17,9 @@
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org
+http://www.thymeleaf.org "
+      xml:lang="en">
 <head>
     <title>LTI 3 </title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -28,27 +30,27 @@
 <h4>Lti 3 was successful and we have this: </h4>
 
 <div>
-<ul class="list-group">
-    <li class="list-group-item ">
-        <label><strong>iss:</strong></label>
-        <span th:text="${lTI3Request.iss}"/>
-    </li>
-    <li class="list-group-item ">
-        <label><strong>aud:</strong></label>
-        <span th:text="${lTI3Request.aud}"/>
-    </li>
-    <li class="list-group-item ">
-        <label><strong>iat:</strong></label>
-        <span th:text="${lTI3Request.iat}"/>
-    </li>
-    <li class="list-group-item ">
-        <label><strong>exp:</strong></label>
-        <span th:text="${lTI3Request.exp}"/>
-    </li>
-    <li class="list-group-item ">
-        <label><strong>sub:</strong></label>
-        <span th:text="${lTI3Request.sub}"/>
-    </li>
+    <ul class="list-group">
+        <li class="list-group-item ">
+            <label><strong>iss:</strong></label>
+            <span th:text="${lTI3Request.iss}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>aud:</strong></label>
+            <span th:text="${lTI3Request.aud}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>iat:</strong></label>
+            <span th:text="${lTI3Request.iat}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>exp:</strong></label>
+            <span th:text="${lTI3Request.exp}"/>
+        </li>
+        <li class="list-group-item ">
+            <label><strong>sub:</strong></label>
+            <span th:text="${lTI3Request.sub}"/>
+        </li>
     </ul>
 </div>
 <p>&nbsp;</p>
@@ -101,13 +103,13 @@
 <p>&nbsp;</p>
 
 <div>
-   <label><strong>JW1 content. EMPTY answer:</strong></label>
-   JW1 is Empty.
+    <label><strong>JW1 content. EMPTY answer:</strong></label>
+    JW1 is Empty.
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT">Item1:</label>
-        <input type="text" id="JWT" name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt1')}" class="form-control"/>
+        <input type="text" id="JWT" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt1')}" class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
@@ -115,12 +117,14 @@
 <p>&nbsp;</p>
 <div>
     <label><strong>JW2 content. ONE ltiResourceLink:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br
+    /&gt;')})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT2">Item2:</label>
-        <input type="text" id="JWT2"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt2')}" class="form-control"/>
+        <input type="text" id="JWT2" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt2')}"
+               class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
@@ -130,12 +134,14 @@
 
 <div>
     <label><strong>JW2b content. ONE NON ltiResourceLink:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br
+    /&gt;')})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT2b">Item2b:</label>
-        <input type="text" id="JWT2b"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt2b')}" class="form-control"/>
+        <input type="text" id="JWT2b" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt2b')}"
+               class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
@@ -145,12 +151,14 @@
 
 <div>
     <label><strong>JW3 content. TWO ltiResourceLinks and TWO other types:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br
+    /&gt;')})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT3">item3:</label>
-        <input type="text" id="JWT3"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt3')}" class="form-control"/>
+        <input type="text" id="JWT3" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt3')}"
+               class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>
@@ -159,12 +167,14 @@
 
 <div>
     <label><strong>JW3b content. TWO ltiResourceLinks:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br /&gt;')})]
+    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br
+    /&gt;')})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
         <label for="JWT3b">item3:</label>
-        <input type="text" id="JWT3b"  name="JWT"  th:value="${lTI3Request.deepLinkJwts.get('jwt3b')}" class="form-control"/>
+        <input type="text" id="JWT3b" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt3b')}"
+               class="form-control"/>
     </div>
     <input type="submit" value="Submit" class="btn btn-primary">
 </form>

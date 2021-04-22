@@ -28,14 +28,12 @@ import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
-import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -45,7 +43,6 @@ import java.security.Key;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,9 +59,6 @@ public class LTIJWTService {
     LTIDataService ltiDataService;
 
     String error;
-
-    @Value("${application.url}")
-    String iss;
 
     /**
      * This will check that the state has been signed by us and retrieve the issuer private key.
@@ -120,40 +114,43 @@ public class LTIJWTService {
             // we don't know the key and we need to check it pre-extracting the claims and finding the kid
             @Override
             public Key resolveSigningKey(JwsHeader header, Claims claims) {
+                PlatformDeployment platformDeployment = null;
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(),clientId).get(0);
-
-                    // If the platform has a JWK Set endpoint... we try that.
-                    if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
-                        try {
-                            JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
-                            JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
-                            return ((AsymmetricJWK) jwk).toPublicKey();
-                        } catch (JOSEException | ParseException | IOException ex) {
-                            log.error("Error getting the iss public key", ex);
-                            return null;
-                        } catch (NullPointerException ex) {
-                            log.error("Kid not found in header",ex);
-                            return null;
-                        }
-                    } else { // If not, we get the key stored in our configuration
-                        Optional<RSAKeyEntity> rsaKey = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false));
-                        if (rsaKey.isPresent()) {
-                           return OAuthUtils.loadPublicKey(rsaKey.get().getPublicKey());
-                        } else {
-                           log.error("Error retrieving the tool public key");
-                           return null;
-                        }
-                    }
-                } catch (GeneralSecurityException ex){
-                    log.error("Error generating the tool public key",ex);
-                    return null;
-                } catch (IndexOutOfBoundsException ex){
-                    log.error("Kid not found in header",ex);
+                    platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(), clientId).get(0);
+                } catch (IndexOutOfBoundsException ex) {
+                    log.error("Kid not found in header", ex);
                     return null;
                 }
+                // If the platform has a JWK Set endpoint... we try that.
+                if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
+                    try {
+                        JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
+                        JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
+                        return ((AsymmetricJWK) jwk).toPublicKey();
+                    } catch (JOSEException | ParseException | IOException ex) {
+                        log.error("Error getting the iss public key", ex);
+                        return null;
+                    } catch (NullPointerException ex) {
+                        log.error("Kid not found in header", ex);
+                        return null;
+                    }
+                } else { // If not, we get the key stored in our configuration
+                    Optional<RSAKeyEntity> rsaKey = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false));
+                    if (rsaKey.isPresent()) {
+                        try {
+                            return OAuthUtils.loadPublicKey(rsaKey.get().getPublicKey());
+                        } catch (GeneralSecurityException e) {
+                            log.error("Error generating the tool public key", e);
+                            return null;
+                        }
+                    } else {
+                        log.error("Error retrieving the tool public key");
+                        return null;
+                    }
+                }
+
             }
         }).parseClaimsJws(jwt);
     }
@@ -170,21 +167,16 @@ public class LTIJWTService {
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String aud;
-            String issuer = iss;
-            //D2L needs a different aud, maybe others
+            //D2L needs a different aud, maybe others too
             if (platformDeployment.getoAuth2TokenAud() != null){
                 aud = platformDeployment.getoAuth2TokenAud();
             } else {
                 aud = platformDeployment.getoAuth2TokenUrl();
             }
-            //D2L needs the issuer to be the clientId (Surely we should store the platform type in the configuration so we can do these "if" better
-            //if (platformDeployment.getoAuth2TokenAud().equals("https://api.brightspace.com/auth/token") ){
-                issuer = platformDeployment.getClientId();
-            //}
             String state = Jwts.builder()
                     .setHeaderParam("kid", "000000000000000001")
                     .setHeaderParam("typ", "JWT")
-                    .setIssuer(issuer)  //This is our own identifier, to know that we are the issuer.
+                    .setIssuer(platformDeployment.getClientId())  // D2L needs the issuer to be the clientId
                     .setSubject(platformDeployment.getClientId()) // The clientId
                     .setAudience(aud)  //We send here the authToken url.
                     .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date

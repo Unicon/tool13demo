@@ -20,12 +20,10 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.service.ResourceService;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 @Component
 public class PlatformDeploymentResourceService implements ResourceService<PlatformDeployment> {
 
-	static String PLATFORM_DEPLOYMENT_RESOURCE = "classpath:data/platform_deployment";
+	static final String PLATFORM_DEPLOYMENT_RESOURCE = "classpath:data/platform_deployment";
 	
 	@Override
 	public String getDirectoryPath() {
@@ -33,7 +31,7 @@ public class PlatformDeploymentResourceService implements ResourceService<Platfo
 	}
 
 	@Override
-	public void setDefaults() throws IOException {
+	public void setDefaults() { //Empty on purpose
 		
 	}
 
