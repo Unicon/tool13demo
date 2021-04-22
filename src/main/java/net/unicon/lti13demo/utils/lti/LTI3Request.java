@@ -210,10 +210,10 @@ public class LTI3Request {
      */
     public static LTI3Request getInstanceOrDie(String linkId) {
         ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        HttpServletRequest req = sra.getRequest();
-        if (req == null) {
-            throw new IllegalStateException("No HttpServletRequest can be found, cannot get the LTIRequest unless we are currently in a request");
+        if (sra == null) {
+            throw new IllegalStateException("No ServletRequestAttributes can be found, cannot get the LTIRequest unless we are currently in a request");
         }
+        HttpServletRequest req = sra.getRequest();
         LTI3Request ltiRequest = (LTI3Request) req.getAttribute(LTI3Request.class.getName());
         if (ltiRequest == null) {
             log.debug("No LTIRequest found, attempting to create one for the current request");
@@ -230,7 +230,7 @@ public class LTI3Request {
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
             } catch (Exception e) {
-                log.warn("Failure trying to create the LTIRequest: {}" , e);
+                log.warn("Failure trying to create the LTIRequest: " , e);
             }
         }
         if (ltiRequest == null) {
@@ -269,10 +269,7 @@ public class LTI3Request {
                             JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                             JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
                             return ((AsymmetricJWK) jwk).toPublicKey();
-                        } catch (JOSEException ex) {
-                            log.error("Error getting the iss public key", ex);
-                            return null;
-                        } catch (ParseException | IOException ex) {
+                        } catch (JOSEException | ParseException | IOException ex) {
                             log.error("Error getting the iss public key", ex);
                             return null;
                         }
@@ -718,7 +715,7 @@ public class LTI3Request {
         //We get all the nonces from the session, and compare.
         List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
         List<String> ltiNonceNew = new ArrayList<>();
-        Boolean found = false;
+        boolean found = false;
         String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
         if (nonceToCheck == null || ListUtils.isEmpty(ltiNonce)) {
             return "Nonce = null in the JWT or in the session.";

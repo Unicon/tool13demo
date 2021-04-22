@@ -60,8 +60,6 @@ public class ConfigurationController {
 
     /**
      * To show the configurations.
-     * @param req
-     * @return
      */
     @RequestMapping(value = "/", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
@@ -77,8 +75,6 @@ public class ConfigurationController {
 
     /**
      * To show the configurations.
-     * @param req
-     * @return
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody

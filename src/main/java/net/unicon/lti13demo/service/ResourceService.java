@@ -32,7 +32,7 @@ public interface ResourceService<T> {
         Resource[] resources = resourceResolver.getResources(getDirectoryPath() + "/*.json");
         Set<T> objects = new HashSet<>();
         for (Resource resource : resources) {
-            T object = (T) mapper.readValue(resource.getInputStream(), objectClass);
+            T object = mapper.readValue(resource.getInputStream(), objectClass);
             objects.add(object);
         }
         return objects;

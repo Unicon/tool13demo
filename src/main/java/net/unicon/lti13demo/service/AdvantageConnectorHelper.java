@@ -119,16 +119,14 @@ public class AdvantageConnectorHelper {
 
 
     private ResponseEntity<Token> postEntity(String POST_TOKEN_URL, HttpEntity request, PlatformDeployment platformDeployment, String scope) throws GeneralSecurityException, IOException {
-        ResponseEntity<Token> reportPostResponse = null;
+        ResponseEntity<Token> reportPostResponse;
         RestTemplate restTemplate = createRestTemplate();
         try{
             reportPostResponse = restTemplate.
                     postForEntity(POST_TOKEN_URL, request, Token.class);
         } catch (Exception ex){
             log.error("ERROR GETING THE TOKEN" , ex);
-            StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't get the token. Exception. We will try again with a JSON Payload");
-            log.error(exceptionMsg.toString());
+            log.error("Can't get the token. Exception. We will try again with a JSON Payload");
             HttpEntity request2 = createTokenRequestJSON(scope, platformDeployment);
             reportPostResponse = restTemplate.
                     postForEntity(POST_TOKEN_URL, request2, Token.class);
@@ -140,7 +138,7 @@ public class AdvantageConnectorHelper {
     public HttpEntity createTokenRequest(String scope, PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map= new LinkedMultiValueMap<String, String>();
+        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         // This is standard too
         map.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");

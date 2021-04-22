@@ -63,8 +63,6 @@ public class LTIJWTService {
     /**
      * This will check that the state has been signed by us and retrieve the issuer private key.
      * We could add here other checks if we want (like the expiration of the state, nonce used only once, etc...)
-     * @param state
-     * @return
      */
     //Here we could add other checks like expiration of the state (not implemented)
     public Jws<Claims> validateState(String state) {
@@ -103,8 +101,6 @@ public class LTIJWTService {
      * want to do what is asking or not. I'm not checking permissions here, that will happen later.
      * We could do other checks here, like comparing some values with the state
      * that just make us sure about the JWT being valid...
-     * @param jwt
-     * @return
      */
     public Jws<Claims> validateJWT(String jwt, String clientId) {
 
@@ -114,7 +110,7 @@ public class LTIJWTService {
             // we don't know the key and we need to check it pre-extracting the claims and finding the kid
             @Override
             public Key resolveSigningKey(JwsHeader header, Claims claims) {
-                PlatformDeployment platformDeployment = null;
+                PlatformDeployment platformDeployment;
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
@@ -157,8 +153,6 @@ public class LTIJWTService {
 
     /**
      * This JWT will contain the token request
-     * @param platformDeployment
-     * @return
      */
     public String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
 

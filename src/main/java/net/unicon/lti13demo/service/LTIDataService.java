@@ -68,19 +68,13 @@ public class LTIDataService {
             return false;
         }
 
-        StringBuilder sbDeployment = new StringBuilder();
-        sbDeployment.append("SELECT k, c, l, m, u");
-
-        sbDeployment.append(" FROM PlatformDeployment k " +
+        String sqlDeployment = "SELECT k, c, l, m, u" +
+                " FROM PlatformDeployment k " +
                 "LEFT JOIN k.contexts c ON c.contextKey = :context " + // LtiContextEntity
                 "LEFT JOIN c.links l ON l.linkKey = :link " + // LtiLinkEntity
                 "LEFT JOIN c.memberships m " + // LtiMembershipEntity
-                "LEFT JOIN m.user u ON u.userKey = :user "
-        );
-
-        sbDeployment.append(" WHERE k.clientId = :clientId AND k.deploymentId = :deploymentId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))");
-
-        String sqlDeployment = sbDeployment.toString();
+                "LEFT JOIN m.user u ON u.userKey = :user " +
+                " WHERE k.clientId = :clientId AND k.deploymentId = :deploymentId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))";
         Query qDeployment = repos.entityManager.createQuery(sqlDeployment);
         qDeployment.setMaxResults(1);
         qDeployment.setParameter("clientId", lti.getAud());
@@ -172,10 +166,10 @@ public class LTIDataService {
                     //This is hardcoded because our database is not persistent
                     //In a normal case, we would had it created previously and this code wouldn't be needed.
                     String title = lti.getLtiLinkTitle();
-                    Float scoreMax = Float.valueOf(0);
+                    Float scoreMax = (float) 0;
                     if (link.equals("1234")){
                         title = "My Test Link";
-                        scoreMax =  Float.valueOf(50);
+                        scoreMax = 50F;
                     } else if (link.equals("4567")){
                         title = "Another Link";
                     }
