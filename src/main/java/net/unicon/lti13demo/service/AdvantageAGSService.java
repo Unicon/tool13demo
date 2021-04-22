@@ -21,6 +21,7 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.ags.LineItem;
 import net.unicon.lti13demo.model.ags.LineItems;
 import net.unicon.lti13demo.model.oauth2.Token;
+import net.unicon.lti13demo.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ public class AdvantageAGSService {
     //Calling the AGS service and getting a paginated result of lineitems.
     public LineItems getLineItems(Token token, LtiContextEntity context) throws ConnectionException {
         LineItems lineItems = new LineItems();
-        log.debug("Token -  "+ token.getAccess_token());
+        log.debug(TextConstants.TOKEN + token.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -102,14 +103,13 @@ public class AdvantageAGSService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get the AGS");
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return lineItems;
     }
 
     public boolean deleteLineItem(Token token, LtiContextEntity context, String id) throws ConnectionException {
-        log.debug("Token -  "+ token.getAccess_token());
+        log.debug(TextConstants.TOKEN + token.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -136,14 +136,13 @@ public class AdvantageAGSService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't delete the lineitem with id" + id);
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return false;
     }
 
     public LineItem putLineItem(Token token, LtiContextEntity context, LineItem lineItem) throws ConnectionException {
-        log.debug("Token -  "+ token.getAccess_token());
+        log.debug(TextConstants.TOKEN + token.getAccess_token());
         LineItem resultlineItem = null;
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
@@ -172,7 +171,6 @@ public class AdvantageAGSService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get put lineitem " + lineItem.getId());
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return resultlineItem;
@@ -180,7 +178,7 @@ public class AdvantageAGSService {
 
     public LineItem getLineItem(Token token, LtiContextEntity context, String id) throws ConnectionException {
         LineItem lineItem = null;
-        log.debug("Token -  "+ token.getAccess_token());
+        log.debug(TextConstants.TOKEN + token.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -208,7 +206,6 @@ public class AdvantageAGSService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get the lineitem " + id);
             log.error(exceptionMsg.toString(),e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return lineItem;
@@ -217,7 +214,7 @@ public class AdvantageAGSService {
     public LineItems postLineItems(Token token, LtiContextEntity context, LineItems lineItems) throws ConnectionException {
 
         LineItems resultLineItems = new LineItems();
-        log.debug("Token -  " + token.getAccess_token());
+        log.debug(TextConstants.TOKEN  + token.getAccess_token());
         LineItem resultlineItem = null;
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
@@ -261,7 +258,6 @@ public class AdvantageAGSService {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't post lineitems");
             log.error(exceptionMsg.toString(), e);
-            e.printStackTrace();
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return resultLineItems;

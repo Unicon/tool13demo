@@ -78,7 +78,7 @@ public class SameSiteCookieValve extends ValveBase {
         Collection<String> headers = response.getHeaders("Set-Cookie");
         for (String header : headers) {
             // Rather than parsing the cookie we just knock out the bit we don't want.
-            String nonSameSiteHeader = header.replaceAll("; SameSite=None", "");
+            String nonSameSiteHeader = header.replace("; SameSite=None", "");
             // We only do this for the main session cookie set by Tomcat
             if (!header.equals(nonSameSiteHeader) && header.contains(sessionCookieName+"=")) {
                 nonSameSiteHeader = nonSameSiteHeader.replaceFirst("=", suffix+"=");

@@ -38,8 +38,8 @@ public class ApplicationConfig implements ApplicationContextAware {
     private static final Object contextLock = new Object();
     private static final Object configLock = new Object();
 
-    private volatile static ApplicationContext context;
-    private volatile static ApplicationConfig config;
+    private static ApplicationContext context;
+    private static ApplicationConfig config;
 
     @Autowired
     ConfigurableEnvironment env;

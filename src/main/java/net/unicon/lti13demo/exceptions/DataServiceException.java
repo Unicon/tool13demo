@@ -12,26 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.unicon.lti13demo.exceptions;
 
-package net.unicon.lti13demo.database;
+public class DataServiceException extends Exception {
 
-
-import net.unicon.lti13demo.model.LtiUserEntity;
-import net.unicon.lti13demo.service.ResourceService;
-import org.springframework.stereotype.Component;
-
-@Component
-public class LtiUserEntityResourceService implements ResourceService<LtiUserEntity> {
-
-	static final String USERS_RESOURCE = "classpath:data/users";
-
-	@Override
-	public String getDirectoryPath() {
-		return USERS_RESOURCE;
-	}
-
-	@Override
-	public void setDefaults() {//Empty on purpose
-	}
-
+    public DataServiceException(String message) {
+        super(message);
+    }
 }

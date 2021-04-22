@@ -34,13 +34,13 @@ import java.util.Set;
 public class LtiLinkEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "link_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "link_id", nullable = false)
     private long linkId;
     @Basic
-    @Column(name = "link_key", nullable = false, insertable = true, updatable = true, length = 4096)
+    @Column(name = "link_key", nullable = false, length = 4096)
     private String linkKey;
     @Basic
-    @Column(name = "title", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "title", length = 4096)
     private String title;
     @Basic
     @Column(name = "score_maximum")

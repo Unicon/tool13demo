@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,6 +56,7 @@ public class MembershipController {
     @Autowired
     AdvantageMembershipService advantageMembershipService;
 
+    @SuppressWarnings("SameReturnValue")
     @RequestMapping({"", "/"})
     public String membershipGet(HttpServletRequest req, Principal principal, Model model) throws ConnectionException {
 
@@ -64,7 +64,7 @@ public class MembershipController {
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
         HttpSession session = req.getSession();
-        if ((session.getAttribute("deployment_key") !=null) && (session.getAttribute("deployment_key") !=null)){
+        if (session.getAttribute("deployment_key") !=null){
             model.addAttribute("noSessionValues", false);
             Long deployment = (Long) session.getAttribute("deployment_key");
             String contextId = (String) session.getAttribute("context_id");

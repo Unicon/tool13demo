@@ -40,6 +40,6 @@ public interface ResourceService<T> {
     
     String getDirectoryPath();
 
-    public void setDefaults() throws IOException;
+    void setDefaults();
 
 }

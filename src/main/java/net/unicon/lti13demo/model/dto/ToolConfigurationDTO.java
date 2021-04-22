@@ -28,7 +28,8 @@ public class ToolConfigurationDTO {
     private List<ToolMessagesSupportedDTO> messages_supported;
     private List<String> claims;
 
-    public ToolConfigurationDTO() {
+
+    public ToolConfigurationDTO() {//Empty on purpose
     }
 
     public String getDomain() {

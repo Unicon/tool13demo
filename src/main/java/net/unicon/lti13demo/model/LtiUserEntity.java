@@ -37,38 +37,38 @@ import java.util.Set;
 public class LtiUserEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "user_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "user_id", nullable = false)
     private long userId;
     @Basic
-    @Column(name = "user_key", nullable = false, insertable = true, updatable = true, length = 4096)
+    @Column(name = "user_key", nullable = false, length = 4096)
     private String userKey;
     @Basic
-    @Column(name = "displayname", nullable = true, insertable = true, updatable = true, length = 4096)
+    @Column(name = "displayname", length = 4096)
     private String displayName;
     /**
      * Actual max for emails is 254 chars
      */
     @Basic
-    @Column(name = "email", nullable = true, insertable = true, updatable = true, length = 255)
+    @Column(name = "email")
     private String email;
     @Basic
-    @Column(name = "locale", nullable = true, insertable = true, updatable = true, length = 63)
+    @Column(name = "locale", length = 63)
     private String locale;
     @Basic
-    @Column(name = "subscribe", nullable = true, insertable = true, updatable = true)
+    @Column(name = "subscribe")
     private Short subscribe;
     @Lob
-    @Column(name = "json", nullable = true, insertable = true, updatable = true, length = 65535)
+    @Column(name = "json", length = 65535)
     private String json;
     @Basic
-    @Column(name = "login_at", nullable = false, insertable = true, updatable = true)
+    @Column(name = "login_at", nullable = false)
     private Timestamp loginAt;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private Set<LtiResultEntity> results;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "key_id", referencedColumnName = "key_id", nullable = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "key_id", referencedColumnName = "key_id")
     private PlatformDeployment platformDeployment;
 
     protected LtiUserEntity() {

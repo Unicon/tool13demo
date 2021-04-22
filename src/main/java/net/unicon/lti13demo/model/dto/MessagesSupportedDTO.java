@@ -20,12 +20,8 @@ public class MessagesSupportedDTO {
     String type;
     List<String> placements;
 
-    public MessagesSupportedDTO() {
-    }
 
-    public MessagesSupportedDTO(String type, List<String> placements) {
-        this.type = type;
-        this.placements = placements;
+    public MessagesSupportedDTO() {//Empty on purpose
     }
 
     public String getType() {

@@ -15,6 +15,7 @@
 package net.unicon.lti13demo.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
 
@@ -35,35 +36,8 @@ public class PlatformRegistrationDTO {
     @JsonProperty("https://purl.imsglobal.org/spec/lti-platform-configuration")
     private PlatformConfigurationDTO platformConfiguration;
 
-    public PlatformRegistrationDTO() {
-    }
 
-    public PlatformRegistrationDTO(String issuer,
-                                   String authorization_endpoint,
-                                   String token_endpoint,
-                                   List<String>  token_endpoint_auth_methods_supported,
-                                   String jwks_uri,
-                                   String registration_endpoint,
-                                   List<String> scopes_supported,
-                                   List<String> response_types_supported,
-                                   List<String> subject_types_supported,
-                                   List<String> id_token_signing_alg_values_supported,
-                                   List<String> claims_supported,
-                                   String authorization_server,
-                                   PlatformConfigurationDTO platformConfiguration) {
-        this.issuer = issuer;
-        this.authorization_endpoint = authorization_endpoint;
-        this.token_endpoint = token_endpoint;
-        this.token_endpoint_auth_methods_supported = token_endpoint_auth_methods_supported;
-        this.jwks_uri = jwks_uri;
-        this.registration_endpoint = registration_endpoint;
-        this.scopes_supported = scopes_supported;
-        this.response_types_supported = response_types_supported;
-        this.subject_types_supported = subject_types_supported;
-        this.id_token_signing_alg_values_supported = id_token_signing_alg_values_supported;
-        this.claims_supported = claims_supported;
-        this.authorization_server = authorization_server;
-        this.platformConfiguration = platformConfiguration;
+    public PlatformRegistrationDTO() {//Empty on purpose
     }
 
     public String getIssuer() {

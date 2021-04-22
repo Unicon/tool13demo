@@ -24,7 +24,7 @@ import java.util.List;
 public class CourseUsers {
     private List<CourseUser> courseUserList = new ArrayList<>();
 
-    public CourseUsers() {
+    public CourseUsers() {//Empty on purpose
     }
 
     @JsonProperty("members")

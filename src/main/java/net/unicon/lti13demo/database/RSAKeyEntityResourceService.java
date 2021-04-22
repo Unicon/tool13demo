@@ -19,12 +19,10 @@ import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.service.ResourceService;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-
 @Component
 public class RSAKeyEntityResourceService implements ResourceService<RSAKeyEntity> {
 
-	static String PLATFORM_RSA_KEYS_RESOURCE = "classpath:data/rsa_keys";
+	static final String PLATFORM_RSA_KEYS_RESOURCE = "classpath:data/rsa_keys";
 	
 	@Override
 	public String getDirectoryPath() {
@@ -32,7 +30,7 @@ public class RSAKeyEntityResourceService implements ResourceService<RSAKeyEntity
 	}
 
 	@Override
-	public void setDefaults() throws IOException {
+	public void setDefaults() {//Empty on purpose
 	}
 
 }

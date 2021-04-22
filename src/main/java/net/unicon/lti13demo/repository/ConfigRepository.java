@@ -29,12 +29,12 @@ public interface ConfigRepository extends JpaRepository<ConfigEntity, Long> {
      * @param name the config name (e.g. app.config)
      * @return the count of config items with this exact name
      */
-    public int countByName(String name);
+    int countByName(String name);
 
     /**
      * @param name the config name (e.g. app.config)
      * @return the config item (or null if none found)
      */
     @Cacheable(value = "configs", key = "#name")
-    public ConfigEntity findByName(String name);
+    ConfigEntity findByName(String name);
 }

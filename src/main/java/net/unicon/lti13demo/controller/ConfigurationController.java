@@ -19,6 +19,7 @@ import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.repository.RSAKeyRepository;
+import net.unicon.lti13demo.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class ConfigurationController {
             return new ResponseEntity(HttpStatus.NO_CONTENT);
             // You many decide to return HttpStatus.NOT_FOUND
         }
-        return new ResponseEntity<List<PlatformDeployment>>(platformDeploymentListEntityList, HttpStatus.OK);
+        return new ResponseEntity<>(platformDeploymentListEntityList, HttpStatus.OK);
     }
 
     /**
@@ -81,21 +82,21 @@ public class ConfigurationController {
      */
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
-    public ResponseEntity<?> displayConfig(@PathVariable("id") long id, HttpServletRequest req) {
+    public ResponseEntity<PlatformDeployment> displayConfig(@PathVariable("id") long id, HttpServletRequest req) {
 
         Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(id);
 
         if (!platformDeployment.isPresent()) {
             log.error("platformDeployment with id {} not found.", id);
             return new ResponseEntity("platformDeployment with id " + id
-                    + " not found", HttpStatus.NOT_FOUND);
+                    + TextConstants.NOT_FOUND_SUFFIX, HttpStatus.NOT_FOUND);
         } else {
-            return new ResponseEntity<PlatformDeployment>(platformDeployment.get(), HttpStatus.OK);
+            return new ResponseEntity<>(platformDeployment.get(), HttpStatus.OK);
         }
     }
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
-    public ResponseEntity<?> createDeployment(@RequestBody PlatformDeployment platformDeployment, UriComponentsBuilder ucBuilder) {
+    public ResponseEntity<String> createDeployment(@RequestBody PlatformDeployment platformDeployment, UriComponentsBuilder ucBuilder) {
         log.info("Creating Deployment : {}", platformDeployment);
 
         if (!platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(platformDeployment.getIss(),platformDeployment.getClientId(), platformDeployment.getDeploymentId()).isEmpty()) {
@@ -106,18 +107,18 @@ public class ConfigurationController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(ucBuilder.path("/config/{id}").buildAndExpand(platformDeploymentSaved.getKeyId()).toUri());
-        return new ResponseEntity<String>(headers, HttpStatus.CREATED);
+        return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<?> updateDeployment(@PathVariable("id") long id, @RequestBody PlatformDeployment platformDeployment) {
+    public ResponseEntity<PlatformDeployment> updateDeployment(@PathVariable("id") long id, @RequestBody PlatformDeployment platformDeployment) {
         log.info("Updating User with id {}", id);
 
         Optional<PlatformDeployment> platformDeploymentSearchResult = platformDeploymentRepository.findById(id);
 
         if (!platformDeploymentSearchResult.isPresent()) {
             log.error("Unable to update. PlatformDeployment with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. User with id " + id + " not found.",
+            return new ResponseEntity("Unable to upate. User with id " + id + TextConstants.NOT_FOUND_SUFFIX,
                     HttpStatus.NOT_FOUND);
         }
         PlatformDeployment platformDeploymentToChange = platformDeploymentSearchResult.get();
@@ -131,21 +132,21 @@ public class ConfigurationController {
         platformDeploymentToChange.setPlatformKid(platformDeployment.getPlatformKid());
 
         platformDeploymentRepository.saveAndFlush(platformDeploymentToChange);
-        return new ResponseEntity<PlatformDeployment>(platformDeploymentToChange, HttpStatus.OK);
+        return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);
     }
 
     @RequestMapping(value = "toolkey/{id}", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
-    public ResponseEntity<?> getToolKey(@PathVariable("id") String id, HttpServletRequest req) {
+    public ResponseEntity<RSAKeyEntity> getToolKey(@PathVariable("id") String id, HttpServletRequest req) {
 
         Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id, true));
 
         if (!key.isPresent()) {
             log.error("key with id {} not found.", id);
             return new ResponseEntity("key with id " + id
-                    + " not found", HttpStatus.NOT_FOUND);
+                    + TextConstants.NOT_FOUND_SUFFIX, HttpStatus.NOT_FOUND);
         } else {
-            return new ResponseEntity<RSAKeyEntity>(key.get(), HttpStatus.OK);
+            return new ResponseEntity<>(key.get(), HttpStatus.OK);
         }
     }
 
@@ -159,7 +160,7 @@ public class ConfigurationController {
 
         if (!keySearchResult.isPresent()) {
             log.error("Unable to update. tool key with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. Tool key with id " + id + " not found.",
+            return new ResponseEntity("Unable to upate. Tool key with id " + id + TextConstants.NOT_FOUND_SUFFIX,
                     HttpStatus.NOT_FOUND);
         }
         RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();
@@ -176,16 +177,16 @@ public class ConfigurationController {
 
     @RequestMapping(value = "platformkey/{id}", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
-    public ResponseEntity<?> getPlatformKey(@PathVariable("id") String id, HttpServletRequest req) {
+    public ResponseEntity<RSAKeyEntity> getPlatformKey(@PathVariable("id") String id, HttpServletRequest req) {
 
         Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id, false));
 
         if (!key.isPresent()) {
             log.error("key with id {} not found.", id);
             return new ResponseEntity("key with id " + id
-                    + " not found", HttpStatus.NOT_FOUND);
+                    + TextConstants.NOT_FOUND_SUFFIX, HttpStatus.NOT_FOUND);
         } else {
-            return new ResponseEntity<RSAKeyEntity>(key.get(), HttpStatus.OK);
+            return new ResponseEntity<>(key.get(), HttpStatus.OK);
         }
     }
 
@@ -198,7 +199,7 @@ public class ConfigurationController {
 
         if (!keySearchResult.isPresent()) {
             log.error("Unable to update. Platform key with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. Platform key with id " + id + " not found.",
+            return new ResponseEntity("Unable to upate. Platform key with id " + id + TextConstants.NOT_FOUND_SUFFIX,
                     HttpStatus.NOT_FOUND);
         }
         RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();

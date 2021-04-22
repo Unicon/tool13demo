@@ -17,7 +17,7 @@
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org ">
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
 <head>
     <title>LTI 3 </title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -34,6 +34,7 @@
 <div th:if="${results != null and !#lists.isEmpty(results)}">
     <h4>Users on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
+        <caption>Lineitmes</caption>
     <thead class="thead-dark">
     <tr>
         <th scope="col">#</th>
@@ -44,7 +45,7 @@
     </thead>
     <tbody>
     <tr th:each="user,rowStat : ${results}">
-        <td scope="row" th:text="${rowStat.count}">1</td>
+        <td th:text="${rowStat.count}">1</td>
         <td th:text="${user.name}"></td>
         <td th:text="${user.userId}"></td>
         <td th:text="${#strings.listJoin(user.roles,', ')}"></td>

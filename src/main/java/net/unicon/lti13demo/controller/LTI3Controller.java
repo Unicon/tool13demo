@@ -22,6 +22,7 @@ import net.unicon.lti13demo.repository.LtiContextRepository;
 import net.unicon.lti13demo.repository.LtiLinkRepository;
 import net.unicon.lti13demo.service.LTIJWTService;
 import net.unicon.lti13demo.utils.LtiStrings;
+import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.lti.LTI3Request;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -64,21 +64,20 @@ public class LTI3Controller {
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
-        Enumeration<String> sessionAtributes = req.getSession().getAttributeNames();
         try {
             Jws<Claims> claims = ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance(link);
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the clientId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
-                model.addAttribute("Error", " Bad Client Id");
-                return "lti3Error";
+                model.addAttribute(TextConstants.ERROR, " Bad Client Id");
+                return TextConstants.LTI3ERROR;
             }
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
-                model.addAttribute("Error", " Bad Deployment Id");
-                return "lti3Error";
+                model.addAttribute(TextConstants.ERROR, " Bad Deployment Id");
+                return TextConstants.LTI3ERROR;
             }
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
@@ -90,12 +89,12 @@ public class LTI3Controller {
                 List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
                 log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());
                 if (linkEntity.size()>0) {
-                    model.addAttribute("htmlContent", linkEntity.get(0).createHtmlFromLink());
+                    model.addAttribute(TextConstants.HTML_CONTENT, linkEntity.get(0).createHtmlFromLink());
                 } else {
-                    model.addAttribute( "htmlContent", "<b> No element was found for that context and linkKey</b>");
+                    model.addAttribute( TextConstants.HTML_CONTENT, "<b> No element was found for that context and linkKey</b>");
                 }
             } else {
-                model.addAttribute( "htmlContent", "<b> No element was requested or it doesn't exists </b>");
+                model.addAttribute( TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
             }
             if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
                 //Let's create the LtilinkEntity's in our database
@@ -114,8 +113,8 @@ public class LTI3Controller {
             }
             return "lti3Result";
         } catch (SignatureException ex){
-            model.addAttribute("Error", ex.getMessage());
-            return "lti3Error";
+            model.addAttribute(TextConstants.ERROR, ex.getMessage());
+            return TextConstants.LTI3ERROR;
         }
     }
 

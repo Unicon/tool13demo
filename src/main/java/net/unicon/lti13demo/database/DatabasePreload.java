@@ -14,8 +14,6 @@
  */
 package net.unicon.lti13demo.database;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import net.unicon.lti13demo.config.ApplicationConfig;
 import net.unicon.lti13demo.model.LtiUserEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
@@ -72,10 +70,6 @@ public class DatabasePreload {
     @Value("${oicd.publickey}")
     private String ownPublicKey;
 
-    @Value("${initial.lti.data.location}")
-    String LTI_DATA_DIRECTORY;
-
-
     @PostConstruct
     public void init() throws IOException {
 
@@ -87,19 +81,7 @@ public class DatabasePreload {
         }
     }
 
-    private String usersLocation() {
-        return LTI_DATA_DIRECTORY + "users";
-    }
-
-    private String platformDeploymentLocation() {
-        return LTI_DATA_DIRECTORY + "platform_deployment";
-    }
-
-    private String rsaKeysLocation() {
-        return LTI_DATA_DIRECTORY + "rsa_keys";
-    }
-
-    public void buildDataFromFiles() throws JsonParseException, JsonMappingException, IOException {
+    public void buildDataFromFiles() throws IOException {
         Set<PlatformDeployment> deploymentPlatforms = platformDeploymentResources.getResources(PlatformDeployment.class);
         for(PlatformDeployment deploymentPlatform:deploymentPlatforms) {
             log.info("Storing: " + deploymentPlatform.getKeyId() + " : " + deploymentPlatform.getIss());

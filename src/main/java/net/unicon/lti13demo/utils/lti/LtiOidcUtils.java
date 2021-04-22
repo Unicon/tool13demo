@@ -37,6 +37,10 @@ public class LtiOidcUtils {
 
     static final Logger log = LoggerFactory.getLogger(LtiOidcUtils.class);
 
+    private LtiOidcUtils() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.

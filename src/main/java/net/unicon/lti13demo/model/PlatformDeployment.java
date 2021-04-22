@@ -33,31 +33,31 @@ public class PlatformDeployment extends BaseEntity {
     @Column(name = "key_id")
     private long keyId;
     @Basic
-    @Column(name = "iss", nullable = false, insertable = true, updatable = true)
+    @Column(name = "iss", nullable = false)
     private String iss;  //The value we receive in the issuer from the platform. We will use it to know where this come from.
     @Basic
-    @Column(name = "client_id", nullable = false, insertable = true, updatable = true)
+    @Column(name = "client_id", nullable = false)
     private String clientId;  //A tool MUST thus allow multiple deployments on a given platform to share the same client_id
     @Basic
-    @Column(name = "oidc_endpoint", nullable = false, insertable = true, updatable = true)
+    @Column(name = "oidc_endpoint", nullable = false)
     private String oidcEndpoint;  // Where in the platform we need to ask for the oidc authentication.
     @Basic
-    @Column(name = "jwks_endpoint", nullable = true, insertable = true, updatable = true)
+    @Column(name = "jwks_endpoint")
     private String jwksEndpoint;  // Where in the platform we need to ask for the keys.
     @Basic
-    @Column(name = "oAuth2_token_url", nullable = true, insertable = true, updatable = true)
+    @Column(name = "oAuth2_token_url")
     private String oAuth2TokenUrl;  // Where in the platform we need to ask for the oauth2 tokens
     @Basic
-    @Column(name = "oAuth2_token_aud", nullable = true, insertable = true, updatable = true)
+    @Column(name = "oAuth2_token_aud")
     private String oAuth2TokenAud;  // Sometimes, for example D2L, has a different aud for the tokens.
     @Basic
-    @Column(name = "deployment_id", nullable = true, insertable = true, updatable = true)
+    @Column(name = "deployment_id")
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
     @Basic
-    @Column(name = "toolKid", nullable = true, insertable = true, updatable = true)
+    @Column(name = "toolKid")
     private String toolKid; // The tool key if number.
     @Basic
-    @Column(name = "platformKid", nullable = true, insertable = true, updatable = true)
+    @Column(name = "platformKid")
     private String platformKid; // The tool key if number.
 
     @OneToMany(mappedBy = "platformDeployment", fetch = FetchType.LAZY)

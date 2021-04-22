@@ -16,6 +16,10 @@ package net.unicon.lti13demo.utils;
 
 public class LtiStrings {
 
+    private LtiStrings() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static final int ROLE_STUDENT = 0;
     public static final int ROLE_INTRUCTOR = 1;
 
@@ -29,6 +33,8 @@ public class LtiStrings {
     public static final String LTI_MESSAGE_TYPE = "https://purl.imsglobal.org/spec/lti/claim/message_type";
     public static final String LTI_VERSION = "https://purl.imsglobal.org/spec/lti/claim/version";
     public static final String LTI_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
+    public static final String LTI_DATA = "https://purl.imsglobal.org/spec/lti-dl/claim/data";
+    public static final String LTI_CONTENT_ITEMS = "https://purl.imsglobal.org/spec/lti-dl/claim/content_items";
 
     //RESOURCE_LINK
     public static final String LTI_LINK = "https://purl.imsglobal.org/spec/lti/claim/resource_link";
@@ -158,5 +164,19 @@ public class LtiStrings {
     public static final String DEEP_LINK_TITLE = "title";
     public static final String DEEP_LINK_TEXT = "text";
     public static final String DEEP_LINK_DATA = "data";
+    public static final String DEEP_LINK_LTIRESOURCELINK = "ltiResourceLink";
+    public static final String DEEP_LINK_TYPE = "type";
+    public static final String DEEP_LINK_URL = "url";
+
+    public static final String KID = "kid";
+    public static final String ALG = "alg";
+    public static final String TYP = "typ";
+    public static final String JWT = "JWT";
+    public static final String RS256 = "RS256";
+
+    //Dynamic Registration
+    public static final String REGISTRATION_TOKEN = "registration_token";
+    public static final String PLATFORM_CONFIGURATION = "platform_configuration";
+    public static final String TOOL_CONFIGURATION = "tool_configuration";
 
 }

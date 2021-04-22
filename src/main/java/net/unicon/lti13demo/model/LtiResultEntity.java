@@ -27,6 +27,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "lti_result")
@@ -171,4 +172,8 @@ public class LtiResultEntity extends BaseEntity {
 
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(resultId);
+    }
 }

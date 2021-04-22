@@ -14,12 +14,12 @@
  */
 package net.unicon.lti13demo.config;
 
+import net.unicon.lti13demo.utils.SameSiteCookieValve;
 import org.apache.tomcat.util.http.Rfc6265CookieProcessor;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import net.unicon.lti13demo.utils.SameSiteCookieValve;
 
 /**
  * This is needed because often a LTI tool will run in an iframe and with the recent stricter cookie rules

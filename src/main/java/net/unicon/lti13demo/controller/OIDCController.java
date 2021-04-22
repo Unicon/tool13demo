@@ -19,6 +19,8 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.LTIDataService;
+import net.unicon.lti13demo.utils.LtiStrings;
+import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.lti.LtiOidcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +54,12 @@ public class OIDCController {
     static final Logger log = LoggerFactory.getLogger(OIDCController.class);
 
     //Constants defined in the LTI standard
-    private final static String none = "none";
-    private final static String formPost = "form_post";
-    private final static String idToken = "id_token";
-    private final static String openId = "openid";
-    private final static String clientId = "client_id";
-    private final static String deploymentId = "lti_deployment_id";
+    private static final String NONE = "none";
+    private static final String FORM_POST = "form_post";
+    private static final String ID_TOKEN = "id_token";
+    private static final String OPEN_ID = "openid";
+    private static final String CLIENT_ID = "client_id";
+    private static final String DEPLOYMENT_ID = "lti_deployment_id";
 
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
@@ -77,14 +79,14 @@ public class OIDCController {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
-        List<PlatformDeployment> platformDeploymentListEntityList = new ArrayList<>();
+        List<PlatformDeployment> platformDeploymentListEntityList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
         String clientIdValue = null;
         // If we already have it in the loginInitiationDTO
         if (loginInitiationDTO.getClientId()!= null){
             clientIdValue = loginInitiationDTO.getClientId();
         } else {  // We try to get it from the URL query parameters.
-            clientIdValue = req.getParameter(clientId);
+            clientIdValue = req.getParameter(CLIENT_ID);
         }
         // Getting the deployment_id (that is optional) and can come in the form or in the URL.
         String deploymentIdValue = null;
@@ -92,7 +94,7 @@ public class OIDCController {
         if (loginInitiationDTO.getDeploymentId()!= null){
             deploymentIdValue = loginInitiationDTO.getDeploymentId();
         } else {  // We try to get it from the URL query getDeploymentId.
-            deploymentIdValue = req.getParameter(deploymentId);
+            deploymentIdValue = req.getParameter(DEPLOYMENT_ID);
         }
 
         // We search for the platformDeployment.
@@ -108,14 +110,14 @@ public class OIDCController {
         }
         // We deal with some possible errors
         if (platformDeploymentListEntityList.isEmpty()) {  //If we don't have configuration
-            model.addAttribute("Error","Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
+            model.addAttribute(TextConstants.ERROR,"Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
                     " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
-            return "lti3Error";
+            return TextConstants.LTI3ERROR;
         }
         if (platformDeploymentListEntityList.size()>1) {   // If we have more than one match.
-            model.addAttribute("Error","We have more than one tool deployment with iss: " + loginInitiationDTO.getIss() +
+            model.addAttribute(TextConstants.ERROR,"We have more than one tool deployment with iss: " + loginInitiationDTO.getIss() +
                     " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
-            return "lti3Error";
+            return TextConstants.LTI3ERROR;
         }
         // If we have arrived here, it means that we have only one result (as expected)
         PlatformDeployment lti3KeyEntity = platformDeploymentListEntityList.get(0);
@@ -177,8 +179,8 @@ public class OIDCController {
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             return "oicdRedirect";
         } catch (Exception ex) {
-            model.addAttribute("Error", ex.getMessage());
-            return "lti3Error";
+            model.addAttribute(TextConstants.ERROR, ex.getMessage());
+            return TextConstants.LTI3ERROR;
         }
     }
 
@@ -192,7 +194,7 @@ public class OIDCController {
     private Map<String, String> generateAuthRequestPayload (PlatformDeployment platformDeployment, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws  GeneralSecurityException, IOException{
 
         Map<String, String> authRequestMap =  new HashMap<>();
-        authRequestMap.put("client_id", platformDeployment.getClientId()); //As it came from the Platform (if it came... if not we should have it configured)
+        authRequestMap.put(CLIENT_ID, platformDeployment.getClientId()); //As it came from the Platform (if it came... if not we should have it configured)
         authRequestMap.put("login_hint",loginInitiationDTO.getLoginHint()); //As it came from the Platform
         authRequestMap.put("lti_message_hint",loginInitiationDTO.getLtiMessageHint()); //As it came from the Platform
         String nonce = UUID.randomUUID().toString(); // We generate a nonce to allow this auth request to be used only one time.
@@ -201,11 +203,11 @@ public class OIDCController {
                 .toString();
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
-        authRequestMap.put("prompt", none);  //Always this value, as specified in the standard.
+        authRequestMap.put("prompt", NONE);  //Always this value, as specified in the standard.
         authRequestMap.put("redirect_uri",ltiDataService.getLocalUrl() + "/lti3");  // One of the valids reditect uris.
-        authRequestMap.put("response_mode", formPost); //Always this value, as specified in the standard.
-        authRequestMap.put("response_type", idToken); //Always this value, as specified in the standard.
-        authRequestMap.put("scope", openId);  //Always this value, as specified in the standard.
+        authRequestMap.put("response_mode", FORM_POST); //Always this value, as specified in the standard.
+        authRequestMap.put("response_type", ID_TOKEN); //Always this value, as specified in the standard.
+        authRequestMap.put("scope", OPEN_ID);  //Always this value, as specified in the standard.
         // The state is something that we can create and add anything we want on it.
         // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
         String state = LtiOidcUtils.generateState(ltiDataService, platformDeployment, authRequestMap,loginInitiationDTO, clientIdValue, deploymentIdValue);
@@ -224,7 +226,7 @@ public class OIDCController {
         return new StringBuilder()
                 .append(model.get("oicdEndpoint"))
                 .append("?client_id=")
-                .append(model.get("client_id"))
+                .append(model.get(CLIENT_ID))
                 .append("&login_hint=")
                 .append(model.get("login_hint"))
                 .append("&lti_message_hint=")

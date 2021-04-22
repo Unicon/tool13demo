@@ -24,14 +24,7 @@ public class PlatformConfigurationDTO {
     private List<String> variables;
 
 
-    public PlatformConfigurationDTO() {
-    }
-
-    public PlatformConfigurationDTO(String product_family_code, String version, List<MessagesSupportedDTO> messages_supported, List<String> variables) {
-        this.product_family_code = product_family_code;
-        this.version = version;
-        this.messages_supported = messages_supported;
-        this.variables = variables;
+    public PlatformConfigurationDTO() {//Empty on purpose
     }
 
     public String getProduct_family_code() {
