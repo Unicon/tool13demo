@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -213,28 +215,34 @@ public class OIDCController {
     /**
      * This generates the GET URL with all the query string parameters.
      */
-    private String generateCompleteUrl(Map<String, String> model) {
-        return model.get("oicdEndpoint") +
-                "?client_id=" +
-                model.get(CLIENT_ID) +
-                "&login_hint=" +
-                model.get("login_hint") +
-                "&lti_message_hint=" +
-                model.get("lti_message_hint") +
-                "&nonce=" +
-                model.get("nonce_hash") +
-                "&prompt=" +
-                model.get("prompt") +
-                "&redirect_uri=" +
-                model.get("redirect_uri") +
-                "&response_mode=" +
-                model.get("response_mode") +
-                "&response_type=" +
-                model.get("response_type") +
-                "&scope=" +
-                model.get("scope") +
-                "&state=" +
-                model.get("state");
+    private String generateCompleteUrl(Map<String, String> model) throws UnsupportedEncodingException {
+        StringBuilder getUrl = new StringBuilder();
+
+        getUrl.append(model.get("oicdEndpoint"));
+        getUrl = addParameter(getUrl,"client_id", model.get(CLIENT_ID), true);
+        getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
+        getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
+        getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);
+        getUrl = addParameter(getUrl, "prompt", model.get("prompt"), false);
+        getUrl = addParameter(getUrl, "redirect_uri", model.get("redirect_uri"), false);
+        getUrl = addParameter(getUrl, "response_mode", model.get("response_mode"), false);
+        getUrl = addParameter(getUrl, "response_type", model.get("response_type"), false);
+        getUrl = addParameter(getUrl, "scope", model.get("scope"), false);
+        getUrl = addParameter(getUrl, "state", model.get("state"), false);
+        return getUrl.toString();
+    }
+
+    private StringBuilder addParameter(StringBuilder url, String parameter, String value, boolean first) throws UnsupportedEncodingException {
+
+        if (value != null){
+            if (first){
+                url.append("?").append(parameter).append("=");
+            } else {
+                url.append("&").append(parameter).append("=");
+            }
+            url.append(URLEncoder.encode(value, String.valueOf(StandardCharsets.UTF_8)));
+        }
+        return url;
     }
 
 }
