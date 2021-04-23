@@ -19,7 +19,6 @@ import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.LTIDataService;
-import net.unicon.lti13demo.utils.LtiStrings;
 import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.lti.LtiOidcUtils;
 import org.slf4j.Logger;
@@ -33,6 +32,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -70,9 +71,6 @@ public class OIDCController {
     /**
      * This will receive the request to start the OIDC process.
      * We receive some parameters (iss, login_hint, target_link_uri, lti_message_hint, and optionally, the deployment_id and the client_id)
-     * @param req
-     * @param model
-     * @return
      */
     @RequestMapping("/login_initiations")
     public String loginInitiations(HttpServletRequest req, Model model) {
@@ -81,7 +79,7 @@ public class OIDCController {
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
         List<PlatformDeployment> platformDeploymentListEntityList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
-        String clientIdValue = null;
+        String clientIdValue;
         // If we already have it in the loginInitiationDTO
         if (loginInitiationDTO.getClientId()!= null){
             clientIdValue = loginInitiationDTO.getClientId();
@@ -89,7 +87,7 @@ public class OIDCController {
             clientIdValue = req.getParameter(CLIENT_ID);
         }
         // Getting the deployment_id (that is optional) and can come in the form or in the URL.
-        String deploymentIdValue = null;
+        String deploymentIdValue;
         // If we already have it in the loginInitiationDTO
         if (loginInitiationDTO.getDeploymentId()!= null){
             deploymentIdValue = loginInitiationDTO.getDeploymentId();
@@ -187,9 +185,6 @@ public class OIDCController {
     /**
      * This generates a map with all the information that we need to send to the OIDC Authorization endpoint in the Platform.
      * In this case, we will put this in the model to be used by the thymeleaf template.
-     * @param platformDeployment
-     * @param loginInitiationDTO
-     * @return
      */
     private Map<String, String> generateAuthRequestPayload (PlatformDeployment platformDeployment, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws  GeneralSecurityException, IOException{
 
@@ -219,32 +214,35 @@ public class OIDCController {
 
     /**
      * This generates the GET URL with all the query string parameters.
-     * @param model
-     * @return
      */
-    private String generateCompleteUrl(Map<String, String> model) {
-        return new StringBuilder()
-                .append(model.get("oicdEndpoint"))
-                .append("?client_id=")
-                .append(model.get(CLIENT_ID))
-                .append("&login_hint=")
-                .append(model.get("login_hint"))
-                .append("&lti_message_hint=")
-                .append(model.get("lti_message_hint"))
-                .append("&nonce=")
-                .append(model.get("nonce_hash"))
-                .append("&prompt=")
-                .append(model.get("prompt"))
-                .append("&redirect_uri=")
-                .append(model.get("redirect_uri"))
-                .append("&response_mode=")
-                .append(model.get("response_mode"))
-                .append("&response_type=")
-                .append(model.get("response_type"))
-                .append("&scope=")
-                .append(model.get("scope"))
-                .append("&state=")
-                .append(model.get("state")).toString();
+    private String generateCompleteUrl(Map<String, String> model) throws UnsupportedEncodingException {
+        StringBuilder getUrl = new StringBuilder();
+
+        getUrl.append(model.get("oicdEndpoint"));
+        getUrl = addParameter(getUrl,"client_id", model.get(CLIENT_ID), true);
+        getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
+        getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
+        getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);
+        getUrl = addParameter(getUrl, "prompt", model.get("prompt"), false);
+        getUrl = addParameter(getUrl, "redirect_uri", model.get("redirect_uri"), false);
+        getUrl = addParameter(getUrl, "response_mode", model.get("response_mode"), false);
+        getUrl = addParameter(getUrl, "response_type", model.get("response_type"), false);
+        getUrl = addParameter(getUrl, "scope", model.get("scope"), false);
+        getUrl = addParameter(getUrl, "state", model.get("state"), false);
+        return getUrl.toString();
+    }
+
+    private StringBuilder addParameter(StringBuilder url, String parameter, String value, boolean first) throws UnsupportedEncodingException {
+
+        if (value != null){
+            if (first){
+                url.append("?").append(parameter).append("=");
+            } else {
+                url.append("&").append(parameter).append("=");
+            }
+            url.append(URLEncoder.encode(value, String.valueOf(StandardCharsets.UTF_8)));
+        }
+        return url;
     }
 
 }

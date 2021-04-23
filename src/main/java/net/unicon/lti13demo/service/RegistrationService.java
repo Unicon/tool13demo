@@ -59,17 +59,13 @@ public class RegistrationService {
             log.debug("Endpoint -  "+ endpoint);
             ResponseEntity<String> registrationRequest = restTemplate.
                     exchange(endpoint, HttpMethod.POST, request, String.class);
-            if (registrationRequest != null) {
-                HttpStatus status = registrationRequest.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    answer = registrationRequest.getBody();
-                } else {
-                    String exceptionMsg = "Can't get confirmation of the registration";
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
+            HttpStatus status = registrationRequest.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                answer = registrationRequest.getBody();
             } else {
-                log.warn("Problem during the registration");
+                String exceptionMsg = "Can't get confirmation of the registration";
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();

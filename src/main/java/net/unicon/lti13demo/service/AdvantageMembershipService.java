@@ -70,35 +70,30 @@ public class AdvantageMembershipService {
             log.debug("GET_MEMBERSHIP -  "+ GET_MEMBERSHIP);
             ResponseEntity<CourseUsers> membershipGetResponse = restTemplate.
                     exchange(GET_MEMBERSHIP, HttpMethod.GET, request, CourseUsers.class);
-            List<CourseUser> courseUserList = new ArrayList<>();
-            if (membershipGetResponse != null) {
-                HttpStatus status = membershipGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    courseUsers = membershipGetResponse.getBody();
-                    courseUserList.addAll(courseUsers.getCourseUserList());
-                    //We deal here with pagination
-                    log.debug("We have {} users",courseUsers.getCourseUserList().size());
-                    String nextPage = advantageConnectorHelper.nextPage(membershipGetResponse.getHeaders());
-                    log.debug("We have next page: " + nextPage);
-                    while (nextPage != null) {
-                        ResponseEntity<CourseUsers> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
-                                request, CourseUsers.class);
-                        CourseUsers nextCourseList = responseForNextPage.getBody();
-                        List<CourseUser> nextCourseUsersList = nextCourseList
-                                .getCourseUserList();
-                        log.debug("We have {} users in the next page",nextCourseList.getCourseUserList().size());
-                        courseUserList.addAll(nextCourseUsersList);
-                        nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
-                    }
-                    courseUsers = new CourseUsers();
-                    courseUsers.getCourseUserList().addAll(courseUserList);
-                } else {
-                    String exceptionMsg = "Can't get the membership";
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
+            HttpStatus status = membershipGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                courseUsers = membershipGetResponse.getBody();
+                List<CourseUser> courseUserList = new ArrayList<>(courseUsers.getCourseUserList());
+                //We deal here with pagination
+                log.debug("We have {} users",courseUsers.getCourseUserList().size());
+                String nextPage = advantageConnectorHelper.nextPage(membershipGetResponse.getHeaders());
+                log.debug("We have next page: " + nextPage);
+                while (nextPage != null) {
+                    ResponseEntity<CourseUsers> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
+                            request, CourseUsers.class);
+                    CourseUsers nextCourseList = responseForNextPage.getBody();
+                    List<CourseUser> nextCourseUsersList = nextCourseList
+                            .getCourseUserList();
+                    log.debug("We have {} users in the next page",nextCourseList.getCourseUserList().size());
+                    courseUserList.addAll(nextCourseUsersList);
+                    nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                 }
+                courseUsers = new CourseUsers();
+                courseUsers.getCourseUserList().addAll(courseUserList);
             } else {
-                log.warn("Problem getting the membership");
+                String exceptionMsg = "Can't get the membership";
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();

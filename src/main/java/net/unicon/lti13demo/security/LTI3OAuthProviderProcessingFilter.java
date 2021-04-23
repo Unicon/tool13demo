@@ -50,7 +50,6 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
     /**
      * We need to load the data service to find the iss configurations and extract the keys.
-     * @param ltiDataService
      */
     public LTI3OAuthProviderProcessingFilter(LTIDataService ltiDataService, LTIJWTService ltijwtService ) {
         super();
@@ -62,11 +61,6 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
     /**
      * We filter all the LTI3 queries received on this endpoint.
-     * @param servletRequest
-     * @param servletResponse
-     * @param filterChain
-     * @throws IOException
-     * @throws ServletException
      */
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException,

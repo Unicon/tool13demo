@@ -63,7 +63,7 @@ public class OAuthUtils {
         final String PEM_RSA_PRIVATE_END = "-----END RSA PRIVATE KEY-----";
 
 
-        if (privateKeyPem.indexOf(PEM_PRIVATE_START) != -1) { // PKCS#8 format
+        if (privateKeyPem.contains(PEM_PRIVATE_START)) { // PKCS#8 format
             privateKeyPem = privateKeyPem.replace(PEM_PRIVATE_START, "").replace(PEM_PRIVATE_END, "");
             privateKeyPem = privateKeyPem.replaceAll("\\s", "");
 
@@ -72,7 +72,7 @@ public class OAuthUtils {
             KeyFactory factory = KeyFactory.getInstance("RSA");
             return factory.generatePrivate(new PKCS8EncodedKeySpec(pkcs8EncodedKey));
 
-        } else if (privateKeyPem.indexOf(PEM_RSA_PRIVATE_START) != -1) {  // PKCS#1 format
+        } else if (privateKeyPem.contains(PEM_RSA_PRIVATE_START)) {  // PKCS#1 format
 
             privateKeyPem = privateKeyPem.replace(PEM_RSA_PRIVATE_START, "").replace(PEM_RSA_PRIVATE_END, "");
             privateKeyPem = privateKeyPem.replaceAll("\\s", "");

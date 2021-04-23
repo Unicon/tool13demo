@@ -44,10 +44,6 @@ public class LtiOidcUtils {
     /**
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.
-     * @param platformDeployment
-     * @param authRequestMap
-     * @param loginInitiationDTO
-     * @return
      */
     public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
 

@@ -71,33 +71,28 @@ public class AdvantageAGSService {
             log.debug("GET_LINEITEMS -  "+ GET_LINEITEMS);
             ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
                     exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
-            List<LineItem> lineItemsList = new ArrayList<>();
-            if (lineItemsGetResponse != null) {
-                HttpStatus status = lineItemsGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    lineItemsList.addAll(Arrays.asList(lineItemsGetResponse.getBody()));
-                    //We deal here with pagination
-                    log.debug("We have {} lineItems",lineItems.getLineItemList().size());
-                    String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
-                    log.debug("We have next page: " + nextPage);
-                    while (nextPage != null) {
-                        ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
-                                request, LineItems.class);
-                        LineItems nextLineItemsList = responseForNextPage.getBody();
-                        List<LineItem> nextLineItems = nextLineItemsList
-                                .getLineItemList();
-                        log.debug("We have {} lineitems in the next page",nextLineItemsList.getLineItemList().size());
-                        lineItemsList.addAll(nextLineItems);
-                        nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
-                    }
-                    lineItems.getLineItemList().addAll(lineItemsList);
-                } else {
-                    String exceptionMsg = "Can't get the AGS";
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
+            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(lineItemsGetResponse.getBody()));
+                //We deal here with pagination
+                log.debug("We have {} lineItems",lineItems.getLineItemList().size());
+                String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
+                log.debug("We have next page: " + nextPage);
+                while (nextPage != null) {
+                    ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
+                            request, LineItems.class);
+                    LineItems nextLineItemsList = responseForNextPage.getBody();
+                    List<LineItem> nextLineItems = nextLineItemsList
+                            .getLineItemList();
+                    log.debug("We have {} lineitems in the next page",nextLineItemsList.getLineItemList().size());
+                    lineItemsList.addAll(nextLineItems);
+                    nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                 }
+                lineItems.getLineItemList().addAll(lineItemsList);
             } else {
-                log.warn("Problem getting the AGS");
+                String exceptionMsg = "Can't get the AGS";
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
@@ -120,25 +115,20 @@ public class AdvantageAGSService {
             log.debug("DELETE_LINEITEM -  "+ DELETE_LINEITEM);
             ResponseEntity<String> lineItemsGetResponse = restTemplate.
                     exchange(DELETE_LINEITEM, HttpMethod.DELETE, request, String.class);
-            if (lineItemsGetResponse != null) {
-                HttpStatus status = lineItemsGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    return true;
-                } else {
-                    String exceptionMsg = "Can't delete the lineitem with id: " + id;
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
+            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                return true;
             } else {
-                log.warn("Can't delete the lineitem with id: " + id);
+                String exceptionMsg = "Can't delete the lineitem with id: " + id;
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't delete the lineitem with id" + id);
+            exceptionMsg.append("Can't delete the lineitem with id").append(id);
             log.error(exceptionMsg.toString(),e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
-        return false;
     }
 
     public LineItem putLineItem(Token token, LtiContextEntity context, LineItem lineItem) throws ConnectionException {
@@ -154,22 +144,18 @@ public class AdvantageAGSService {
             log.debug("PUT_LINEITEM -  "+ PUT_LINEITEM);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
                     exchange(PUT_LINEITEM, HttpMethod.PUT, request, LineItem.class);
-            if (lineItemsGetResponse != null) {
-                HttpStatus status = lineItemsGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    resultlineItem = lineItemsGetResponse.getBody();
-                    //We deal here with pagination
-                } else {
-                    String exceptionMsg = "Can't put the lineitem " + lineItem.getId();
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
+            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                resultlineItem = lineItemsGetResponse.getBody();
+                //We deal here with pagination
             } else {
-                log.warn("Problem putting the lineitem " + lineItem.getId());
+                String exceptionMsg = "Can't put the lineitem " + lineItem.getId();
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't get put lineitem " + lineItem.getId());
+            exceptionMsg.append("Can't get put lineitem ").append(lineItem.getId());
             log.error(exceptionMsg.toString(),e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
@@ -189,22 +175,18 @@ public class AdvantageAGSService {
             log.debug("GET_LINEITEMS -  "+ GET_LINEITEM);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
                     exchange(GET_LINEITEM, HttpMethod.GET, request, LineItem.class);
-            if (lineItemsGetResponse != null) {
-                HttpStatus status = lineItemsGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    lineItem = lineItemsGetResponse.getBody();
-                    //We deal here with pagination
-                } else {
-                    String exceptionMsg = "Can't get the lineitem " + id;
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
+            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                lineItem = lineItemsGetResponse.getBody();
+                //We deal here with pagination
             } else {
-                log.warn("Problem getting the lineitem " + id);
+                String exceptionMsg = "Can't get the lineitem " + id;
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't get the lineitem " + id);
+            exceptionMsg.append("Can't get the lineitem ").append(id);
             log.error(exceptionMsg.toString(),e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
@@ -226,33 +208,28 @@ public class AdvantageAGSService {
             log.debug("POST_LINEITEMS -  " + POST_LINEITEMS);
             ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
                     exchange(POST_LINEITEMS, HttpMethod.POST, request, LineItem[].class);
-            List<LineItem> lineItemsList = new ArrayList<>();
-            if (lineItemsGetResponse != null) {
-                HttpStatus status = lineItemsGetResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    lineItemsList.addAll(Arrays.asList(lineItemsGetResponse.getBody()));
-                    //We deal here with pagination
-                    log.debug("We have {} lineItems", lineItems.getLineItemList().size());
-                    String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
-                    log.debug("We have next page: " + nextPage);
-                    while (nextPage != null) {
-                        ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
-                                request, LineItems.class);
-                        LineItems nextLineItemsList = responseForNextPage.getBody();
-                        List<LineItem> nextLineItems = nextLineItemsList
-                                .getLineItemList();
-                        log.debug("We have {} lineitems in the next page", nextLineItemsList.getLineItemList().size());
-                        lineItemsList.addAll(nextLineItems);
-                        nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
-                    }
-                    resultLineItems.getLineItemList().addAll(lineItemsList);
-                } else {
-                    String exceptionMsg = "Can't post lineitems";
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
+            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(lineItemsGetResponse.getBody()));
+                //We deal here with pagination
+                log.debug("We have {} lineItems", lineItems.getLineItemList().size());
+                String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
+                log.debug("We have next page: " + nextPage);
+                while (nextPage != null) {
+                    ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
+                            request, LineItems.class);
+                    LineItems nextLineItemsList = responseForNextPage.getBody();
+                    List<LineItem> nextLineItems = nextLineItemsList
+                            .getLineItemList();
+                    log.debug("We have {} lineitems in the next page", nextLineItemsList.getLineItemList().size());
+                    lineItemsList.addAll(nextLineItems);
+                    nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                 }
+                resultLineItems.getLineItemList().addAll(lineItemsList);
             } else {
-                log.warn("Problem posting lineitems");
+                String exceptionMsg = "Can't post lineitems";
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();

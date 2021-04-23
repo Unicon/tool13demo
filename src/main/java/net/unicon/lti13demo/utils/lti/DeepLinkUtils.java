@@ -45,9 +45,6 @@ public class DeepLinkUtils {
 
     /**
      *
-     * @param lti3Request
-
-     * @return
      */
     public static Map<String,String> generateDeepLinkJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request, String localUrl) throws GeneralSecurityException, IOException {
 
@@ -190,6 +187,7 @@ public class DeepLinkUtils {
         deepLink.put(LtiStrings.DEEP_LINK_TYPE,LtiStrings.DEEP_LINK_LTIRESOURCELINK);
         deepLink.put(LtiStrings.DEEP_LINK_TITLE,"My test link");
         deepLink.put(LtiStrings.DEEP_LINK_URL,localUrl + "/lti3?link=1234");
+        deepLinks.add(deepLink);
         return deepLinks;
 
 
