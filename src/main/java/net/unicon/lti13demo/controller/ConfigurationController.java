@@ -15,10 +15,7 @@
 package net.unicon.lti13demo.controller;
 
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
-import net.unicon.lti13demo.repository.RSAKeyRepository;
 import net.unicon.lti13demo.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +50,6 @@ public class ConfigurationController {
 
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
-
-    @Autowired
-    RSAKeyRepository keyRepository;
 
 
     /**
@@ -129,41 +123,5 @@ public class ConfigurationController {
         return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "toolkey/{id}", method = RequestMethod.GET, produces = "application/json;")
-    @ResponseBody
-    public ResponseEntity<RSAKeyEntity> getToolKey(@PathVariable("id") String id, HttpServletRequest req) {
 
-        Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id));
-
-        if (!key.isPresent()) {
-            log.error("key with id {} not found.", id);
-            return new ResponseEntity("key with id " + id
-                    + TextConstants.NOT_FOUND_SUFFIX, HttpStatus.NOT_FOUND);
-        } else {
-            return new ResponseEntity<>(key.get(), HttpStatus.OK);
-        }
-    }
-
-
-    @RequestMapping(value = "toolkey/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<RSAKeyEntity> updateToolKey(@PathVariable("id") long id, @RequestBody RSAKeyEntity rsaKeyEntity) {
-        log.info("Updating Key with id {}", id);
-
-        RSAKeyId key = new RSAKeyId(Long.toString(id));
-        Optional<RSAKeyEntity> keySearchResult = keyRepository.findById(key);
-
-        if (!keySearchResult.isPresent()) {
-            log.error("Unable to update. tool key with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. Tool key with id " + id + TextConstants.NOT_FOUND_SUFFIX,
-                    HttpStatus.NOT_FOUND);
-        }
-        RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();
-        rSAKeyEntityTochange.setPublicKey(rsaKeyEntity.getPublicKey());
-        rSAKeyEntityTochange.setPrivateKey(rsaKeyEntity.getPrivateKey());
-        rSAKeyEntityTochange.setKid(rsaKeyEntity.getKid());
-
-
-        keyRepository.saveAndFlush(rSAKeyEntityTochange);
-        return new ResponseEntity<>(rSAKeyEntityTochange, HttpStatus.OK);
-    }
 }

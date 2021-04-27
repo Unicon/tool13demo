@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.LtiStrings;
 import net.unicon.lti13demo.utils.TextConstants;
@@ -35,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DeepLinkUtils {
 
@@ -50,134 +47,124 @@ public class DeepLinkUtils {
 
         Map<String,String> deepLinkJwtMap = new HashMap<>();
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
-        if (rsaKeyEntityOptional.isPresent()) {
-            Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
+
+        Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
 
         // JWT 1:  Empty list of JSON
-            String jwt1 = Jwts.builder()
-                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
-                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
-                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                    .setIssuer(platformDeployment.getClientId())  //Client ID
-                    .setAudience(lti3Request.getIss())
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
-                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
-                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
-                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
-                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
-                    .claim(LtiStrings.LTI_CONTENT_ITEMS,new HashMap<String,Object>())
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
-                    .compact();
+        String jwt1 = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS,new HashMap<String,Object>())
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
 
-            deepLinkJwtMap.put("jwt1",jwt1);
+        deepLinkJwtMap.put("jwt1",jwt1);
 
         //JWT 2: One ltiResourcelink
+        List<Map<String,Object>> oneDeepLink = createOneDeepLinkWithGrades(localUrl);
+        String jwt2 = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLink)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
 
+        deepLinkJwtMap.put("jwt2",jwt2);
+        deepLinkJwtMap.put("jwt2Map",listMapToJson(oneDeepLink));
 
-            List<Map<String,Object>> oneDeepLink = createOneDeepLinkWithGrades(localUrl);
-            String jwt2 = Jwts.builder()
-                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
-                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
-                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                    .setIssuer(platformDeployment.getClientId())  //Client ID
-                    .setAudience(lti3Request.getIss())
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
-                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
-                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
-                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
-                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
-                    .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLink)
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
-                    .compact();
+        //JWT 2b: One link (not ltiResourcelink)
+        List<Map<String,Object>> oneDeepLinkNoLti = createOneDeepLinkNoLti();
+        String jwt2b = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLinkNoLti)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
 
-            deepLinkJwtMap.put("jwt2",jwt2);
-            deepLinkJwtMap.put("jwt2Map",listMapToJson(oneDeepLink));
-
-            //JWT 2b: One link (not ltiResourcelink)
-
-            List<Map<String,Object>> oneDeepLinkNoLti = createOneDeepLinkNoLti();
-            String jwt2b = Jwts.builder()
-                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
-                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
-                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                    .setIssuer(platformDeployment.getClientId())  //Client ID
-                    .setAudience(lti3Request.getIss())
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
-                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
-                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
-                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
-                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
-                    .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLinkNoLti)
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
-                    .compact();
-
-            deepLinkJwtMap.put("jwt2b",jwt2b);
-            deepLinkJwtMap.put("jwt2bMap",listMapToJson(oneDeepLinkNoLti));
+        deepLinkJwtMap.put("jwt2b",jwt2b);
+        deepLinkJwtMap.put("jwt2bMap",listMapToJson(oneDeepLinkNoLti));
 
         //JWT 3: More than one link
-            List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
-            String jwt3 = Jwts.builder()
-                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
-                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
-                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                    .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
-                    .setAudience(lti3Request.getIss())
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
-                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
-                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
-                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
-                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
-                    .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLink)
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
-                    .compact();
+        List<Map<String,Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
+        String jwt3 = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLink)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
 
+        deepLinkJwtMap.put("jwt3",jwt3);
+        deepLinkJwtMap.put("jwt3Map",listMapToJson(multipleDeepLink));
 
-            deepLinkJwtMap.put("jwt3",jwt3);
-            deepLinkJwtMap.put("jwt3Map",listMapToJson(multipleDeepLink));
+        //JWT 3b: More than one link but only ltiresourceLinks
+        List<Map<String,Object>> multipleDeepLinkOnlyLti = createMultipleDeepLinkOnlyLti(localUrl);
+        String jwt3b = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLinkOnlyLti)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
 
+        deepLinkJwtMap.put("jwt3b",jwt3b);
+        deepLinkJwtMap.put("jwt3bMap",listMapToJson(multipleDeepLinkOnlyLti));
 
-            //JWT 3b: More than one link but only ltiresourceLinks
-            List<Map<String,Object>> multipleDeepLinkOnlyLti = createMultipleDeepLinkOnlyLti(localUrl);
-            String jwt3b = Jwts.builder()
-                    .setHeaderParam(LtiStrings.TYP,LtiStrings.JWT)
-                    .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
-                    .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                    .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
-                    .setAudience(lti3Request.getIss())
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim(LtiStrings.LTI_NONCE,lti3Request.getNonce())
-                    .claim(LtiStrings.LTI_AZP,lti3Request.getIss())
-                    .claim(LtiStrings.LTI_DEPLOYMENT_ID,lti3Request.getLtiDeploymentId())
-                    .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
-                    .claim(LtiStrings.LTI_VERSION,LtiStrings.LTI_VERSION_3)
-                    .claim(LtiStrings.LTI_DATA,lti3Request.deepLinkData)
-                    .claim(LtiStrings.LTI_CONTENT_ITEMS,multipleDeepLinkOnlyLti)
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
-                    .compact();
+        return deepLinkJwtMap;
 
-
-            deepLinkJwtMap.put("jwt3b",jwt3b);
-            deepLinkJwtMap.put("jwt3bMap",listMapToJson(multipleDeepLinkOnlyLti));
-
-
-            return deepLinkJwtMap;
-        } else {
-            throw new GeneralSecurityException("Error generating the deep link responsed.");
-        }
     }
 
     static List<Map<String,Object>> createOneDeepLink(String localUrl) {

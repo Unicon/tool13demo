@@ -23,11 +23,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +41,6 @@ import java.security.Key;
 import java.security.PublicKey;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -76,16 +72,7 @@ public class LTIJWTService {
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    RSAKeyId rsaKeyId = new RSAKeyId(TextConstants.DEFAULT_KID);
-                    Optional<RSAKeyEntity> rsaKeyEntity =  ltiDataService.getRepos().rsaKeys.findById(rsaKeyId);
-                    String toolPublicKeyString;
-                    if (rsaKeyEntity.isPresent()) {
-                        toolPublicKeyString = rsaKeyEntity.get().getPublicKey();
-                        toolPublicKey = OAuthUtils.loadPublicKey(toolPublicKeyString);
-                    } else {
-                        throw new SignatureException("Error validating the state. Error getting the tool public key");
-                    }
-
+                    toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
                 } catch (GeneralSecurityException ex){
                     log.error("Error validating the state. Error generating the tool public key",ex);
                     return null;
@@ -148,33 +135,28 @@ public class LTIJWTService {
     public String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
-        if (rsaKeyEntityOptional.isPresent()) {
-            Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
-            String aud;
-            //D2L needs a different aud, maybe others too
-            if (platformDeployment.getoAuth2TokenAud() != null){
-                aud = platformDeployment.getoAuth2TokenAud();
-            } else {
-                aud = platformDeployment.getoAuth2TokenUrl();
-            }
-            String state = Jwts.builder()
-                    .setHeaderParam("kid", TextConstants.DEFAULT_KID)
-                    .setHeaderParam("typ", "JWT")
-                    .setIssuer(platformDeployment.getClientId())  // D2L needs the issuer to be the clientId
-                    .setSubject(platformDeployment.getClientId()) // The clientId
-                    .setAudience(aud)  //We send here the authToken url.
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setNotBefore(date) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .claim("jti", UUID.randomUUID().toString())  //This is an specific claim to ask for tokens.
-                    .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
-                    .compact();
-            log.debug("Token Request: \n {} \n", state);
-            return state;
+        Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+        String aud;
+        //D2L needs a different aud, maybe others too
+        if (platformDeployment.getoAuth2TokenAud() != null){
+            aud = platformDeployment.getoAuth2TokenAud();
         } else {
-            throw new GeneralSecurityException("Error retrieving the token request. No key was found.");
+            aud = platformDeployment.getoAuth2TokenUrl();
         }
+        String state = Jwts.builder()
+                .setHeaderParam("kid", TextConstants.DEFAULT_KID)
+                .setHeaderParam("typ", "JWT")
+                .setIssuer(platformDeployment.getClientId())  // D2L needs the issuer to be the clientId
+                .setSubject(platformDeployment.getClientId()) // The clientId
+                .setAudience(aud)  //We send here the authToken url.
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setNotBefore(date) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim("jti", UUID.randomUUID().toString())  //This is an specific claim to ask for tokens.
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
+                .compact();
+        log.debug("Token Request: \n {} \n", state);
+        return state;
     }
 
 }

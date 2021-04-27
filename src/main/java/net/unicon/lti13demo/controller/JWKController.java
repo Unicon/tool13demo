@@ -14,9 +14,8 @@
  */
 package net.unicon.lti13demo.controller;
 
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
-import net.unicon.lti13demo.repository.RSAKeyRepository;
+
+import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Serving the public key of the tool.
@@ -49,7 +47,7 @@ import java.util.Optional;
 public class JWKController {
 
     @Autowired
-    RSAKeyRepository rsaKeyRepository;
+    LTIDataService ltiDataService;
 
     static final Logger log = LoggerFactory.getLogger(JWKController.class);
 
@@ -59,21 +57,17 @@ public class JWKController {
         Map<String, List<Map<String, Object>>> keys = new HashMap<>();
         log.debug("Someone is calling the jwk endpoint!");
         log.debug(req.getQueryString());
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = rsaKeyRepository.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
-        if (rsaKeyEntityOptional.isPresent()) {
-            RSAPublicKey toolPublicKey = OAuthUtils.loadPublicKey(rsaKeyEntityOptional.get().getPublicKey());
-            Map<String, Object> values = new HashMap<>();
-            values.put("kty", toolPublicKey.getAlgorithm()); // getAlgorithm() returns kty not algorithm
-            values.put("kid", TextConstants.DEFAULT_KID);
-            values.put("n", Base64.getUrlEncoder().encodeToString(toolPublicKey.getModulus().toByteArray()));
-            values.put("e", Base64.getUrlEncoder().encodeToString(toolPublicKey.getPublicExponent().toByteArray()));
-            values.put("alg", "RS256");
-            values.put("use", "sig");
-            List<Map<String,Object>> valuesList = new ArrayList<>();
-            valuesList.add(values);
-            keys.put("keys", valuesList);
-            return keys;
-        }
-        return null;
+        RSAPublicKey toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
+        Map<String, Object> values = new HashMap<>();
+        values.put("kty", toolPublicKey.getAlgorithm()); // getAlgorithm() returns kty not algorithm
+        values.put("kid", TextConstants.DEFAULT_KID);
+        values.put("n", Base64.getUrlEncoder().encodeToString(toolPublicKey.getModulus().toByteArray()));
+        values.put("e", Base64.getUrlEncoder().encodeToString(toolPublicKey.getPublicExponent().toByteArray()));
+        values.put("alg", "RS256");
+        values.put("use", "sig");
+        List<Map<String,Object>> valuesList = new ArrayList<>();
+        valuesList.add(values);
+        keys.put("keys", valuesList);
+        return keys;
     }
 }

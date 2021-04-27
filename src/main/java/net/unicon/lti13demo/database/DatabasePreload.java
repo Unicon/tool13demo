@@ -17,14 +17,11 @@ package net.unicon.lti13demo.database;
 import net.unicon.lti13demo.config.ApplicationConfig;
 import net.unicon.lti13demo.model.LtiUserEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.repository.LtiUserRepository;
 import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
-import net.unicon.lti13demo.repository.RSAKeyRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -48,9 +45,6 @@ public class DatabasePreload {
 
     @Autowired
     @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "SpringJavaAutowiringInspection"})
-    RSAKeyRepository rsaKeyRepository;
-    @Autowired
-    @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "SpringJavaAutowiringInspection"})
     LtiUserRepository ltiUserRepository;
     @Autowired
     @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "SpringJavaAutowiringInspection"})
@@ -60,15 +54,7 @@ public class DatabasePreload {
     PlatformDeploymentResourceService platformDeploymentResources;
 
     @Autowired
-    RSAKeyEntityResourceService rsaKeyEntityResourceService;
-
-    @Autowired
     LtiUserEntityResourceService ltiUserEntityResourceService;
-
-    @Value("${oicd.privatekey}")
-    private String ownPrivateKey;
-    @Value("${oicd.publickey}")
-    private String ownPublicKey;
 
     @PostConstruct
     public void init() throws IOException {
@@ -92,28 +78,5 @@ public class DatabasePreload {
         for(LtiUserEntity user:users) {
             ltiUserRepository.save(user);
         }
-
-        Set<RSAKeyEntity> rsaKeys = rsaKeyEntityResourceService.getResources(RSAKeyEntity.class);
-        for(RSAKeyEntity rsaKey:rsaKeys) {
-            rsaKeyRepository.save(rsaKey);
-        }
-
-    }
-
-
-    public String getOwnPrivateKey() {
-        return ownPrivateKey;
-    }
-
-    public void setOwnPrivateKey(String ownPrivateKey) {
-        this.ownPrivateKey = ownPrivateKey;
-    }
-
-    public String getOwnPublicKey() {
-        return ownPublicKey;
-    }
-
-    public void setOwnPublicKey(String ownPublicKey) {
-        this.ownPublicKey = ownPublicKey;
     }
 }

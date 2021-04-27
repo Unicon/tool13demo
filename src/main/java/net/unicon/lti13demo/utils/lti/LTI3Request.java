@@ -33,10 +33,8 @@ import net.unicon.lti13demo.model.LtiMembershipEntity;
 import net.unicon.lti13demo.model.LtiResultEntity;
 import net.unicon.lti13demo.model.LtiUserEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.LtiStrings;
-import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +81,7 @@ public class LTI3Request {
 
     HttpServletRequest httpServletRequest;
     LTIDataService ltiDataService;
+
 
     // these are populated by the loadLTIDataFromDB operation
     PlatformDeployment key;

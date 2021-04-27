@@ -17,8 +17,6 @@ package net.unicon.lti13demo.utils.lti;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti13demo.model.PlatformDeployment;
-import net.unicon.lti13demo.model.RSAKeyEntity;
-import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.TextConstants;
@@ -32,7 +30,6 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 
 public class LtiOidcUtils {
 
@@ -49,33 +46,28 @@ public class LtiOidcUtils {
     public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
-        if (rsaKeyEntityOptional.isPresent()) {
-            Key issPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
-            String state = Jwts.builder()
-                    .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
-                    .setHeaderParam("typ", "JWT") // The type
-                    .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
-                    .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
-                    .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
-                    .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
-                    .setNotBefore(date) //a java.util.Date
-                    .setIssuedAt(date) // for example, now
-                    .setId(authRequestMap.get("nonce")) //just a nonce... we don't use it by the moment, but it could be good if we store information about the requests in DB.
-                    .claim("original_iss", loginInitiationDTO.getIss())  //All this claims are the information received in the OIDC initiation and some other useful things.
-                    .claim("loginHint", loginInitiationDTO.getLoginHint())
-                    .claim("ltiMessageHint", loginInitiationDTO.getLtiMessageHint())
-                    .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
-                    .claim("clientId", clientIdValue)
-                    .claim("ltiDeploymentId", deploymentIdValue)
-                    .claim("controller", "/oidc/login_initiations")
-                    .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
-                    .compact();
-            log.debug("State: \n {} \n", state);
-            return state;
-        } else {
-            throw new GeneralSecurityException("Error retrieving the state. No key was found.");
-        }
+        Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+        String state = Jwts.builder()
+                .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
+                .setHeaderParam("typ", "JWT") // The type
+                .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
+                .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
+                .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setNotBefore(date) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .setId(authRequestMap.get("nonce")) //just a nonce... we don't use it by the moment, but it could be good if we store information about the requests in DB.
+                .claim("original_iss", loginInitiationDTO.getIss())  //All this claims are the information received in the OIDC initiation and some other useful things.
+                .claim("loginHint", loginInitiationDTO.getLoginHint())
+                .claim("ltiMessageHint", loginInitiationDTO.getLtiMessageHint())
+                .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
+                .claim("clientId", clientIdValue)
+                .claim("ltiDeploymentId", deploymentIdValue)
+                .claim("controller", "/oidc/login_initiations")
+                .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
+                .compact();
+        log.debug("State: \n {} \n", state);
+        return state;
     }
 
 }

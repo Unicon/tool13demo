@@ -48,6 +48,12 @@ public class LTIDataService {
     @Value("${application.url}")
     private String localUrl;
 
+    @Value("${oicd.privatekey}")
+    private String ownPrivateKey;
+
+    @Value("${oicd.publickey}")
+    private String ownPublicKey;
+
     /**
      * Allows convenient access to the DAO repositories which manage the stored LTI data
      * @return the repositories access service
@@ -304,5 +310,21 @@ public class LTIDataService {
 
     public void setLocalUrl(String localUrl) {
         this.localUrl = localUrl;
+    }
+
+    public String getOwnPrivateKey() {
+        return ownPrivateKey;
+    }
+
+    public void setOwnPrivateKey(String ownPrivateKey) {
+        this.ownPrivateKey = ownPrivateKey;
+    }
+
+    public String getOwnPublicKey() {
+        return ownPublicKey;
+    }
+
+    public void setOwnPublicKey(String ownPublicKey) {
+        this.ownPublicKey = ownPublicKey;
     }
 }
