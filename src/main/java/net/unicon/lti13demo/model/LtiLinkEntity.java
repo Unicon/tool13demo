@@ -42,9 +42,6 @@ public class LtiLinkEntity extends BaseEntity {
     @Basic
     @Column(name = "title", length = 4096)
     private String title;
-    @Basic
-    @Column(name = "score_maximum")
-    private Float scoreMaximum;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "context_id")
     private LtiContextEntity context;
@@ -59,13 +56,12 @@ public class LtiLinkEntity extends BaseEntity {
      * @param context the LTI context
      * @param title   OPTIONAL title of this link (null for none)
      */
-    public LtiLinkEntity(String linkKey, LtiContextEntity context, String title, Float scoreMaximum) {
+    public LtiLinkEntity(String linkKey, LtiContextEntity context, String title) {
         if (!StringUtils.isNotBlank(linkKey)) throw new AssertionError();
         if (context == null) throw new AssertionError();
         this.linkKey = linkKey;
         this.context = context;
         this.title = title;
-        this.scoreMaximum = scoreMaximum;
 
     }
 
@@ -91,14 +87,6 @@ public class LtiLinkEntity extends BaseEntity {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public Float getScoreMaximum() {
-        return scoreMaximum;
-    }
-
-    public void setScoreMaximum(Float scoreMaximum) {
-        this.scoreMaximum = scoreMaximum;
     }
 
     public LtiContextEntity getContext() {

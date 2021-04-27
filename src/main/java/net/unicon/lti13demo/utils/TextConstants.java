@@ -29,7 +29,7 @@ public class TextConstants {
     public static final String ERROR = "Error";
     public static final String HTML_CONTENT = "htmlContent";
     public static final String LTI3_SUFFIX = "/lti3/";
-    public static final String DEFAULT_KID = "000000000000000001";
+    public static final String DEFAULT_KID = "OWNKEY";
     public static final String BEARER = "Bearer ";
     public static final String ERROR_DEEP_RESPONSE = "Error creating the DeepLinking Response";
     public static final String NOT_FOUND_SUFFIX = " not found";

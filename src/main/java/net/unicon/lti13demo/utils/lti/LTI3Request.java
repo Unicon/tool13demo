@@ -274,12 +274,8 @@ public class LTI3Request {
                             return null;
                         }
                     } else {
-                        try {
-                            return OAuthUtils.loadPublicKey(ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false)).get().getPublicKey());
-                        } catch (GeneralSecurityException e) {
-                            log.error("Error generating the tool public key", e);
-                            return null;
-                        }
+                        log.error("The platform configuration must contain a Jwks endpoint");
+                        return null;
                     }
 
             }

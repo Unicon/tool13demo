@@ -45,7 +45,6 @@ public class LTIDataService {
     AllRepositories repos;
 
     //This will be used to create the deep links. Needs to be in the application properties.
-    //TODO change this to get it automatically.
     @Value("${application.url}")
     private String localUrl;
 
@@ -66,6 +65,9 @@ public class LTIDataService {
             // don't even attempt this without the deployment Id, audience (client_id) or issuer, it's pointless
             log.info("LTIload: No key to load lti.results for");
             return false;
+        }
+        if (link == null){
+            link = lti.getLtiTargetLinkUrl().substring((lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
         }
 
         String sqlDeployment = "SELECT k, c, l, m, u" +
@@ -122,7 +124,9 @@ public class LTIDataService {
         if (lti.getKey()==null) {
             lti.setKey(platformDeployment);
         }
-
+        if (link == null){
+            link = lti.getLtiTargetLinkUrl().substring((lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
+        }
         // For the next elements, we will check if we have it already in the lti object, and if not
         // we check if it exists in the database or not.
         // if exists we get it, if not we create it.
@@ -174,7 +178,7 @@ public class LTIDataService {
                         title = "Another Link";
                     }
                     //END HARDCODING VALUES
-                    LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title, scoreMax);
+                    LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title);
                     lti.setLink(repos.links.save(newLink));
                     inserts++;
                     log.info("LTIupdate: Inserted link id=" + link);

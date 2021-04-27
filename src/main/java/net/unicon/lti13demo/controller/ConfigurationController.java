@@ -124,8 +124,6 @@ public class ConfigurationController {
         platformDeploymentToChange.setIss(platformDeployment.getIss());
         platformDeploymentToChange.setOidcEndpoint(platformDeployment.getOidcEndpoint());
         platformDeploymentToChange.setJwksEndpoint(platformDeployment.getJwksEndpoint());
-        platformDeploymentToChange.setToolKid(platformDeployment.getToolKid());
-        platformDeploymentToChange.setPlatformKid(platformDeployment.getPlatformKid());
 
         platformDeploymentRepository.saveAndFlush(platformDeploymentToChange);
         return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);
@@ -135,7 +133,7 @@ public class ConfigurationController {
     @ResponseBody
     public ResponseEntity<RSAKeyEntity> getToolKey(@PathVariable("id") String id, HttpServletRequest req) {
 
-        Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id, true));
+        Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id));
 
         if (!key.isPresent()) {
             log.error("key with id {} not found.", id);
@@ -151,7 +149,7 @@ public class ConfigurationController {
     public ResponseEntity<RSAKeyEntity> updateToolKey(@PathVariable("id") long id, @RequestBody RSAKeyEntity rsaKeyEntity) {
         log.info("Updating Key with id {}", id);
 
-        RSAKeyId key = new RSAKeyId(Long.toString(id), true);
+        RSAKeyId key = new RSAKeyId(Long.toString(id));
         Optional<RSAKeyEntity> keySearchResult = keyRepository.findById(key);
 
         if (!keySearchResult.isPresent()) {
@@ -164,44 +162,6 @@ public class ConfigurationController {
         rSAKeyEntityTochange.setPrivateKey(rsaKeyEntity.getPrivateKey());
         rSAKeyEntityTochange.setKid(rsaKeyEntity.getKid());
 
-
-        keyRepository.saveAndFlush(rSAKeyEntityTochange);
-        return new ResponseEntity<>(rSAKeyEntityTochange, HttpStatus.OK);
-    }
-
-
-
-    @RequestMapping(value = "platformkey/{id}", method = RequestMethod.GET, produces = "application/json;")
-    @ResponseBody
-    public ResponseEntity<RSAKeyEntity> getPlatformKey(@PathVariable("id") String id, HttpServletRequest req) {
-
-        Optional<RSAKeyEntity> key = keyRepository.findById(new RSAKeyId(id, false));
-
-        if (!key.isPresent()) {
-            log.error("key with id {} not found.", id);
-            return new ResponseEntity("key with id " + id
-                    + TextConstants.NOT_FOUND_SUFFIX, HttpStatus.NOT_FOUND);
-        } else {
-            return new ResponseEntity<>(key.get(), HttpStatus.OK);
-        }
-    }
-
-    @RequestMapping(value = "platformkey/{id}", method = RequestMethod.PUT)
-    public ResponseEntity<RSAKeyEntity> updatePlatformKey(@PathVariable("id") long id, @RequestBody RSAKeyEntity rsaKeyEntity) {
-        log.info("Updating Key with id {}", id);
-
-        RSAKeyId key = new RSAKeyId(Long.toString(id), false);
-        Optional<RSAKeyEntity> keySearchResult = keyRepository.findById(key);
-
-        if (!keySearchResult.isPresent()) {
-            log.error("Unable to update. Platform key with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. Platform key with id " + id + TextConstants.NOT_FOUND_SUFFIX,
-                    HttpStatus.NOT_FOUND);
-        }
-        RSAKeyEntity rSAKeyEntityTochange = keySearchResult.get();
-        rSAKeyEntityTochange.setPublicKey(rsaKeyEntity.getPublicKey());
-        rSAKeyEntityTochange.setPrivateKey(rsaKeyEntity.getPrivateKey());
-        rSAKeyEntityTochange.setKid(rsaKeyEntity.getKid());
 
         keyRepository.saveAndFlush(rSAKeyEntityTochange);
         return new ResponseEntity<>(rSAKeyEntityTochange, HttpStatus.OK);

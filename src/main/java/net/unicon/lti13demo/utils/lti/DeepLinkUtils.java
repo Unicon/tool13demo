@@ -50,7 +50,7 @@ public class DeepLinkUtils {
 
         Map<String,String> deepLinkJwtMap = new HashMap<>();
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
+        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
 

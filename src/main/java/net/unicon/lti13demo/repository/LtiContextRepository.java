@@ -27,18 +27,8 @@ import java.util.List;
 @Transactional
 public interface LtiContextRepository extends JpaRepository<LtiContextEntity, Long> {
 
-    /**
-     * @param key the unique key
-     * @return the LtiContextEntity OR null if there is no entity matching this key
-     */
     LtiContextEntity findByContextKey(String key);
     LtiContextEntity findByContextKeyAndPlatformDeployment(String contextKey, PlatformDeployment platformDeployment);
     List<LtiContextEntity> findByPlatformDeployment(PlatformDeployment platformDeployment);
-
-
-    /**
-     * @param key the unique key
-     * @return the number of keys removed (0 or 1)
-     */
-    int deleteByContextKey(String key);
+    int deleteByContextKeyAndPlatformDeployment(String contextKey, PlatformDeployment platformDeployment);;
 }

@@ -14,8 +14,14 @@
  */
 package net.unicon.lti13demo.controller;
 
+import net.unicon.lti13demo.model.RSAKeyEntity;
+import net.unicon.lti13demo.model.RSAKeyId;
+import net.unicon.lti13demo.repository.RSAKeyRepository;
+import net.unicon.lti13demo.utils.TextConstants;
+import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +30,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Serving the public key of the tool.
@@ -33,23 +48,32 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/jwks")
 public class JWKController {
 
+    @Autowired
+    RSAKeyRepository rsaKeyRepository;
+
     static final Logger log = LoggerFactory.getLogger(JWKController.class);
 
     @RequestMapping(value = "/jwk",method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
-    public String jkw(HttpServletRequest req,  Model model) {
-        log.info("Someone is calling the jwk endpoint!");
-        log.info(req.getQueryString());
-        return "{\n" +
-                "\"keys\": [{\n" +
-                "    \"kty\": \"RSA\",\n" +
-                "    \"n\": \"1emJEYJebrnPAvrAf6FDCQAOldKF3W-LY8i91L3NvUPgrkKsPjjRO-g0B-sRqKsoWVaN8wZ2j0y-e2YX5-ig1k2bMmNHMgRGISf1rvgMEJA1k9RiGxWuMeWrP9Aa_nYEs7Wau5dCB0SelGCPHEjrHmHmIzfZGsJG_i1AZ7EKOER90cxQG3pG8tnQqWNordtxJ7Cqr2_jSAFb5zW--AV9D6xjlSTuk1V3uJbtEH4q2Zid8fA8aAwaNPvL7QbW5IhrZw_chGxD_z3wHb1VQFiyycVjI6LTTmzI4IB9Dkt6QS3jzxft-AkTsJ4250xbCYr2lWsbd1n1-E3uzjipOS5EGQ\",\n" +
-                "    \"e\": \"AQAB\",\n" +
-                "\"kid\": \"000000000000000001\"," +
-                "\"alg\": \"RS256\",\n" +
-                "\"use\": \"sig\"}]}";
-
-
+    public Map<String, List<Map<String,Object>>> jkw(HttpServletRequest req, Model model) throws GeneralSecurityException, IOException {
+        Map<String, List<Map<String, Object>>> keys = new HashMap<>();
+        log.debug("Someone is calling the jwk endpoint!");
+        log.debug(req.getQueryString());
+        Optional<RSAKeyEntity> rsaKeyEntityOptional = rsaKeyRepository.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
+        if (rsaKeyEntityOptional.isPresent()) {
+            RSAPublicKey toolPublicKey = OAuthUtils.loadPublicKey(rsaKeyEntityOptional.get().getPublicKey());
+            Map<String, Object> values = new HashMap<>();
+            values.put("kty", toolPublicKey.getAlgorithm()); // getAlgorithm() returns kty not algorithm
+            values.put("kid", TextConstants.DEFAULT_KID);
+            values.put("n", Base64.getUrlEncoder().encodeToString(toolPublicKey.getModulus().toByteArray()));
+            values.put("e", Base64.getUrlEncoder().encodeToString(toolPublicKey.getPublicExponent().toByteArray()));
+            values.put("alg", "RS256");
+            values.put("use", "sig");
+            List<Map<String,Object>> valuesList = new ArrayList<>();
+            valuesList.add(values);
+            keys.put("keys", valuesList);
+            return keys;
+        }
+        return null;
     }
-
 }

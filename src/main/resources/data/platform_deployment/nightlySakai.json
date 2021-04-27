@@ -9,7 +9,5 @@
   "jwksEndpoint": null,
   "oAuth2TokenUrl": "https://trunk-mysql.nightly.sakaiproject.org/imsoidc/lti13/oidc_auth",
   "oAuth2TokenAud": null,
-  "deploymentId": "1",
-  "toolKid": "472224775",
-  "platformKid": "472224775"
+  "deploymentId": "1"
 }

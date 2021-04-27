@@ -101,11 +101,11 @@ public class LTI3Controller {
                 //This should be done AFTER the user selects the link in the content selector, and we are doing it before
                 //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
                 // we create the LtiLinkEntity in our code after that.
-                LtiLinkEntity ltiLinkEntity = new LtiLinkEntity("1234", lti3Request.getContext(), "My Test Link", 50f);
+                LtiLinkEntity ltiLinkEntity = new LtiLinkEntity("1234", lti3Request.getContext(), "My Test Link");
                 if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity.getLinkKey(), ltiLinkEntity.getContext()).size()==0) {
                     ltiLinkRepository.save(ltiLinkEntity);
                 }
-                LtiLinkEntity ltiLinkEntity2 = new LtiLinkEntity("4567", lti3Request.getContext(), "Another Link", 0f);
+                LtiLinkEntity ltiLinkEntity2 = new LtiLinkEntity("4567", lti3Request.getContext(), "Another Link");
                 if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity2.getLinkKey(), ltiLinkEntity2.getContext()).size()==0) {
                     ltiLinkRepository.save(ltiLinkEntity2);
                 }

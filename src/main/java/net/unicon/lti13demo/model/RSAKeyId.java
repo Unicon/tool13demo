@@ -25,19 +25,14 @@ public class RSAKeyId implements Serializable {
     @Column(name = "kid")
     private String kid;
 
-    @Column(name = "tool")
-    private boolean tool;
-
     public RSAKeyId() {
     }
 
     /**
      * @param kid  the key id
-     * @param tool  if tool or platform key
      */
-    public RSAKeyId(String kid, Boolean tool) {
+    public RSAKeyId(String kid) {
         this.kid=kid;
-        this.tool = tool;
     }
 
     public String getKid() {
@@ -48,14 +43,6 @@ public class RSAKeyId implements Serializable {
         this.kid = kid;
     }
 
-    public boolean getTool() {
-        return tool;
-    }
-
-    public void setTool(boolean tool) {
-        this.tool = tool;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -63,13 +50,12 @@ public class RSAKeyId implements Serializable {
 
         RSAKeyId that = (RSAKeyId) o;
 
-        return Objects.equals(getKid(), that.getKid()) &&
-                Objects.equals(getTool(), that.getTool());
+        return Objects.equals(getKid(), that.getKid());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getKid(), getTool());
+        return Objects.hash(getKid());
     }
 
 }

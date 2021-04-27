@@ -53,12 +53,6 @@ public class PlatformDeployment extends BaseEntity {
     @Basic
     @Column(name = "deployment_id")
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
-    @Basic
-    @Column(name = "toolKid")
-    private String toolKid; // The tool key if number.
-    @Basic
-    @Column(name = "platformKid")
-    private String platformKid; // The tool key if number.
 
     @OneToMany(mappedBy = "platformDeployment", fetch = FetchType.LAZY)
     private Set<LtiContextEntity> contexts;
@@ -129,22 +123,6 @@ public class PlatformDeployment extends BaseEntity {
         this.deploymentId = deploymentId;
     }
 
-    public String getToolKid() {
-        return toolKid;
-    }
-
-    public void setToolKid(String toolKid) {
-        this.toolKid = toolKid;
-    }
-
-    public String getPlatformKid() {
-        return platformKid;
-    }
-
-    public void setPlatformKid(String platformKid) {
-        this.platformKid = platformKid;
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -167,8 +145,6 @@ public class PlatformDeployment extends BaseEntity {
         result = 31 * result + (oidcEndpoint != null ? oidcEndpoint.hashCode() : 0);
         result = 31 * result + (oAuth2TokenUrl != null ? oAuth2TokenUrl.hashCode() : 0);
         result = 31 * result + (deploymentId != null ? deploymentId.hashCode() : 0);
-        result = 31 * result + (toolKid != null ? toolKid.hashCode() : 0);
-        result = 31 * result + (platformKid != null ? platformKid.hashCode() : 0);
         return result;
     }
 

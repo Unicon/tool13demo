@@ -21,6 +21,7 @@ import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
 import net.unicon.lti13demo.model.dto.LoginInitiationDTO;
 import net.unicon.lti13demo.service.LTIDataService;
+import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
@@ -48,11 +49,11 @@ public class LtiOidcUtils {
     public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId("OWNKEY",true));
+        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
         if (rsaKeyEntityOptional.isPresent()) {
             Key issPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String state = Jwts.builder()
-                    .setHeaderParam("kid", "OWNKEY")  // The key id used to sign this
+                    .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
                     .setHeaderParam("typ", "JWT") // The type
                     .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
                     .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later

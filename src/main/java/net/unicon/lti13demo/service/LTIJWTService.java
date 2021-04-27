@@ -28,6 +28,7 @@ import io.jsonwebtoken.SigningKeyResolverAdapter;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.model.RSAKeyEntity;
 import net.unicon.lti13demo.model.RSAKeyId;
+import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -75,7 +76,7 @@ public class LTIJWTService {
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    RSAKeyId rsaKeyId = new RSAKeyId("OWNKEY", true);
+                    RSAKeyId rsaKeyId = new RSAKeyId(TextConstants.DEFAULT_KID);
                     Optional<RSAKeyEntity> rsaKeyEntity =  ltiDataService.getRepos().rsaKeys.findById(rsaKeyId);
                     String toolPublicKeyString;
                     if (rsaKeyEntity.isPresent()) {
@@ -133,18 +134,8 @@ public class LTIJWTService {
                         return null;
                     }
                 } else { // If not, we get the key stored in our configuration
-                    Optional<RSAKeyEntity> rsaKey = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getPlatformKid(), false));
-                    if (rsaKey.isPresent()) {
-                        try {
-                            return OAuthUtils.loadPublicKey(rsaKey.get().getPublicKey());
-                        } catch (GeneralSecurityException e) {
-                            log.error("Error generating the tool public key", e);
-                            return null;
-                        }
-                    } else {
-                        log.error("Error retrieving the tool public key");
+                        log.error("The platform configuration must contain a valid JWKS");
                         return null;
-                    }
                 }
 
             }
@@ -157,7 +148,7 @@ public class LTIJWTService {
     public String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
-        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(platformDeployment.getToolKid(),true));
+        Optional<RSAKeyEntity> rsaKeyEntityOptional = ltiDataService.getRepos().rsaKeys.findById(new RSAKeyId(TextConstants.DEFAULT_KID));
         if (rsaKeyEntityOptional.isPresent()) {
             Key toolPrivateKey = OAuthUtils.loadPrivateKey(rsaKeyEntityOptional.get().getPrivateKey());
             String aud;
@@ -168,7 +159,7 @@ public class LTIJWTService {
                 aud = platformDeployment.getoAuth2TokenUrl();
             }
             String state = Jwts.builder()
-                    .setHeaderParam("kid", "000000000000000001")
+                    .setHeaderParam("kid", TextConstants.DEFAULT_KID)
                     .setHeaderParam("typ", "JWT")
                     .setIssuer(platformDeployment.getClientId())  // D2L needs the issuer to be the clientId
                     .setSubject(platformDeployment.getClientId()) // The clientId
