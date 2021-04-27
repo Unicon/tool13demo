@@ -35,6 +35,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This manages all the Membership call for the LTIRequest (and for LTI in general)
@@ -73,7 +74,7 @@ public class AdvantageAGSService {
                     exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
-                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(lineItemsGetResponse.getBody()));
+                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(lineItemsGetResponse.getBody())));
                 //We deal here with pagination
                 log.debug("We have {} lineItems",lineItems.getLineItemList().size());
                 String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
@@ -210,7 +211,7 @@ public class AdvantageAGSService {
                     exchange(POST_LINEITEMS, HttpMethod.POST, request, LineItem[].class);
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
-                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(lineItemsGetResponse.getBody()));
+                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(lineItemsGetResponse.getBody())));
                 //We deal here with pagination
                 log.debug("We have {} lineItems", lineItems.getLineItemList().size());
                 String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
@@ -219,8 +220,7 @@ public class AdvantageAGSService {
                     ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
                             request, LineItems.class);
                     LineItems nextLineItemsList = responseForNextPage.getBody();
-                    List<LineItem> nextLineItems = nextLineItemsList
-                            .getLineItemList();
+                    List<LineItem> nextLineItems = Objects.requireNonNull(nextLineItemsList).getLineItemList();
                     log.debug("We have {} lineitems in the next page", nextLineItemsList.getLineItemList().size());
                     lineItemsList.addAll(nextLineItems);
                     nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());

@@ -16,7 +16,6 @@ package net.unicon.lti13demo.utils.oauth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import sun.security.util.DerInputStream;
 import sun.security.util.DerValue;
 

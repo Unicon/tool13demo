@@ -21,6 +21,7 @@ import net.unicon.lti13demo.model.LtiMembershipEntity;
 import net.unicon.lti13demo.model.LtiUserEntity;
 import net.unicon.lti13demo.model.PlatformDeployment;
 import net.unicon.lti13demo.repository.AllRepositories;
+import net.unicon.lti13demo.utils.LtiStrings;
 import net.unicon.lti13demo.utils.lti.LTI3Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,38 +168,34 @@ public class LTIDataService {
         }
 
         //If we are getting a link in the url we do this, if not we skip it.
-        if (link !=null) {
-            if (lti.getLink() == null && lti.getLtiLinkId() != null) {
-                //Link is not in the lti request at this moment. Let's see if it exists:
-                List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link,lti.getContext());
-                if (ltiLinkEntityList.size()==0) {
-                    //START HARDCODING VALUES
-                    //This is hardcoded because our database is not persistent
-                    //In a normal case, we would had it created previously and this code wouldn't be needed.
-                    String title = lti.getLtiLinkTitle();
-                    Float scoreMax = (float) 0;
-                    if (link.equals("1234")){
-                        title = "My Test Link";
-                        scoreMax = 50F;
-                    } else if (link.equals("4567")){
-                        title = "Another Link";
-                    }
-                    //END HARDCODING VALUES
-                    LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title);
-                    lti.setLink(repos.links.save(newLink));
-                    inserts++;
-                    log.info("LTIupdate: Inserted link id=" + link);
-                } else {
-                    lti.setLink(ltiLinkEntityList.get(0));
-                    repos.entityManager.merge(lti.getLink()); // reconnect object for this transaction
-                    lti.setLtiLinkId(lti.getLink().getLinkKey());
-                    log.info("LTIupdate: Reconnected existing link id=" + link);
+        if (lti.getLink() == null && lti.getLtiLinkId() != null) {
+            //Link is not in the lti request at this moment. Let's see if it exists:
+            List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link,lti.getContext());
+            if (ltiLinkEntityList.size()==0) {
+                //START HARDCODING VALUES
+                //This is hardcoded because our database is not persistent
+                //In a normal case, we would had it created previously and this code wouldn't be needed.
+                String title = lti.getLtiLinkTitle();
+                if (link.equals("1234")){
+                    title = "My Test Link";
+                } else if (link.equals("4567")){
+                    title = "Another Link";
                 }
-            } else if (lti.getLink() != null) {
-                lti.setLink(repos.entityManager.merge(lti.getLink())); // reconnect object for this transaction
+                //END HARDCODING VALUES
+                LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title);
+                lti.setLink(repos.links.save(newLink));
+                inserts++;
+                log.info("LTIupdate: Inserted link id=" + link);
+            } else {
+                lti.setLink(ltiLinkEntityList.get(0));
+                repos.entityManager.merge(lti.getLink()); // reconnect object for this transaction
                 lti.setLtiLinkId(lti.getLink().getLinkKey());
                 log.info("LTIupdate: Reconnected existing link id=" + link);
             }
+        } else if (lti.getLink() != null) {
+            lti.setLink(repos.entityManager.merge(lti.getLink())); // reconnect object for this transaction
+            lti.setLtiLinkId(lti.getLink().getLinkKey());
+            log.info("LTIupdate: Reconnected existing link id=" + link);
         }
 
         if (lti.getUser() == null && lti.getSub() != null) {
@@ -295,9 +292,15 @@ public class LTIDataService {
         }
 
         // need to recheck and see if we are complete now
-        //TODO: Review this line of code. Not doing anything.
-        lti.checkCompleteLTIRequest(true);
-
+        String complete;
+        if (lti.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+            complete = lti.checkCompleteLTIRequest();
+        } else {
+            complete = lti.checkCompleteDeepLinkingRequest();
+        }
+        if (!complete.equals("true")){
+            throw new DataServiceException("LTI object is incomplete: " +  complete);
+        };
         lti.setLoadingUpdates(inserts + updates);
         lti.setUpdated(true);
         log.info("LTIupdate: changes=" + lti.getLoadingUpdates() + ", inserts=" + inserts + ", updates=" + updates);

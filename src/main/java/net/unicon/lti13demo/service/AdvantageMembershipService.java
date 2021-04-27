@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This manages all the Membership call for the LTIRequest (and for LTI in general)
@@ -73,7 +74,7 @@ public class AdvantageMembershipService {
             HttpStatus status = membershipGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 courseUsers = membershipGetResponse.getBody();
-                List<CourseUser> courseUserList = new ArrayList<>(courseUsers.getCourseUserList());
+                List<CourseUser> courseUserList = new ArrayList<>(Objects.requireNonNull(courseUsers).getCourseUserList());
                 //We deal here with pagination
                 log.debug("We have {} users",courseUsers.getCourseUserList().size());
                 String nextPage = advantageConnectorHelper.nextPage(membershipGetResponse.getHeaders());
@@ -82,7 +83,7 @@ public class AdvantageMembershipService {
                     ResponseEntity<CourseUsers> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
                             request, CourseUsers.class);
                     CourseUsers nextCourseList = responseForNextPage.getBody();
-                    List<CourseUser> nextCourseUsersList = nextCourseList
+                    List<CourseUser> nextCourseUsersList = Objects.requireNonNull(nextCourseList)
                             .getCourseUserList();
                     log.debug("We have {} users in the next page",nextCourseList.getCourseUserList().size());
                     courseUserList.addAll(nextCourseUsersList);

@@ -107,13 +107,12 @@ public class LtiLinkEntity extends BaseEntity {
 
 
     public String createHtmlFromLink() {
-        String sb = "Link Requested:\n" +
+        return "Link Requested:\n" +
                 "Link Key:" +
                 linkKey +
                 "\nLink Title:" +
                 title +
                 "\n";
-        return sb;
     }
 
     @Override

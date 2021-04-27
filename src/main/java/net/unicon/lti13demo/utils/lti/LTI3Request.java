@@ -75,6 +75,7 @@ import java.util.Map;
  * LTI_USER_ID, LTI_CONTEXT_ID, and LTI_ROLE_ID constant keys.
  *
  */
+@SuppressWarnings("ConstantConditions")
 public class LTI3Request {
 
     static final Logger log = LoggerFactory.getLogger(LTI3Request.class);
