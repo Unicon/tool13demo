@@ -27,23 +27,17 @@ Then go to the following default URL:
 
     https://localhost:9090/
 
-You can access the H2 console for default in-memory DB (JDBC URL: **jdbc:h2:mem:AZ**, username: **sa**, password: *(
-blank)*) at:
-
-    https://localhost:9090/console
+NOTE: To run it and connect it to real LMSs it is recommended to run it in an accessible server 
+with a valid certificate.
 
 Customizing
 -----------
 Use the application.properties to control various aspects of the Spring Boot application (like setup your own database
-connection). Use the logback.xml to adjust and control logging.
+connection). The example file has some section with a self-explanatory title. Of course it is recommended to 
+use a properties file external to the jar to avoid to store sensitive values in your code: 
 
-Debugging
----------
-To enable the debugging port (localhost:5050) when using spring-boot:run, use the maven profile: **-Pdebug**. Then you
-can attach any remote debugger (eclipse, intellij, etc.) to localhost:8000. NOTE that the application will pause until
-you connect the debugger to it.
+```--spring.config.location=/home/yourhomefolder/application-local.properties```
 
-    mvn clean install spring-boot:run -Pdebug
 
 Creating the database
 ---------
