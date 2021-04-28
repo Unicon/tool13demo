@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,7 +49,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
     /**
      * We need to load the data service to find the iss configurations and extract the keys.
      */
-    public LTI3OAuthProviderProcessingFilter(LTIDataService ltiDataService, LTIJWTService ltijwtService ) {
+    public LTI3OAuthProviderProcessingFilter(LTIDataService ltiDataService, LTIJWTService ltijwtService) {
         super();
         if (ltiDataService == null) throw new AssertionError();
         this.ltiDataService = ltiDataService;
@@ -79,7 +77,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             log.info("-------------------------------------------------------------------------------------------------------");
             while (sessionAtributes.hasMoreElements()) {
                 String attName = sessionAtributes.nextElement();
-                log.info(attName  + " : " + httpServletRequest.getSession().getAttribute(attName));
+                log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
 
             }
             log.info("-------------------------------------------------------------------------------------------------------");
@@ -89,11 +87,11 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             //First, we make sure that the query has an state
             String state = httpServletRequest.getParameter("state");
             String link = httpServletRequest.getParameter("link");
-            if (httpServletRequest.getSession().getAttribute("lti_state") == null){
+            if (httpServletRequest.getSession().getAttribute("lti_state") == null) {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
             //Second, as the state is something that we have created, it should be in our list of states.
-            List<String> ltiState = (List<String>)httpServletRequest.getSession().getAttribute("lti_state");
+            List<String> ltiState = (List<String>) httpServletRequest.getSession().getAttribute("lti_state");
             if (!ltiState.contains(state)) {
                 throw new IllegalStateException("LTI request doesn't contains the expected state");
             }
@@ -111,7 +109,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             String jwt = httpServletRequest.getParameter("id_token");
             if (StringUtils.hasText(jwt)) {
                 //Now we validate the JWT token
-                Jws<Claims> jws= ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
+                Jws<Claims> jws = ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
                 if (jws != null) {
                     //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
@@ -131,7 +129,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             log.debug("Exception " + eje.getMessage(), eje);
         } catch (SignatureException ex) {
-            log.info("Invalid JWT signature: {0}" , ex.getMessage());
+            log.info("Invalid JWT signature: {0}", ex.getMessage());
             log.debug("Exception " + ex.getMessage(), ex);
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         } catch (DataServiceException e) {
@@ -142,7 +140,6 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
     private void resetAuthenticationAfterRequest() {
         SecurityContextHolder.getContext().setAuthentication(null);
     }
-
 
 
 }

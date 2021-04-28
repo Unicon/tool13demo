@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -77,7 +75,6 @@ public class RegistrationController {
     private String localUrl;
 
 
-
     @Value("${application.name}")
     private String clientName;
 
@@ -106,7 +103,7 @@ public class RegistrationController {
         model.addAttribute("openid_configuration", openidConfiguration);
         session.setAttribute(LtiStrings.REGISTRATION_TOKEN, registrationToken);
         model.addAttribute(LtiStrings.REGISTRATION_TOKEN, registrationToken);
-        model.addAttribute("own_redirect_post_endpoint", localUrl + "/registration/" );
+        model.addAttribute("own_redirect_post_endpoint", localUrl + "/registration/");
 
         try {
             // We are going to create the call the openidconfiguration endpoint,
@@ -152,13 +149,13 @@ public class RegistrationController {
     public String registrationPOST(HttpServletRequest req,
                                    Model model) {
         HttpSession session = req.getSession();
-        String token = (String)session.getAttribute(LtiStrings.REGISTRATION_TOKEN);
-        PlatformRegistrationDTO platformRegistrationDTO = (PlatformRegistrationDTO)session.getAttribute(LtiStrings.PLATFORM_CONFIGURATION);
-        ToolRegistrationDTO toolRegistrationDTO = (ToolRegistrationDTO)session.getAttribute(LtiStrings.TOOL_CONFIGURATION);
+        String token = (String) session.getAttribute(LtiStrings.REGISTRATION_TOKEN);
+        PlatformRegistrationDTO platformRegistrationDTO = (PlatformRegistrationDTO) session.getAttribute(LtiStrings.PLATFORM_CONFIGURATION);
+        ToolRegistrationDTO toolRegistrationDTO = (ToolRegistrationDTO) session.getAttribute(LtiStrings.TOOL_CONFIGURATION);
 
         String answer = "Error during the registration";
         try {
-            answer = registrationService.callDynamicRegistration(token,toolRegistrationDTO,platformRegistrationDTO.getRegistration_endpoint());
+            answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
         } catch (ConnectionException e) {
             e.printStackTrace();
         }
@@ -172,14 +169,13 @@ public class RegistrationController {
     }
 
 
-
     /**
      * This generates a JsonNode with all the information that we need to send to the Registration Authorization endpoint in the Platform.
      * In this case, we will put this in the model to be used by the thymeleaf template.
      * @param platformRegistrationDTO
      * @return
      */
-    private ToolRegistrationDTO generateToolConfiguration () {
+    private ToolRegistrationDTO generateToolConfiguration() {
 
         ToolRegistrationDTO toolRegistrationDTO = new ToolRegistrationDTO();
         toolRegistrationDTO.setApplication_type("web");
@@ -199,7 +195,7 @@ public class RegistrationController {
         //OPTIONAL -->setTos_uri
         //OPTIONAL -->setPolicy_uri
         ToolConfigurationDTO toolConfigurationDTO = new ToolConfigurationDTO();
-        toolConfigurationDTO.setDomain(localUrl.substring(localUrl.indexOf("//")+2));
+        toolConfigurationDTO.setDomain(localUrl.substring(localUrl.indexOf("//") + 2));
         //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
         toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);

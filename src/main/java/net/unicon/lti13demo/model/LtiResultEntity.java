@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,7 +50,7 @@ public class LtiResultEntity extends BaseEntity {
     @Column(name = "grading_progress")
     private String gradingProgress;
     @Basic
-    @Column(name = "timestamp", nullable = false )
+    @Column(name = "timestamp", nullable = false)
     private Timestamp timestamp;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -168,7 +166,7 @@ public class LtiResultEntity extends BaseEntity {
 
         LtiResultEntity that = (LtiResultEntity) o;
 
-        return (resultId == that.resultId);
+        return resultId == that.resultId;
 
     }
 

@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -199,7 +197,7 @@ public class LTI3Request {
         try {
             ltiRequest = getInstanceOrDie(linkId);
         } catch (Exception e) {
-            //Nothing to do here
+            log.debug("The method getInstanceOrDie... died", e);
         }
         return ltiRequest;
     }
@@ -230,7 +228,7 @@ public class LTI3Request {
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
             } catch (Exception e) {
-                log.warn("Failure trying to create the LTIRequest: " , e);
+                log.warn("Failure trying to create the LTIRequest: ", e);
             }
         }
         if (ltiRequest == null) {
@@ -260,23 +258,23 @@ public class LTI3Request {
             @Override
             public Key resolveSigningKey(JwsHeader header, Claims claims) {
 
-                    // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
-                    // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(),claims.getAudience()).get(0);
+                // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
+                // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
+                PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(), claims.getAudience()).get(0);
 
-                    if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
-                        try {
-                            JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
-                            JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
-                            return ((AsymmetricJWK) jwk).toPublicKey();
-                        } catch (JOSEException | ParseException | IOException ex) {
-                            log.error("Error getting the iss public key", ex);
-                            return null;
-                        }
-                    } else {
-                        log.error("The platform configuration must contain a Jwks endpoint");
+                if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
+                    try {
+                        JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
+                        JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
+                        return ((AsymmetricJWK) jwk).toPublicKey();
+                    } catch (JOSEException | ParseException | IOException ex) {
+                        log.error("Error getting the iss public key", ex);
                         return null;
                     }
+                } else {
+                    log.error("The platform configuration must contain a Jwks endpoint");
+                    return null;
+                }
 
             }
         });
@@ -286,7 +284,7 @@ public class LTI3Request {
         log.info("----------------------BEFORE---------------------------------------------------------------------------------");
         while (sessionAtributes.hasMoreElements()) {
             String attName = sessionAtributes.nextElement();
-            log.info(attName  + " : " + httpServletRequest.getSession().getAttribute(attName));
+            log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
 
         }
         log.info("-------------------------------------------------------------------------------------------------------");
@@ -302,8 +300,8 @@ public class LTI3Request {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
         //Here we will populate the LTI3Request object
-        String processRequestParameters = processRequestParameters(request,jws);
-        if (!processRequestParameters.equals("true")){
+        String processRequestParameters = processRequestParameters(request, jws);
+        if (!processRequestParameters.equals("true")) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
         // We update the database in case we have new values. (New users, new resources...etc)
@@ -444,7 +442,7 @@ public class LTI3Request {
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
         try {
             session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0).getKeyId());
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.info("No deployment found");
         }
 
@@ -458,20 +456,20 @@ public class LTI3Request {
         String isCorrect;
         if (ltiMessageType.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
             isComplete = checkCompleteLTIRequest();
-            complete = (isComplete.equals("true"));
+            complete = isComplete.equals("true");
             isCorrect = checkCorrectLTIRequest();
-            correct = (isCorrect.equals("true"));
+            correct = isCorrect.equals("true");
         } else {  //DEEP Linking
             isComplete = checkCompleteDeepLinkingRequest();
-            complete = (isComplete.equals("true"));
+            complete = isComplete.equals("true");
             isCorrect = checkCorrectDeepLinkingRequest();
-            correct = (isCorrect.equals("true"));
+            correct = isCorrect.equals("true");
             // NOTE: This is just to hardcode some demo information.
             try {
                 deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0),
                         this, ltiDataService.getLocalUrl());
             } catch (GeneralSecurityException | IOException | NullPointerException ex) {
-                log.error("Error creating the DeepLinking Response",ex);
+                log.error("Error creating the DeepLinking Response", ex);
             }
 
         }
@@ -488,7 +486,7 @@ public class LTI3Request {
         }
     }
 
-    private String getNormalizedRoleName(){
+    private String getNormalizedRoleName() {
         String normalizedRoleName = LtiStrings.LTI_ROLE_GENERAL;
         if (isRoleAdministrator()) {
             normalizedRoleName = LtiStrings.LTI_ROLE_ADMIN;
@@ -501,7 +499,7 @@ public class LTI3Request {
     }
 
     private String getStringFromLTIRequest(Jws<Claims> jws, String stringToGet) {
-        if (jws.getBody().containsKey(stringToGet) && jws.getBody().get(stringToGet)!=null) {
+        if (jws.getBody().containsKey(stringToGet) && jws.getBody().get(stringToGet) != null) {
             return jws.getBody().get(stringToGet, String.class);
         } else {
             return null;
@@ -509,7 +507,7 @@ public class LTI3Request {
     }
 
     private String getStringFromLTIRequestMap(Map<String, Object> map, String stringToGet) {
-        if (map.containsKey(stringToGet) && map.get(stringToGet)!=null) {
+        if (map.containsKey(stringToGet) && map.get(stringToGet) != null) {
             return map.get(stringToGet).toString();
         } else {
             return null;
@@ -520,7 +518,7 @@ public class LTI3Request {
         if (map.containsKey(integerToGet)) {
             try {
                 return Integer.valueOf(map.get(integerToGet).toString());
-            }catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("No integer when expected in: {0}. Returning null", integerToGet);
                 return null;
             }
@@ -532,8 +530,8 @@ public class LTI3Request {
     private List<String> getListFromLTIRequestMap(Map<String, Object> map, String listToGet) {
         if (map.containsKey(listToGet)) {
             try {
-                return (List<String>)map.get(listToGet);
-            }catch (Exception ex) {
+                return (List<String>) map.get(listToGet);
+            } catch (Exception ex) {
                 log.error("No list when expected in: {0} Returning null", listToGet);
                 return new ArrayList<>();
             }
@@ -542,11 +540,11 @@ public class LTI3Request {
         }
     }
 
-    private Map<String,Object> getMapFromLTIRequest(Jws<Claims> jws, String mapToGet) {
+    private Map<String, Object> getMapFromLTIRequest(Jws<Claims> jws, String mapToGet) {
         if (jws.getBody().containsKey(mapToGet)) {
             try {
                 return jws.getBody().get(mapToGet, Map.class);
-            }catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("No map integer when expected in: {0}. Returning null", mapToGet);
                 return new HashMap<>();
             }
@@ -559,7 +557,7 @@ public class LTI3Request {
         if (jws.getBody().containsKey(listToGet)) {
             try {
                 return jws.getBody().get(listToGet, List.class);
-            }catch (Exception ex) {
+            } catch (Exception ex) {
                 log.error("No map integer when expected in: " + listToGet + ". Returning null");
                 return new ArrayList<>();
             }
@@ -609,10 +607,10 @@ public class LTI3Request {
         if (ltiRoles == null || ListUtils.isEmpty(ltiRoles)) {
             completStr += " Lti Roles is empty.\n ";
         }
-        if (exp == null ){
+        if (exp == null) {
             completStr += " Exp is empty or invalid.\n ";
         }
-        if (iat == null ){
+        if (iat == null) {
             completStr += " Iat is empty or invalid.\n ";
         }
 
@@ -641,22 +639,22 @@ public class LTI3Request {
         if (StringUtils.isEmpty(sub)) {
             completStr += " User (sub) is empty.\n ";
         }
-        if (exp == null ){
+        if (exp == null) {
             completStr += " Exp is empty or invalid.\n ";
         }
-        if (iat == null ){
+        if (iat == null) {
             completStr += " Iat is empty or invalid.\n ";
         }
-        if (deepLinkingSettings == null || deepLinkingSettings.isEmpty()){
+        if (deepLinkingSettings == null || deepLinkingSettings.isEmpty()) {
             completStr += " DeepLinkingSettings is empty or invalid.\n ";
         }
         if (StringUtils.isEmpty(deepLinkReturnUrl)) {
             completStr += " deepLinkReturnUrl is empty.\n ";
         }
-        if (deepLinkAcceptTypes == null || deepLinkAcceptTypes.isEmpty()){
+        if (deepLinkAcceptTypes == null || deepLinkAcceptTypes.isEmpty()) {
             completStr += " deepLink AcceptTypes is empty.\n ";
         }
-        if (deepLinkAcceptPresentationDocumentTargets == null || deepLinkAcceptPresentationDocumentTargets.isEmpty()){
+        if (deepLinkAcceptPresentationDocumentTargets == null || deepLinkAcceptPresentationDocumentTargets.isEmpty()) {
             completStr += " deepLink AcceptPresentationDocumentTargets is empty.\n ";
         }
 
@@ -674,7 +672,6 @@ public class LTI3Request {
      * @return the string "true" if complete and the error message if not
      */
     //TODO update this to check the really complete conditions...!
-
     private String checkCorrectLTIRequest() {
 
 
@@ -691,7 +688,6 @@ public class LTI3Request {
      * @return the string "true" if complete and the error message if not
      */
     //TODO update this to check the really complete conditions...!
-
     private String checkCorrectDeepLinkingRequest() {
 
 
@@ -709,15 +705,15 @@ public class LTI3Request {
     public String checkNonce(Jws<Claims> jws) {
 
         //We get all the nonces from the session, and compare.
-        List<String> ltiNonce = (List)httpServletRequest.getSession().getAttribute("lti_nonce");
+        List<String> ltiNonce = (List) httpServletRequest.getSession().getAttribute("lti_nonce");
         List<String> ltiNonceNew = new ArrayList<>();
         boolean found = false;
-        String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE,String.class);
+        String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE, String.class);
         if (nonceToCheck == null || ListUtils.isEmpty(ltiNonce)) {
             return "Nonce = null in the JWT or in the session.";
         } else {
             // Really, we send the hash of the nonce to the platform.
-            for (String nonceStored:ltiNonce) {
+            for (String nonceStored : ltiNonce) {
                 String nonceHash = Hashing.sha256()
                         .hashString(nonceStored, StandardCharsets.UTF_8)
                         .toString();
@@ -728,9 +724,9 @@ public class LTI3Request {
                 }
             }
             if (found) {
-                httpServletRequest.getSession().setAttribute("lti_nonce",ltiNonceNew);
+                httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
                 return "true";
-            }else {
+            } else {
                 return "Unknown or already used nounce.";
             }
 
@@ -745,37 +741,45 @@ public class LTI3Request {
 
         String errorDetail = "";
         boolean valid = false;
-        String ltiVersion = jws.getBody().get(LtiStrings.LTI_VERSION,String.class);
-        if (ltiVersion == null) {errorDetail = "LTI Version = null. ";}
-        String ltiMessageType = jws.getBody().get(LtiStrings.LTI_MESSAGE_TYPE,String.class);
-        if (ltiMessageType == null) {errorDetail += "LTI Message Type = null. ";}
-            if (ltiMessageType != null && ltiVersion != null) {
-            boolean goodMessageType = (LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType) || LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(ltiMessageType));
-            if (!goodMessageType) {errorDetail = "LTI Message Type is not right: " + ltiMessageType + ". ";}
+        String ltiVersion = jws.getBody().get(LtiStrings.LTI_VERSION, String.class);
+        if (ltiVersion == null) {
+            errorDetail = "LTI Version = null. ";
+        }
+        String ltiMessageType = jws.getBody().get(LtiStrings.LTI_MESSAGE_TYPE, String.class);
+        if (ltiMessageType == null) {
+            errorDetail += "LTI Message Type = null. ";
+        }
+        if (ltiMessageType != null && ltiVersion != null) {
+            boolean goodMessageType = LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType) || LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(ltiMessageType);
+            if (!goodMessageType) {
+                errorDetail = "LTI Message Type is not right: " + ltiMessageType + ". ";
+            }
             boolean goodLTIVersion = LtiStrings.LTI_VERSION_3.equals(ltiVersion);
-            if (!goodLTIVersion) {errorDetail += "LTI Version is not right: " + ltiVersion;}
+            if (!goodLTIVersion) {
+                errorDetail += "LTI Version is not right: " + ltiVersion;
+            }
             valid = goodMessageType && goodLTIVersion;
         }
         if (valid && LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK.equals(ltiMessageType)) {
             return LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK;
         } else if (valid && LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(ltiMessageType)) {
             return LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING;
-        }else {
+        } else {
             return errorDetail;
         }
     }
 
 
     public boolean isRoleAdministrator() {
-        return (ltiRoles != null && userRoleNumber >= 2);
+        return ltiRoles != null && userRoleNumber >= 2;
     }
 
     public boolean isRoleInstructor() {
-        return (ltiRoles != null && userRoleNumber >= 1);
+        return ltiRoles != null && userRoleNumber >= 1;
     }
 
     public boolean isRoleLearner() {
-        return (ltiRoles != null && ltiRoles.contains(LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER));
+        return ltiRoles != null && ltiRoles.contains(LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER);
     }
 
 
@@ -796,7 +800,6 @@ public class LTI3Request {
     }
 
     // GETTERS
-
 
 
     public LtiContextEntity getContext() {

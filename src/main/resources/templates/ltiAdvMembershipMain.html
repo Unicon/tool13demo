@@ -1,12 +1,10 @@
 <!--
 
-    Copyright 2019 Unicon (R)
+    Copyright 2021 Unicon (R)
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
+    http://www.apache.org/licenses/LICENSE-2.0
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +15,8 @@
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
+      xml:lang="en">
 <head>
     <title>LTI 3 </title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
@@ -28,29 +27,31 @@
 <h4>Membership: </h4>
 <p>&nbsp;</p>
 <div th:if="${noSessionValues}">
-    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value in the course and the deployment. </p>
-    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership service without a session created. </p>
+    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
+        in the course and the deployment. </p>
+    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership
+        service without a session created. </p>
 </div>
 <div th:if="${results != null and !#lists.isEmpty(results)}">
     <h4>Users on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
         <caption>Lineitmes</caption>
-    <thead class="thead-dark">
-    <tr>
-        <th scope="col">#</th>
-        <th scope="col">Name</th>
-        <th scope="col">userId</th>
-        <th scope="col">Role</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="user,rowStat : ${results}">
-        <td th:text="${rowStat.count}">1</td>
-        <td th:text="${user.name}"></td>
-        <td th:text="${user.userId}"></td>
-        <td th:text="${#strings.listJoin(user.roles,', ')}"></td>
-    </tr>
-    </tbody>
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">userId</th>
+            <th scope="col">Role</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="user,rowStat : ${results}">
+            <td th:text="${rowStat.count}">1</td>
+            <td th:text="${user.name}"></td>
+            <td th:text="${user.userId}"></td>
+            <td th:text="${#strings.listJoin(user.roles,', ')}"></td>
+        </tr>
+        </tbody>
     </table>
 </div>
 

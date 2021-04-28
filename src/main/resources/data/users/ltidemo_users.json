@@ -1,14 +1,14 @@
 {
-    "createdAt": 1571682620923,
-    "updatedAt": 1571682620923,
-    "version": 0,
-    "userId": 1,
-    "userKey": "admin",
-    "displayName": "Admin",
-    "email": null,
-    "locale": null,
-    "subscribe": null,
-    "json": null,
-    "loginAt": 1571682620921,
-    "results": null
+  "createdAt": 1571682620923,
+  "updatedAt": 1571682620923,
+  "version": 0,
+  "userId": 1,
+  "userKey": "admin",
+  "displayName": "Admin",
+  "email": null,
+  "locale": null,
+  "subscribe": null,
+  "json": null,
+  "loginAt": 1571682620921,
+  "results": null
 }

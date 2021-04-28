@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -73,8 +71,8 @@ public class LTIDataService {
             log.info("LTIload: No key to load lti.results for");
             return false;
         }
-        if (link == null){
-            link = lti.getLtiTargetLinkUrl().substring((lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
+        if (link == null) {
+            link = lti.getLtiTargetLinkUrl().substring(lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
         }
 
         String sqlDeployment = "SELECT k, c, l, m, u" +
@@ -89,7 +87,7 @@ public class LTIDataService {
         qDeployment.setParameter("clientId", lti.getAud());
         qDeployment.setParameter("deploymentId", lti.getLtiDeploymentId());
         qDeployment.setParameter("context", lti.getLtiContextId());
-        qDeployment.setParameter("link",link);
+        qDeployment.setParameter("link", link);
         qDeployment.setParameter("user", lti.getSub());
         qDeployment.setParameter("iss", lti.getIss());
 
@@ -128,11 +126,11 @@ public class LTIDataService {
         }
         if (platformDeployment == null)
             throw new DataServiceException("Key data must not be null to update dara");
-        if (lti.getKey()==null) {
+        if (lti.getKey() == null) {
             lti.setKey(platformDeployment);
         }
-        if (link == null){
-            link = lti.getLtiTargetLinkUrl().substring((lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
+        if (link == null) {
+            link = lti.getLtiTargetLinkUrl().substring(lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
         }
         // For the next elements, we will check if we have it already in the lti object, and if not
         // we check if it exists in the database or not.
@@ -143,7 +141,7 @@ public class LTIDataService {
         if (lti.getContext() == null && lti.getLtiDeploymentId() != null) {
             //Context is not in the lti request at this moment. Let's see if it exists:
             LtiContextEntity ltiContextEntity = repos.contexts.findByContextKeyAndPlatformDeployment(lti.getLtiContextId(), platformDeployment);
-            if (ltiContextEntity==null) {
+            if (ltiContextEntity == null) {
                 LtiContextEntity newContext = new LtiContextEntity(lti.getLtiContextId(), lti.getKey(), lti.getLtiContextTitle(), lti.getLtiNamesRoleServiceContextMembershipsUrl(), lti.getLtiEndpointLineItems(), null);
                 lti.setContext(repos.contexts.save(newContext));
                 inserts++;
@@ -170,19 +168,19 @@ public class LTIDataService {
         //If we are getting a link in the url we do this, if not we skip it.
         if (lti.getLink() == null && lti.getLtiLinkId() != null) {
             //Link is not in the lti request at this moment. Let's see if it exists:
-            List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link,lti.getContext());
-            if (ltiLinkEntityList.size()==0) {
+            List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link, lti.getContext());
+            if (ltiLinkEntityList.size() == 0) {
                 //START HARDCODING VALUES
                 //This is hardcoded because our database is not persistent
                 //In a normal case, we would had it created previously and this code wouldn't be needed.
                 String title = lti.getLtiLinkTitle();
-                if (link.equals("1234")){
+                if (link.equals("1234")) {
                     title = "My Test Link";
-                } else if (link.equals("4567")){
+                } else if (link.equals("4567")) {
                     title = "Another Link";
                 }
                 //END HARDCODING VALUES
-                LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(),title);
+                LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(), title);
                 lti.setLink(repos.links.save(newLink));
                 inserts++;
                 log.info("LTIupdate: Inserted link id=" + link);
@@ -199,9 +197,9 @@ public class LTIDataService {
         }
 
         if (lti.getUser() == null && lti.getSub() != null) {
-            LtiUserEntity ltiUserEntity = repos.users.findByUserKeyAndPlatformDeployment(lti.getSub(),platformDeployment);
+            LtiUserEntity ltiUserEntity = repos.users.findByUserKeyAndPlatformDeployment(lti.getSub(), platformDeployment);
 
-            if (ltiUserEntity==null) {
+            if (ltiUserEntity == null) {
                 LtiUserEntity newUser = new LtiUserEntity(lti.getSub(), null, platformDeployment);
                 newUser.setDisplayName(lti.getLtiName());
                 newUser.setEmail(lti.getLtiEmail());
@@ -225,9 +223,8 @@ public class LTIDataService {
         }
 
 
-
         if (lti.getMembership() == null && lti.getContext() != null && lti.getUser() != null) {
-            LtiMembershipEntity ltiMembershipEntity = repos.members.findByUserAndContext(lti.getUser(),lti.getContext());
+            LtiMembershipEntity ltiMembershipEntity = repos.members.findByUserAndContext(lti.getUser(), lti.getContext());
             if (ltiMembershipEntity == null) {
                 int roleNum = lti.makeUserRoleNum(lti.getLtiRoles()); // NOTE: do not use userRoleNumber here, it may have been overridden
                 LtiMembershipEntity newMember = new LtiMembershipEntity(lti.getContext(), lti.getUser(), roleNum);
@@ -298,9 +295,9 @@ public class LTIDataService {
         } else {
             complete = lti.checkCompleteDeepLinkingRequest();
         }
-        if (!complete.equals("true")){
-            throw new DataServiceException("LTI object is incomplete: " +  complete);
-        };
+        if (!complete.equals("true")) {
+            throw new DataServiceException("LTI object is incomplete: " + complete);
+        }
         lti.setLoadingUpdates(inserts + updates);
         lti.setUpdated(true);
         log.info("LTIupdate: changes=" + lti.getLoadingUpdates() + ", inserts=" + inserts + ", updates=" + updates);

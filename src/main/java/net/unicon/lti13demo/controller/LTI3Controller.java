@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -82,19 +80,19 @@ public class LTI3Controller {
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
             model.addAttribute("lTI3Request", lti3Request);
-            if (link == null){
-                link = lti3Request.getLtiTargetLinkUrl().substring((lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6));
+            if (link == null) {
+                link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
             }
-            if (StringUtils.isNotBlank(link)){
+            if (StringUtils.isNotBlank(link)) {
                 List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
                 log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());
-                if (linkEntity.size()>0) {
+                if (linkEntity.size() > 0) {
                     model.addAttribute(TextConstants.HTML_CONTENT, linkEntity.get(0).createHtmlFromLink());
                 } else {
-                    model.addAttribute( TextConstants.HTML_CONTENT, "<b> No element was found for that context and linkKey</b>");
+                    model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was found for that context and linkKey</b>");
                 }
             } else {
-                model.addAttribute( TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
+                model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
             }
             if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
                 //Let's create the LtilinkEntity's in our database
@@ -102,17 +100,17 @@ public class LTI3Controller {
                 //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
                 // we create the LtiLinkEntity in our code after that.
                 LtiLinkEntity ltiLinkEntity = new LtiLinkEntity("1234", lti3Request.getContext(), "My Test Link");
-                if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity.getLinkKey(), ltiLinkEntity.getContext()).size()==0) {
+                if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity.getLinkKey(), ltiLinkEntity.getContext()).size() == 0) {
                     ltiLinkRepository.save(ltiLinkEntity);
                 }
                 LtiLinkEntity ltiLinkEntity2 = new LtiLinkEntity("4567", lti3Request.getContext(), "Another Link");
-                if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity2.getLinkKey(), ltiLinkEntity2.getContext()).size()==0) {
+                if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity2.getLinkKey(), ltiLinkEntity2.getContext()).size() == 0) {
                     ltiLinkRepository.save(ltiLinkEntity2);
                 }
                 return "lti3DeepLink";
             }
             return "lti3Result";
-        } catch (SignatureException ex){
+        } catch (SignatureException ex) {
             model.addAttribute(TextConstants.ERROR, ex.getMessage());
             return TextConstants.LTI3ERROR;
         }

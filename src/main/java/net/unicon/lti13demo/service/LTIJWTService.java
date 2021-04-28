@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,17 +62,17 @@ public class LTIJWTService {
     //Here we could add other checks like expiration of the state (not implemented)
     public Jws<Claims> validateState(String state) {
         return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
-                // This is done because each state is signed with a different key based on the issuer... so
-                // we don't know the key and we need to check it pre-extracting the claims and finding the kid
-                @Override
-                public Key resolveSigningKey(JwsHeader header, Claims claims) {
+            // This is done because each state is signed with a different key based on the issuer... so
+            // we don't know the key and we need to check it pre-extracting the claims and finding the kid
+            @Override
+            public Key resolveSigningKey(JwsHeader header, Claims claims) {
                 PublicKey toolPublicKey;
                 try {
                     // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                     // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                     toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
-                } catch (GeneralSecurityException ex){
-                    log.error("Error validating the state. Error generating the tool public key",ex);
+                } catch (GeneralSecurityException ex) {
+                    log.error("Error validating the state. Error generating the tool public key", ex);
                     return null;
                 }
                 return toolPublicKey;
@@ -121,8 +119,8 @@ public class LTIJWTService {
                         return null;
                     }
                 } else { // If not, we get the key stored in our configuration
-                        log.error("The platform configuration must contain a valid JWKS");
-                        return null;
+                    log.error("The platform configuration must contain a valid JWKS");
+                    return null;
                 }
 
             }
@@ -138,7 +136,7 @@ public class LTIJWTService {
         Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String aud;
         //D2L needs a different aud, maybe others too
-        if (platformDeployment.getoAuth2TokenAud() != null){
+        if (platformDeployment.getoAuth2TokenAud() != null) {
             aud = platformDeployment.getoAuth2TokenAud();
         } else {
             aud = platformDeployment.getoAuth2TokenUrl();

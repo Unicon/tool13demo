@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -113,7 +111,7 @@ public class LtiStrings {
     public static final String LTI_PRES_RETURN_URL_PARAMETER_LOG = "_ltilog";
 
     //LIS
-    public static final String LTI_LIS ="https://purl.imsglobal.org/spec/lti/claim/lis";
+    public static final String LTI_LIS = "https://purl.imsglobal.org/spec/lti/claim/lis";
     public static final String LTI_PERSON_SOURCEDID = "person_sourcedid";
     public static final String LTI_COURSE_OFFERING_SOURCEDID = "course_offering_sourcedid";
     public static final String LTI_COURSE_SECTION_SOURCEDID = "course_section_sourcedid";
@@ -152,7 +150,7 @@ public class LtiStrings {
     public static final String LTI_MESSAGE_TYPE_DEEP_LINKING = "LtiDeepLinkingRequest";
     public static final String LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE = "LtiDeepLinkingResponse";
     public static final String LTI_VERSION_3 = "1.3.0";
-    public static final String LTI_TARGET_LINK_URI =  "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
+    public static final String LTI_TARGET_LINK_URI = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 
     public static final String DEEP_LINKING_SETTINGS = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
     public static final String DEEP_LINK_RETURN_URL = "deep_link_return_url";

@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.4.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>net.unicon</groupId>
-	<artifactId>lti13demo</artifactId>
-	<version>0.1-SNAPSHOT</version>
-    <inceptionYear>2019</inceptionYear>
-	<name>LTI 1.3 Java Demo</name>
-	<description>LTI 1.3 Java tool to demo LTI 1.3 and Advantage</description>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>net.unicon</groupId>
+    <artifactId>lti13demo</artifactId>
+    <version>0.2-SNAPSHOT</version>
+    <inceptionYear>2021</inceptionYear>
+    <name>LTI 1.3 Java Demo</name>
+    <description>LTI 1.3 Java tool to demo LTI 1.3 and Advantage</description>
 
-	<properties>
-		<java.version>8</java.version>
-	</properties>
+    <properties>
+        <java.version>8</java.version>
+    </properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
@@ -47,16 +47,16 @@
             <scope>runtime</scope>
         </dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
@@ -135,12 +135,35 @@
         </profile>
     </profiles>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!--Uncomment for PMD-->
+            <!--<plugin>
+                     <groupId>org.apache.maven.plugins</groupId>
+                     <artifactId>maven-pmd-plugin</artifactId>
+                     <version>3.13.0</version>
+                     <configuration>
+                        <printFailingErrors>true</printFailingErrors>
+                    </configuration>
+            </plugin>-->
+            <!-- OWASP PLUGIN. Uncomment to run the report -->
+            <!--<plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>6.1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+
             <plugin>
                 <!-- Used to replace the headers of files with proper licenses -
                   http://code.google.com/p/maven-license-plugin -
@@ -164,13 +187,18 @@
                         <exclude>.idea/**</exclude>
                         <exclude>**/*.iml</exclude>
                         <exclude>LICENSE*</exclude>
+                        <exclude>NOTICE*</exclude>
                         <exclude>**/*.properties</exclude>
                         <exclude>**/*.csv</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/*.md</exclude>
                         <exclude>**/*.css</exclude>
                         <exclude>**/*.sql</exclude>
+                        <exclude>**/*.json</exclude>
+                        <exclude>**/*.jks</exclude>
+                        <exclude>mvnw*</exclude>
                         <exclude>**/js/jquery/**</exclude>
+                        <exclude>**/SameSiteCookieValve.java</exclude>
                     </excludes>
                     <mapping>
                         <tag>DYNASCRIPT_STYLE</tag>
@@ -187,6 +215,23 @@
             </plugin>
         </plugins>
 
-	</build>
-
+    </build>
+    <!--Uncomment for PMD-->
+    <!-- <reporting>
+     <plugins>
+         <plugin>
+             <groupId>org.apache.maven.plugins</groupId>
+             <artifactId>maven-pmd-plugin</artifactId>
+             <version>3.13.0</version>
+         </plugin>
+         <plugin>
+             <groupId>org.apache.maven.plugins</groupId>
+             <artifactId>maven-jxr-plugin</artifactId>
+             <version>3.1.1</version>
+             <configuration>
+                 <htmlExtension>true</htmlExtension>
+             </configuration>
+         </plugin>
+     </plugins>
+ </reporting>-->
 </project>

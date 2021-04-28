@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -93,7 +91,7 @@ public class AdvantageConnectorHelper {
             // We need an specific request for the token.
             HttpEntity request = createTokenRequest(scope, platformDeployment);
             final String POST_TOKEN_URL = platformDeployment.getoAuth2TokenUrl();
-            log.debug("POST_TOKEN_URL -  "+ POST_TOKEN_URL);
+            log.debug("POST_TOKEN_URL -  " + POST_TOKEN_URL);
             ResponseEntity<Token> reportPostResponse = postEntity(POST_TOKEN_URL, request, platformDeployment, scope);
             if (reportPostResponse != null) {
                 HttpStatus status = reportPostResponse.getStatusCode();
@@ -108,7 +106,7 @@ public class AdvantageConnectorHelper {
                 log.warn("Problem getting the token");
             }
         } catch (Exception e) {
-            log.error("ERROR GETING THE TOKEN" , e);
+            log.error("ERROR GETING THE TOKEN", e);
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get the token. Exception");
             log.error(exceptionMsg.toString());
@@ -121,11 +119,11 @@ public class AdvantageConnectorHelper {
     private ResponseEntity<Token> postEntity(String POST_TOKEN_URL, HttpEntity request, PlatformDeployment platformDeployment, String scope) throws GeneralSecurityException, IOException {
         ResponseEntity<Token> reportPostResponse;
         RestTemplate restTemplate = createRestTemplate();
-        try{
+        try {
             reportPostResponse = restTemplate.
                     postForEntity(POST_TOKEN_URL, request, Token.class);
-        } catch (Exception ex){
-            log.error("ERROR GETING THE TOKEN" , ex);
+        } catch (Exception ex) {
+            log.error("ERROR GETING THE TOKEN", ex);
             log.error("Can't get the token. Exception. We will try again with a JSON Payload");
             HttpEntity request2 = createTokenRequestJSON(scope, platformDeployment);
             reportPostResponse = restTemplate.
@@ -138,7 +136,7 @@ public class AdvantageConnectorHelper {
     public HttpEntity createTokenRequest(String scope, PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map= new LinkedMultiValueMap<>();
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "client_credentials");
         // This is standard too
         map.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
@@ -180,7 +178,7 @@ public class AdvantageConnectorHelper {
                 try {
                     return URLDecoder.decode(url, "UTF-8");
                 } catch (UnsupportedEncodingException e) {
-                    log.error("Error decoding the url for the next page",e);
+                    log.error("Error decoding the url for the next page", e);
                 }
             }
         }

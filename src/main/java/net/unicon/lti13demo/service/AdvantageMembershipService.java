@@ -1,11 +1,9 @@
 /**
- * Copyright 2019 Unicon (R)
+ * Copyright 2021 Unicon (R)
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -68,7 +66,7 @@ public class AdvantageMembershipService {
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String GET_MEMBERSHIP = context.getContext_memberships_url();
-            log.debug("GET_MEMBERSHIP -  "+ GET_MEMBERSHIP);
+            log.debug("GET_MEMBERSHIP -  " + GET_MEMBERSHIP);
             ResponseEntity<CourseUsers> membershipGetResponse = restTemplate.
                     exchange(GET_MEMBERSHIP, HttpMethod.GET, request, CourseUsers.class);
             HttpStatus status = membershipGetResponse.getStatusCode();
@@ -76,7 +74,7 @@ public class AdvantageMembershipService {
                 courseUsers = membershipGetResponse.getBody();
                 List<CourseUser> courseUserList = new ArrayList<>(Objects.requireNonNull(courseUsers).getCourseUserList());
                 //We deal here with pagination
-                log.debug("We have {} users",courseUsers.getCourseUserList().size());
+                log.debug("We have {} users", courseUsers.getCourseUserList().size());
                 String nextPage = advantageConnectorHelper.nextPage(membershipGetResponse.getHeaders());
                 log.debug("We have next page: " + nextPage);
                 while (nextPage != null) {
@@ -85,7 +83,7 @@ public class AdvantageMembershipService {
                     CourseUsers nextCourseList = responseForNextPage.getBody();
                     List<CourseUser> nextCourseUsersList = Objects.requireNonNull(nextCourseList)
                             .getCourseUserList();
-                    log.debug("We have {} users in the next page",nextCourseList.getCourseUserList().size());
+                    log.debug("We have {} users in the next page", nextCourseList.getCourseUserList().size());
                     courseUserList.addAll(nextCourseUsersList);
                     nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
                 }
@@ -99,12 +97,11 @@ public class AdvantageMembershipService {
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
             exceptionMsg.append("Can't get the membership");
-            log.error(exceptionMsg.toString(),e);
+            log.error(exceptionMsg.toString(), e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return courseUsers;
     }
-
 
 
 }
