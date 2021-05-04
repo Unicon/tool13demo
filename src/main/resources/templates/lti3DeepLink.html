@@ -115,8 +115,7 @@ http://www.thymeleaf.org "
 <p>&nbsp;</p>
 <div>
     <label><strong>JW2 content. ONE ltiResourceLink:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br
-    /&gt;')})]
+    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt2Map')),'\n','&lt;br /&gt;'))})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
@@ -132,8 +131,7 @@ http://www.thymeleaf.org "
 
 <div>
     <label><strong>JW2b content. ONE NON ltiResourceLink:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt2bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br
-    /&gt;')})]
+    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt2bMap')),'\n','&lt;br /&gt;'))})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
@@ -149,8 +147,8 @@ http://www.thymeleaf.org "
 
 <div>
     <label><strong>JW3 content. TWO ltiResourceLinks and TWO other types:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3Map')),T(java.lang.System).getProperty('line.separator'),'&lt;br
-    /&gt;')})]
+
+    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt3Map')),'\n','&lt;br /&gt;'))})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
@@ -165,8 +163,7 @@ http://www.thymeleaf.org "
 
 <div>
     <label><strong>JW3b content. TWO ltiResourceLinks:</strong></label>
-    [(${#strings.replace(#strings.escapeXml(lTI3Request.deepLinkJwts.get('jwt3bMap')),T(java.lang.System).getProperty('line.separator'),'&lt;br
-    /&gt;')})]
+    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt3bMap')),'\n','&lt;br /&gt;'))})]
 </div>
 <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
     <div class="form-group">
