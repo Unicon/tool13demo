@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 @Controller
 @RequestMapping(value = "/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -45,7 +46,7 @@ public class TokenController {
         Jws<Claims> claims = apijwtService.validateToken(token);
         if ((Boolean)claims.getBody().get("oneUse")) {
             try {
-                return new ResponseEntity<>(apijwtService.buildJwt(false), HttpStatus.OK);
+                return new ResponseEntity<>(apijwtService.buildJwt(false, (List<String>)claims.getBody().get("roles")), HttpStatus.OK);
             } catch (GeneralSecurityException e) {
                 e.printStackTrace();
             } catch (IOException e) {

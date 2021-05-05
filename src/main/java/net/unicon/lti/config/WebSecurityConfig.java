@@ -13,6 +13,7 @@
 package net.unicon.lti.config;
 
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
+import net.unicon.lti.security.app.JwtAuthenticationProvider;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
 import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
@@ -131,14 +132,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Autowired
         APIDataService apiDataService;
 
+        @Autowired
+        private JwtAuthenticationProvider jwtAuthenticationProvider;
+
         @PostConstruct
         public void init() {
             apioAuthProviderProcessingFilter = new APIOAuthProviderProcessingFilter(apiJwtService, apiDataService);
         }
 
+        //TODO: this is never called. Modify it to allow this authentication provider
+        //to work for these 2 matchers in a way that it sets the roles.
+        @Override
+        public void configure(AuthenticationManagerBuilder builder) throws Exception {
+            builder.authenticationProvider(jwtAuthenticationProvider);
+        }
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            /**/
             http.requestMatchers()
                     .antMatchers("/api/**")
                     .antMatchers("/oauth/**")

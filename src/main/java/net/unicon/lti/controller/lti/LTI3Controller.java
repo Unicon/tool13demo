@@ -122,7 +122,7 @@ public class LTI3Controller {
                 }
                 return "lti3Result";
             } else {
-                String oneTimeToken = apiJWTService.buildJwt(true);
+                String oneTimeToken = apiJWTService.buildJwt(true, lti3Request.getLtiRoles());
                 return "redirect:/app/app.html?token=" + oneTimeToken;
             }
         } catch (SignatureException ex) {

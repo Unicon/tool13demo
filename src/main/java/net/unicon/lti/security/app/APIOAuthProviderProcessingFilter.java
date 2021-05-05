@@ -18,7 +18,6 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
-import net.unicon.lti.service.lti.LTIDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;

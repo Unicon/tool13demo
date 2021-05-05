@@ -31,12 +31,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import java.awt.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -92,7 +92,7 @@ public class APIJWTService {
     /**
      * This JWT will contain the token request
      */
-    public String buildJwt(boolean oneUse) throws GeneralSecurityException, IOException {
+    public String buildJwt(boolean oneUse, List<String> roles) throws GeneralSecurityException, IOException {
 
         int length = 3600;
         //We only allow 30 seconds (surely we can low that) for the one time token, because that one must be traded
@@ -112,6 +112,7 @@ public class APIJWTService {
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
                 .claim("something", UUID.randomUUID().toString())  //This is an specific claim to ask for tokens.
+                .claim("roles", roles)
                 .claim("oneUse", oneUse)  //This is an specific claim to ask for tokens.
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey);  //We sign it with our own private key. The platform has the public one.
         String token = builder.compact();
@@ -140,6 +141,7 @@ public class APIJWTService {
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
                 .claim("something",tokenClaims.getBody().get("something"))  //This is an specific claim to ask for tokens.
+                .claim("roles", tokenClaims.getBody().get("roles"))  //This is an specific claim to ask for tokens.
                 .claim("oneUse", false)  //This is an specific claim to ask for tokens.
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey);  //We sign it with our own private key. The platform has the public one.
         String newToken = builder.compact();
