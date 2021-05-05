@@ -56,7 +56,7 @@ public class LtiUserEntity extends BaseEntity {
     @Column(name = "subscribe")
     private Short subscribe;
     @Lob
-    @Column(name = "json", length = 65535)
+    @Column(name = "json")
     private String json;
     @Basic
     @Column(name = "login_at", nullable = false)

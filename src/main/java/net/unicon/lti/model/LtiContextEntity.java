@@ -47,12 +47,11 @@ public class LtiContextEntity extends BaseEntity {
     @Basic
     @Column(name = "lineitems", length = 4096)
     private String lineitems;
-
     @Lob
-    @Column(name = "json", length = 65535)
+    @Column(name = "json")
     private String json;
     @Lob
-    @Column(length = 65535)
+    @Column(name = "settings")
     private String settings;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
