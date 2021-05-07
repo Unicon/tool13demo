@@ -41,48 +41,25 @@ import javax.annotation.PostConstruct;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 
-    @Autowired
-    @Order(Ordered.HIGHEST_PRECEDENCE + 10)
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("admin").password("{noop}admin").roles("ADMIN", "USER")
-                .and().withUser("user").password("{noop}user").roles("USER");
-    }
-
     @Order(10) // VERY HIGH
     @Configuration
-    public static class OICDAuthConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class OpenEndpointsConfigurationAdapter extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // this is open
-            http.antMatcher("/oidc/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+            http.requestMatchers()
+                .antMatchers("/oidc/**")
+                .antMatchers("/registration/**")
+                .antMatchers("/jwks/**")
+                    .and()
+                .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
     }
 
-    @Order(15) // VERY HIGH
-    @Configuration
-    public static class DynamicRegistrationConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            // this is open
-            http.antMatcher("/registration/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
-        }
-    }
-
-    @Order(20) // VERY HIGH
-    @Configuration
-    public static class JWKConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            // this is open
-            http.antMatcher("/jwks/**").authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
-        }
-    }
 
     @Order(30) // VERY HIGH
     @Configuration
-    public static class ConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class ConfigConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
         @Autowired
         @Order(Ordered.HIGHEST_PRECEDENCE + 10)
@@ -151,7 +128,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         protected void configure(HttpSecurity http) throws Exception {
             http.requestMatchers()
                     .antMatchers("/api/**")
-                    .antMatchers("/oauth/**")
                     .and()
                     .addFilterBefore(new CorsFilter(new CorsConfigurationSourceImpl()), BasicAuthenticationFilter.class)
                     .addFilterBefore(apioAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
@@ -170,5 +146,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().headers().frameOptions().disable();
         }
     }
+
+
 
 }

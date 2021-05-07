@@ -31,7 +31,7 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 
 @Controller
-@RequestMapping(value = "/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(value = "/api/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class TokenController {
 
     @Autowired
