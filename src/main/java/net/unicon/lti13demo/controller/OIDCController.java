@@ -19,6 +19,7 @@ import net.unicon.lti13demo.repository.PlatformDeploymentRepository;
 import net.unicon.lti13demo.service.LTIDataService;
 import net.unicon.lti13demo.utils.TextConstants;
 import net.unicon.lti13demo.utils.lti.LtiOidcUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,7 +176,7 @@ public class OIDCController {
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             return "oicdRedirect";
         } catch (Exception ex) {
-            model.addAttribute(TextConstants.ERROR, ex.getMessage());
+            model.addAttribute(TextConstants.ERROR, ExceptionUtils.getStackTrace(ex));
             return TextConstants.LTI3ERROR;
         }
     }

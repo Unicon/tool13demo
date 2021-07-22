@@ -38,7 +38,24 @@ use a properties file external to the jar to avoid to store sensitive values in 
 
 ```--spring.config.location=/home/yourhomefolder/application-local.properties```
 
+Adding PKCS8 RSA Keys to the application.properties file
+--------------------------------------------------------
+1. cd to the directory that you want the keys to be located
+2. `openssl genrsa -out keypair.pem 2048`
+3. `openssl rsa -in keypair.pem -pubout -out publickey.crt`
+4. `cat publickey.crt`
+5. Copy this value to `oidc.publickey` inside the application.properties file. Ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+6. `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key`
+7. `cat pkcs8.key`
+8. Copy this value to `oidc.privatekey` inside the application.properties file. Ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 
+Using Ngrok For Local SSL Cert
+-------------------------------------
+1. Download and install ngrok
+2. `./ngrok http 9090` (Note: This port number must match the value of `server.port` in the application.properties file.)
+3. Utilize the https url from ngrok when registering your tool with the platform
+Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+   
 Creating the database
 ---------
 Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx Set the right
