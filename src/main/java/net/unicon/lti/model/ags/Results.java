@@ -10,20 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unicon.lti;
+package net.unicon.lti.model.ags;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public class ApplicationTests {
+import java.util.ArrayList;
+import java.util.List;
 
-    @Test
-    public void sampleTest() { //Empty on purpose. No tests by the moment.
-        assert true;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Results {
+    private List<Result> resultList = new ArrayList<>();
+
+    public Results() {//Empty on purpose
     }
 
-}
+    //@JsonProperty("members")
+    public List<Result> getResultList() {
+        return resultList;
+    }
 
+    public void setResultList(List<Result> resultList) {
+        this.resultList = resultList;
+    }
+}

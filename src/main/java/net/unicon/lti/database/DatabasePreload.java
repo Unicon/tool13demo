@@ -32,7 +32,7 @@ import java.util.Set;
  * if it is empty on startup then we populate it with some initial data
  */
 @Component
-@Profile("!testing")
+@Profile("!test")
 // only load this when running the application (not for unit tests which have the 'testing' profile active)
 public class DatabasePreload {
 

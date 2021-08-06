@@ -24,7 +24,7 @@ import javax.persistence.Table;
 @Table(name = "config")
 public class ConfigEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "config_id", nullable = false)
     private long id;
     @Basic

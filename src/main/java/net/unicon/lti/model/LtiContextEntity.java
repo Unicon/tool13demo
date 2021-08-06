@@ -26,13 +26,14 @@ import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "lti_context")
 public class LtiContextEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "context_id", nullable = false)
     private long contextId;
     @Basic
@@ -174,7 +175,7 @@ public class LtiContextEntity extends BaseEntity {
         LtiContextEntity that = (LtiContextEntity) o;
 
         if (contextId != that.contextId) return false;
-        return contextKey != null ? contextKey.equals(that.contextKey) : that.contextKey == null;
+        return Objects.equals(contextKey, that.contextKey);
     }
 
     @Override

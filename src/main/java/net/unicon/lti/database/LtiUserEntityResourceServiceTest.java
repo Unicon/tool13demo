@@ -10,31 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unicon.lti.model.dto;
 
-import java.util.List;
+package net.unicon.lti.database;
 
-public class MessagesSupportedDTO {
-    String type;
-    List<String> placements;
+import net.unicon.lti.model.LtiUserEntity;
+import net.unicon.lti.service.common.ResourceService;
+import org.springframework.stereotype.Component;
 
+@Component
+public class LtiUserEntityResourceServiceTest implements ResourceService<LtiUserEntity> {
 
-    public MessagesSupportedDTO() {//Empty on purpose
+    static final String USERS_RESOURCE = "classpath:test_data/users";
+
+    @Override
+    public String getDirectoryPath() {
+        return USERS_RESOURCE;
     }
 
-    public String getType() {
-        return type;
+    @Override
+    public void setDefaults() {//Empty on purpose
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public List<String> getPlacements() {
-        return placements;
-    }
-
-    public void setPlacements(List<String> placements) {
-        this.placements = placements;
-    }
 }

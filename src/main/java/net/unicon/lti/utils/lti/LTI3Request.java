@@ -32,6 +32,7 @@ import net.unicon.lti.model.LtiResultEntity;
 import net.unicon.lti.model.LtiUserEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.service.lti.LTIDataService;
+import net.unicon.lti.service.lti.impl.LTIDataServiceImpl;
 import net.unicon.lti.utils.LtiStrings;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -217,7 +218,7 @@ public class LTI3Request {
             log.debug("No LTIRequest found, attempting to create one for the current request");
             LTIDataService ltiDataService = null;
             try {
-                ltiDataService = ApplicationConfig.getContext().getBean(LTIDataService.class);
+                ltiDataService = ApplicationConfig.getContext().getBean(LTIDataServiceImpl.class);
             } catch (Exception e) {
                 log.warn("Unable to get the LTIDataService, initializing the LTIRequest without it");
             }
@@ -280,11 +281,11 @@ public class LTI3Request {
         });
         Jws<Claims> jws = parser.parseClaimsJws(jwt);
         //This is just for logging.
-        Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+        Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
         log.info("----------------------BEFORE---------------------------------------------------------------------------------");
-        while (sessionAtributes.hasMoreElements()) {
-            String attName = sessionAtributes.nextElement();
-            log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
+        while (sessionAttributes.hasMoreElements()) {
+            String attName = sessionAttributes.nextElement();
+            log.debug(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
 
         }
         log.info("-------------------------------------------------------------------------------------------------------");
@@ -443,10 +444,10 @@ public class LTI3Request {
         try {
             session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0).getKeyId());
         } catch (Exception e) {
-            log.info("No deployment found");
+            log.error("No deployment found");
         }
 
-        // Surely we need a more elaborated code here based in the huge amount of roles avaliable.
+        // Surely we need a more elaborated code here based in the huge amount of roles available.
         // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
 
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, getNormalizedRoleName());
@@ -589,35 +590,35 @@ public class LTI3Request {
 
     public String checkCompleteLTIRequest() {
 
-        String completStr = "";
+        String completeStr = "";
 
         if (StringUtils.isEmpty(ltiDeploymentId)) {
-            completStr += " Lti Deployment Id is empty.\n ";
+            completeStr += " Lti Deployment Id is empty.\n ";
         }
         if (ltiResourceLink == null || ltiResourceLink.size() == 0) {
-            completStr += " Lti Resource Link is empty.\n ";
+            completeStr += " Lti Resource Link is empty.\n ";
         } else {
             if (StringUtils.isEmpty(ltiLinkId)) {
-                completStr += " Lti Resource Link ID is empty.\n ";
+                completeStr += " Lti Resource Link ID is empty.\n ";
             }
         }
         if (StringUtils.isEmpty(sub)) {
-            completStr += " User (sub) is empty.\n ";
+            completeStr += " User (sub) is empty.\n ";
         }
         if (ltiRoles == null || ListUtils.isEmpty(ltiRoles)) {
-            completStr += " Lti Roles is empty.\n ";
+            completeStr += " Lti Roles is empty.\n ";
         }
         if (exp == null) {
-            completStr += " Exp is empty or invalid.\n ";
+            completeStr += " Exp is empty or invalid.\n ";
         }
         if (iat == null) {
-            completStr += " Iat is empty or invalid.\n ";
+            completeStr += " Iat is empty or invalid.\n ";
         }
 
-        if (completStr.equals("")) {
+        if (completeStr.equals("")) {
             return "true";
         } else {
-            return completStr;
+            return completeStr;
         }
     }
 
@@ -631,37 +632,37 @@ public class LTI3Request {
 
     public String checkCompleteDeepLinkingRequest() {
 
-        String completStr = "";
+        String completeStr = "";
 
         if (StringUtils.isEmpty(ltiDeploymentId)) {
-            completStr += " Lti Deployment Id is empty.\n ";
+            completeStr += " Lti Deployment Id is empty.\n ";
         }
         if (StringUtils.isEmpty(sub)) {
-            completStr += " User (sub) is empty.\n ";
+            completeStr += " User (sub) is empty.\n ";
         }
         if (exp == null) {
-            completStr += " Exp is empty or invalid.\n ";
+            completeStr += " Exp is empty or invalid.\n ";
         }
         if (iat == null) {
-            completStr += " Iat is empty or invalid.\n ";
+            completeStr += " Iat is empty or invalid.\n ";
         }
         if (deepLinkingSettings == null || deepLinkingSettings.isEmpty()) {
-            completStr += " DeepLinkingSettings is empty or invalid.\n ";
+            completeStr += " DeepLinkingSettings is empty or invalid.\n ";
         }
         if (StringUtils.isEmpty(deepLinkReturnUrl)) {
-            completStr += " deepLinkReturnUrl is empty.\n ";
+            completeStr += " deepLinkReturnUrl is empty.\n ";
         }
         if (deepLinkAcceptTypes == null || deepLinkAcceptTypes.isEmpty()) {
-            completStr += " deepLink AcceptTypes is empty.\n ";
+            completeStr += " deepLink AcceptTypes is empty.\n ";
         }
         if (deepLinkAcceptPresentationDocumentTargets == null || deepLinkAcceptPresentationDocumentTargets.isEmpty()) {
-            completStr += " deepLink AcceptPresentationDocumentTargets is empty.\n ";
+            completeStr += " deepLink AcceptPresentationDocumentTargets is empty.\n ";
         }
 
-        if (completStr.equals("")) {
+        if (completeStr.equals("")) {
             return "true";
         } else {
-            return completStr;
+            return completeStr;
         }
     }
 

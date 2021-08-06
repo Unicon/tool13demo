@@ -88,7 +88,7 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
                 if (tokenClaims != null) {
                     if (!tokenClaims.getBody().getIssuer().equals("ISSUER")){
                         throw new IllegalStateException("API token is invalid");
-                    };
+                    }
                     //TODO add here any other checks we want to perform.
                     if ((Boolean)tokenClaims.getBody().get("oneUse")){
                         boolean exists = apiDataService.findAndDeleteOneUseToken(token);
@@ -119,8 +119,7 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
         String rawHeaderValue = StringUtils.trimAllWhitespace(request.getHeader(JWT_REQUEST_HEADER_NAME));
         if (rawHeaderValue == null) {
             if (allowQueryParam) {
-                String param = StringUtils.trimAllWhitespace(request.getParameter(QUERY_PARAM_NAME));
-                return param;
+                return StringUtils.trimAllWhitespace(request.getParameter(QUERY_PARAM_NAME));
             }
         }
         if (rawHeaderValue == null) {
@@ -128,8 +127,7 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
         }
         // very similar to BearerTokenExtractor.java in Spring spring-security-oauth2
         if (isBearerToken(rawHeaderValue)) {
-            String jwtValue = rawHeaderValue.substring(JWT_BEARER_TYPE.length()).trim();
-            return jwtValue;
+            return rawHeaderValue.substring(JWT_BEARER_TYPE.length()).trim();
         }
         return null;
     }
@@ -137,7 +135,4 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
     private boolean isBearerToken(String rawHeaderValue) {
         return rawHeaderValue.toLowerCase().startsWith(JWT_BEARER_TYPE.toLowerCase());
     }
-
-
-
 }

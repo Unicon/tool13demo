@@ -13,10 +13,10 @@
 package net.unicon.lti.controller.lti;
 
 import net.unicon.lti.exceptions.ConnectionException;
-import net.unicon.lti.model.dto.PlatformRegistrationDTO;
-import net.unicon.lti.model.dto.ToolConfigurationDTO;
-import net.unicon.lti.model.dto.ToolMessagesSupportedDTO;
-import net.unicon.lti.model.dto.ToolRegistrationDTO;
+import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
+import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
+import net.unicon.lti.model.lti.dto.ToolMessagesSupportedDTO;
+import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.RegistrationService;

@@ -10,20 +10,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unicon.lti;
+package net.unicon.lti.model.lti.dto;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import java.util.List;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public class ApplicationTests {
+public class MessagesSupportedDTO {
+    String type;
+    List<String> placements;
 
-    @Test
-    public void sampleTest() { //Empty on purpose. No tests by the moment.
-        assert true;
+
+    public MessagesSupportedDTO() {//Empty on purpose
     }
 
-}
+    public String getType() {
+        return type;
+    }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public List<String> getPlacements() {
+        return placements;
+    }
+
+    public void setPlacements(List<String> placements) {
+        this.placements = placements;
+    }
+}

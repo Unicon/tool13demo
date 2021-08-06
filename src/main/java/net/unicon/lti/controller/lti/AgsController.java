@@ -61,7 +61,7 @@ public class AgsController {
     PlatformDeploymentRepository platformDeploymentRepository;
 
     @Autowired
-    AdvantageAGSService advantageAGSServiceService;
+    AdvantageAGSService advantageAGSServiceServiceImpl;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String agsGetLineItems(HttpServletRequest req, Principal principal, Model model) throws ConnectionException {
@@ -82,10 +82,10 @@ public class AgsController {
 
                 //Call the ags service to get the users on the context
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceService.getToken(platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
                 // 2. Call the service
-                LineItems lineItemsResult = advantageAGSServiceService.getLineItems(LTIToken, context);
+                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, false);
@@ -118,11 +118,11 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceService.getToken(platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
-                LineItems lineItemsResult = advantageAGSServiceService.postLineItems(LTIToken, context, lineItems);
+                LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItems(LTIToken, context, lineItems);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, false);
@@ -156,11 +156,11 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceService.getToken(platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
-                LineItem lineItemsResult = advantageAGSServiceService.getLineItem(LTIToken, context, id);
+                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, context, id);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, true);
@@ -194,12 +194,12 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceService.getToken(platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
                 lineItem.setId(id);
-                LineItem lineItemsResult = advantageAGSServiceService.putLineItem(LTIToken, context, lineItem);
+                LineItem lineItemsResult = advantageAGSServiceServiceImpl.putLineItem(LTIToken, context, lineItem);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, true);
@@ -233,12 +233,12 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceService.getToken(platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
-                Boolean deleteResult = advantageAGSServiceService.deleteLineItem(LTIToken, context, id);
-                LineItems lineItemsResult = advantageAGSServiceService.getLineItems(LTIToken, context);
+                Boolean deleteResult = advantageAGSServiceServiceImpl.deleteLineItem(LTIToken, context, id);
+                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, false);

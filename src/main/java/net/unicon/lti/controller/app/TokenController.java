@@ -46,16 +46,28 @@ public class TokenController {
         Jws<Claims> claims = apijwtService.validateToken(token);
         if ((Boolean)claims.getBody().get("oneUse")) {
             try {
-                return new ResponseEntity<>(apijwtService.buildJwt(false, (List<String>)claims.getBody().get("roles")), HttpStatus.OK);
-            } catch (GeneralSecurityException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+                return new ResponseEntity<>(apijwtService.buildJwt(false,
+                        (List<String>)claims.getBody().get("roles"),
+                        Long.parseLong(claims.getBody().get("contextId").toString()),
+                        Long.parseLong(claims.getBody().get("platformDeploymentId").toString()),
+                        claims.getBody().get("userId").toString(),
+                        claims.getBody().get("canvasUserId").toString(),
+                        claims.getBody().get("canvasUserGlobalId").toString(),
+                        claims.getBody().get("canvasLoginId").toString(),
+                        claims.getBody().get("canvasUserName").toString(),
+                        claims.getBody().get("canvasCourseId").toString(),
+                        claims.getBody().get("canvasAssignmentId").toString(),
+                        claims.getBody().get("dueAt").toString(),
+                        claims.getBody().get("lockAt").toString(),
+                        claims.getBody().get("unlockAt").toString(),
+                        claims.getBody().get("nonce").toString())
+                        , HttpStatus.OK);
+            } catch (GeneralSecurityException | IOException e) {
+                return new ResponseEntity<>("Error generating token: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {
             return new ResponseEntity<>("Token passed was not a one time valid token", HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>("Error generating token", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @SuppressWarnings("rawtypes")

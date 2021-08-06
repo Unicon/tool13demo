@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -51,7 +50,7 @@ public class JWKController {
 
     @RequestMapping(value = "/jwk", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
-    public Map<String, List<Map<String, Object>>> jkw(HttpServletRequest req, Model model) throws GeneralSecurityException, IOException {
+    public Map<String, List<Map<String, Object>>> jkw(HttpServletRequest req, Model model) throws GeneralSecurityException {
         Map<String, List<Map<String, Object>>> keys = new HashMap<>();
         log.debug("Someone is calling the jwk endpoint!");
         log.debug(req.getQueryString());

@@ -31,7 +31,7 @@ import java.util.Objects;
 @Table(name = "lti_result")
 public class LtiResultEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "result_id", nullable = false)
     private long resultId;
     @Basic

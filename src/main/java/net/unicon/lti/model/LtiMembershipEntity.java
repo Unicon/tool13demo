@@ -22,6 +22,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.util.Objects;
 
 @Entity
 @Table(name = "lti_membership")
@@ -29,7 +30,7 @@ public class LtiMembershipEntity extends BaseEntity {
 
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "membership_id", nullable = false)
     private long membershipId;
     @Basic
@@ -107,7 +108,7 @@ public class LtiMembershipEntity extends BaseEntity {
         if (context.getContextId() != that.context.getContextId()) return false;
         if (membershipId != that.membershipId) return false;
         if (user.getUserId() != that.user.getUserId()) return false;
-        return role != null ? role.equals(that.role) : that.role == null;
+        return Objects.equals(role, that.role);
     }
 
     @Override

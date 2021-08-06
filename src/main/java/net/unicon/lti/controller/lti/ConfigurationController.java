@@ -59,7 +59,7 @@ public class ConfigurationController {
 
         List<PlatformDeployment> platformDeploymentListEntityList = platformDeploymentRepository.findAll();
         if (platformDeploymentListEntityList.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             // You many decide to return HttpStatus.NOT_FOUND
         }
         return new ResponseEntity<>(platformDeploymentListEntityList, HttpStatus.OK);
@@ -106,7 +106,7 @@ public class ConfigurationController {
 
         if (!platformDeploymentSearchResult.isPresent()) {
             log.error("Unable to update. PlatformDeployment with id {} not found.", id);
-            return new ResponseEntity("Unable to upate. User with id " + id + TextConstants.NOT_FOUND_SUFFIX,
+            return new ResponseEntity("Unable to update. User with id " + id + TextConstants.NOT_FOUND_SUFFIX,
                     HttpStatus.NOT_FOUND);
         }
         PlatformDeployment platformDeploymentToChange = platformDeploymentSearchResult.get();
@@ -120,6 +120,4 @@ public class ConfigurationController {
         platformDeploymentRepository.saveAndFlush(platformDeploymentToChange);
         return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);
     }
-
-
 }
