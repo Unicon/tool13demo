@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.10.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1620254721593-1" author="ddelblanco (generated)">
+        <createTable tableName="api_one_use_token">
+            <column autoIncrement="true" name="token_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_API_ONE_USE_TOKEN"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="token" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-2" author="ddelblanco (generated)">
+        <createTable tableName="config">
+            <column autoIncrement="true" name="config_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_CONFIG"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="config_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="config_value" type="VARCHAR(4096)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-3" author="ddelblanco (generated)">
+        <createTable tableName="iss_configuration">
+            <column autoIncrement="true" name="key_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_ISS_CONFIGURATION"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="iss" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="oidc_endpoint" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="jwks_endpoint" type="VARCHAR(255)"/>
+            <column name="o_auth2_token_url" type="VARCHAR(255)"/>
+            <column name="o_auth2_token_aud" type="VARCHAR(255)"/>
+            <column name="deployment_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-4" author="ddelblanco (generated)">
+        <createTable tableName="lti_context">
+            <column autoIncrement="true" name="context_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LTI_CONTEXT"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="context_key" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(4096)"/>
+            <column name="context_memberships_url" type="VARCHAR(4096)"/>
+            <column name="lineitems" type="VARCHAR(4096)"/>
+            <column name="json" type="CLOB"/>
+            <column name="settings" type="CLOB"/>
+            <column name="key_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-5" author="ddelblanco (generated)">
+        <createTable tableName="lti_link">
+            <column autoIncrement="true" name="link_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LTI_LINK"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="link_key" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(4096)"/>
+            <column name="context_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-6" author="ddelblanco (generated)">
+        <createTable tableName="lti_membership">
+            <column autoIncrement="true" name="membership_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LTI_MEMBERSHIP"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="role" type="INT"/>
+            <column name="role_override" type="INT"/>
+            <column name="context_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-7" author="ddelblanco (generated)">
+        <createTable tableName="lti_result">
+            <column autoIncrement="true" name="result_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LTI_RESULT"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="score_given" type="FLOAT"/>
+            <column name="score_maximum" type="FLOAT"/>
+            <column name="comment" type="VARCHAR(4096)"/>
+            <column name="activity_progress" type="VARCHAR(255)"/>
+            <column name="grading_progress" type="VARCHAR(255)"/>
+            <column name="timestamp" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="link_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-8" author="ddelblanco (generated)">
+        <createTable tableName="lti_user">
+            <column autoIncrement="true" name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_LTI_USER"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="user_key" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="displayname" type="VARCHAR(4096)"/>
+            <column name="email" type="VARCHAR(255)"/>
+            <column name="locale" type="VARCHAR(63)"/>
+            <column name="subscribe" type="SMALLINT"/>
+            <column name="json" type="CLOB"/>
+            <column name="login_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="key_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1620254721593-9" author="ddelblanco (generated)">
+        <addUniqueConstraint columnNames="token" constraintName="UC_API_ONE_USE_TOKEN_TOKEN"
+                             tableName="api_one_use_token"/>
+    </changeSet>
+    <changeSet id="1620254721593-10" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="key_id" baseTableName="lti_context"
+                                 constraintName="FK_LTI_CONTEXT_ON_KEY" referencedColumnNames="key_id"
+                                 referencedTableName="iss_configuration"/>
+    </changeSet>
+    <changeSet id="1620254721593-11" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="context_id" baseTableName="lti_link"
+                                 constraintName="FK_LTI_LINK_ON_CONTEXT" referencedColumnNames="context_id"
+                                 referencedTableName="lti_context"/>
+    </changeSet>
+    <changeSet id="1620254721593-12" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="context_id" baseTableName="lti_membership"
+                                 constraintName="FK_LTI_MEMBERSHIP_ON_CONTEXT" referencedColumnNames="context_id"
+                                 referencedTableName="lti_context"/>
+    </changeSet>
+    <changeSet id="1620254721593-13" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="lti_membership"
+                                 constraintName="FK_LTI_MEMBERSHIP_ON_USER" referencedColumnNames="user_id"
+                                 referencedTableName="lti_user"/>
+    </changeSet>
+    <changeSet id="1620254721593-14" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="link_id" baseTableName="lti_result"
+                                 constraintName="FK_LTI_RESULT_ON_LINK" referencedColumnNames="link_id"
+                                 referencedTableName="lti_link"/>
+    </changeSet>
+    <changeSet id="1620254721593-15" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="lti_result"
+                                 constraintName="FK_LTI_RESULT_ON_USER" referencedColumnNames="user_id"
+                                 referencedTableName="lti_user"/>
+    </changeSet>
+    <changeSet id="1620254721593-16" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="key_id" baseTableName="lti_user" constraintName="FK_LTI_USER_ON_KEY"
+                                 referencedColumnNames="key_id" referencedTableName="iss_configuration"/>
+    </changeSet>
+
+</databaseChangeLog>
