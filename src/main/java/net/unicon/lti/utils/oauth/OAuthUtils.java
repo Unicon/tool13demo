@@ -45,7 +45,7 @@ public class OAuthUtils {
         return (RSAPublicKey) kf.generatePublic(keySpecX509);
     }
 
-    public static PrivateKey loadPrivateKey(String privateKeyPem) throws GeneralSecurityException, IOException {
+    public static PrivateKey loadPrivateKey(String privateKeyPem) throws GeneralSecurityException {
         // PKCS#8 format
         final String PEM_PRIVATE_START = "-----BEGIN PRIVATE KEY-----";
         final String PEM_PRIVATE_END = "-----END PRIVATE KEY-----";

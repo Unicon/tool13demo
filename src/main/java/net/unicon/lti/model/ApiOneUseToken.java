@@ -27,11 +27,11 @@ import java.util.Objects;
 public class ApiOneUseToken extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "token_id", nullable = false)
     private long tokenId;
 
-    @Column(name = "token", unique=true, nullable = false, length = 4096)
+    @Column(name = "token", nullable = false, length = 4096)
     private String token;
 
     protected ApiOneUseToken() {
@@ -71,8 +71,7 @@ public class ApiOneUseToken extends BaseEntity {
 
     @Override
     public int hashCode() {
-        int result = 31 * (token != null ? token.hashCode() : 0);
-        return result;
+        return 31 * (token != null ? token.hashCode() : 0);
     }
 
 }

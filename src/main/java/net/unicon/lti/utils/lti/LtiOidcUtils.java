@@ -15,7 +15,7 @@ package net.unicon.lti.utils.lti;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti.model.PlatformDeployment;
-import net.unicon.lti.model.dto.LoginInitiationDTO;
+import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.oauth.OAuthUtils;

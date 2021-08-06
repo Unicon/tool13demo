@@ -15,6 +15,8 @@ package net.unicon.lti.controller.lti;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
+import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiLinkEntity;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
@@ -66,7 +68,7 @@ public class LTI3Controller {
     LtiContextRepository ltiContextRepository;
 
     @RequestMapping({"", "/"})
-    public String home(HttpServletRequest req, Principal principal, Model model) {
+    public String home(HttpServletRequest req, Principal principal, Model model) throws DataServiceException, ConnectionException {
 
         //First we will get the state, validate it
         String state = req.getParameter("state");
@@ -106,7 +108,7 @@ public class LTI3Controller {
                     model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
                 }
                 if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
-                    //Let's create the LtilinkEntity's in our database
+                    //Let's create the LtiLinkEntity's in our database
                     //This should be done AFTER the user selects the link in the content selector, and we are doing it before
                     //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
                     // we create the LtiLinkEntity in our code after that.
@@ -122,7 +124,9 @@ public class LTI3Controller {
                 }
                 return "lti3Result";
             } else {
-                String oneTimeToken = apiJWTService.buildJwt(true, lti3Request.getLtiRoles());
+                String oneTimeToken = apiJWTService.buildJwt(
+                        true,
+                        lti3Request);
                 return "redirect:/app/app.html?token=" + oneTimeToken;
             }
         } catch (SignatureException ex) {

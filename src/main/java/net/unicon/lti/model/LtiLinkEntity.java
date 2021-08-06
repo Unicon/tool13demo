@@ -25,13 +25,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "lti_link")
 public class LtiLinkEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "link_id", nullable = false)
     private long linkId;
     @Basic
@@ -121,7 +122,7 @@ public class LtiLinkEntity extends BaseEntity {
         LtiLinkEntity that = (LtiLinkEntity) o;
 
         if (linkId != that.linkId) return false;
-        return linkKey != null ? linkKey.equals(that.linkKey) : that.linkKey == null;
+        return Objects.equals(linkKey, that.linkKey);
     }
 
     @Override

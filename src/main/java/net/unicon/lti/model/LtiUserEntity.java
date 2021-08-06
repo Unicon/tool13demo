@@ -28,18 +28,22 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
 @Table(name = "lti_user")
 public class LtiUserEntity extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id", nullable = false)
     private long userId;
     @Basic
     @Column(name = "user_key", nullable = false, length = 4096)
     private String userKey;
+    @Basic
+    @Column(name = "lms_user_id")
+    private String lmsUserId;
     @Basic
     @Column(name = "displayname", length = 4096)
     private String displayName;
@@ -59,7 +63,7 @@ public class LtiUserEntity extends BaseEntity {
     @Column(name = "json")
     private String json;
     @Basic
-    @Column(name = "login_at", nullable = false)
+    @Column(name = "login_at")
     private Timestamp loginAt;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
@@ -94,6 +98,14 @@ public class LtiUserEntity extends BaseEntity {
 
     public void setUserId(long userId) {
         this.userId = userId;
+    }
+
+    public String getLmsUserId() {
+        return lmsUserId;
+    }
+
+    public void setLmsUserId(String lmsUserId) {
+        this.lmsUserId = lmsUserId;
     }
 
     public String getUserKey() {
@@ -176,8 +188,8 @@ public class LtiUserEntity extends BaseEntity {
         LtiUserEntity that = (LtiUserEntity) o;
 
         if (userId != that.userId) return false;
-        if (email != null ? !email.equals(that.email) : that.email != null) return false;
-        return userKey != null ? userKey.equals(that.userKey) : that.userKey == null;
+        if (!Objects.equals(email, that.email)) return false;
+        return Objects.equals(userKey, that.userKey);
     }
 
     @Override

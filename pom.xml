@@ -170,57 +170,57 @@
                 </executions>
             </plugin>-->
 
-            <plugin>
-                <!-- Used to replace the headers of files with proper licenses -
-                  http://code.google.com/p/maven-license-plugin -
-                  Run mvn license:format to fix up licenses on all files in the project -->
-                <groupId>com.mycila.maven-license-plugin</groupId>
-                <artifactId>maven-license-plugin</artifactId>
-                <version>1.10.b1</version>
-                <configuration>
-                    <strictCheck>true</strictCheck>
-                    <header>${basedir}/LICENSE_HEADER</header>
-                    <properties>
-                        <name>${project.name}</name>
-                        <year>${project.inceptionYear}</year>
-                        <holder>Unicon (R)</holder>
-                    </properties>
-                    <excludes>
-                        <exclude>.gitignore</exclude>
-                        <exclude>.scannerwork/**</exclude>
-                        <exclude>target/**</exclude>
-                        <exclude>bin/**</exclude>
-                        <exclude>.idea/**</exclude>
-                        <exclude>**/*.iml</exclude>
-                        <exclude>LICENSE*</exclude>
-                        <exclude>NOTICE*</exclude>
-                        <exclude>**/*.properties</exclude>
-                        <exclude>**/*.csv</exclude>
-                        <exclude>**/*.txt</exclude>
-                        <exclude>**/*.md</exclude>
-                        <exclude>**/*.css</exclude>
-                        <exclude>**/*.sql</exclude>
-                        <exclude>**/*.json</exclude>
-                        <exclude>**/*.jks</exclude>
-                        <exclude>mvnw*</exclude>
-                        <exclude>**/js/jquery/**</exclude>
-                        <exclude>**/SameSiteCookieValve.java</exclude>
-                        <exclude>**/db/changelog/**</exclude>
-                        <exclude>.jpb/**</exclude>
-                    </excludes>
-                    <mapping>
-                        <tag>DYNASCRIPT_STYLE</tag>
-                    </mapping>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                &lt;!&ndash; Used to replace the headers of files with proper licenses - -->
+<!--                  http://code.google.com/p/maven-license-plugin - -->
+<!--                  Run mvn license:format to fix up licenses on all files in the project &ndash;&gt;-->
+<!--                <groupId>com.mycila.maven-license-plugin</groupId>-->
+<!--                <artifactId>maven-license-plugin</artifactId>-->
+<!--                <version>1.10.b1</version>-->
+<!--                <configuration>-->
+<!--                    <strictCheck>true</strictCheck>-->
+<!--                    <header>${basedir}/LICENSE_HEADER</header>-->
+<!--                    <properties>-->
+<!--                        <name>${project.name}</name>-->
+<!--                        <year>${project.inceptionYear}</year>-->
+<!--                        <holder>Unicon (R)</holder>-->
+<!--                    </properties>-->
+<!--                    <excludes>-->
+<!--                        <exclude>.gitignore</exclude>-->
+<!--                        <exclude>.scannerwork/**</exclude>-->
+<!--                        <exclude>target/**</exclude>-->
+<!--                        <exclude>bin/**</exclude>-->
+<!--                        <exclude>.idea/**</exclude>-->
+<!--                        <exclude>**/*.iml</exclude>-->
+<!--                        <exclude>LICENSE*</exclude>-->
+<!--                        <exclude>NOTICE*</exclude>-->
+<!--                        <exclude>**/*.properties</exclude>-->
+<!--                        <exclude>**/*.csv</exclude>-->
+<!--                        <exclude>**/*.txt</exclude>-->
+<!--                        <exclude>**/*.md</exclude>-->
+<!--                        <exclude>**/*.css</exclude>-->
+<!--                        <exclude>**/*.sql</exclude>-->
+<!--                        <exclude>**/*.json</exclude>-->
+<!--                        <exclude>**/*.jks</exclude>-->
+<!--                        <exclude>mvnw*</exclude>-->
+<!--                        <exclude>**/js/jquery/**</exclude>-->
+<!--                        <exclude>**/SameSiteCookieValve.java</exclude>-->
+<!--                        <exclude>**/db/changelog/**</exclude>-->
+<!--                        <exclude>.jpb/**</exclude>-->
+<!--                    </excludes>-->
+<!--                    <mapping>-->
+<!--                        <tag>DYNASCRIPT_STYLE</tag>-->
+<!--                    </mapping>-->
+<!--                    <encoding>UTF-8</encoding>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
 
     </build>

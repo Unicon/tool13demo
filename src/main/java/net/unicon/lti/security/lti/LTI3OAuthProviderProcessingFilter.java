@@ -73,10 +73,10 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
             // This is just for logging.
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-            Enumeration<String> sessionAtributes = httpServletRequest.getSession().getAttributeNames();
+            Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
             log.info("-------------------------------------------------------------------------------------------------------");
-            while (sessionAtributes.hasMoreElements()) {
-                String attName = sessionAtributes.nextElement();
+            while (sessionAttributes.hasMoreElements()) {
+                String attName = sessionAttributes.nextElement();
                 log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
 
             }

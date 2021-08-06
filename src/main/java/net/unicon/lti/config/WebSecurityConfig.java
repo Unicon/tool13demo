@@ -19,6 +19,11 @@ import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -34,6 +39,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.annotation.PostConstruct;
+import java.util.UUID;
 
 @Configuration
 @EnableWebSecurity
@@ -61,13 +67,32 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Configuration
     public static class ConfigConfigurationAdapter extends WebSecurityConfigurerAdapter {
 
+        static final Logger log = LoggerFactory.getLogger(ConfigConfigurationAdapter.class);
+
+        @Value("${terracotta.admin.user:admin}")
+        String adminUser;
+
+        @Value("${terracotta.admin.password:admin}")
+        String adminPassword;
+
+
         @Autowired
         @Order(Ordered.HIGHEST_PRECEDENCE + 10)
         @SuppressWarnings("SpringJavaAutowiringInspection")
         public void configureSimpleAuthUsers(AuthenticationManagerBuilder auth) throws Exception {
-            auth.inMemoryAuthentication()
-                    .withUser("admin").password("{noop}admin").roles("ADMIN", "USER")
-                    .and().withUser("user").password("{noop}user").roles("USER");
+            PasswordEncoder encoder =
+                    PasswordEncoderFactories.createDelegatingPasswordEncoder();
+
+            if (!adminPassword.equals("admin")) {
+                auth.inMemoryAuthentication()
+                        .withUser(adminUser).password(encoder.encode(adminPassword)).roles("ADMIN", "USER");
+            } else {
+                String adminRandomPwd = UUID.randomUUID().toString();
+                log.warn("Admin password not specified, please add one to the application properties file and restart the application." +
+                        " Meanwhile, you can use this one (only valid until the next restart): " + adminRandomPwd);
+                auth.inMemoryAuthentication()
+                        .withUser(adminUser).password(encoder.encode(adminRandomPwd)).roles("ADMIN", "USER");
+            }
         }
 
         @Override

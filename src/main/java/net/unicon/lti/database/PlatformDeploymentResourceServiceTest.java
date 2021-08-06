@@ -10,20 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unicon.lti;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+package net.unicon.lti.database;
 
-@SpringBootTest
-@ActiveProfiles("test")
-public class ApplicationTests {
+import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.service.common.ResourceService;
+import org.springframework.stereotype.Component;
 
-    @Test
-    public void sampleTest() { //Empty on purpose. No tests by the moment.
-        assert true;
+@Component
+public class PlatformDeploymentResourceServiceTest implements ResourceService<PlatformDeployment> {
+
+    static final String PLATFORM_DEPLOYMENT_RESOURCE = "classpath:test_data/platform_deployment";
+
+    @Override
+    public String getDirectoryPath() {
+        return PLATFORM_DEPLOYMENT_RESOURCE;
+    }
+
+    @Override
+    public void setDefaults() { //Empty on purpose
+
     }
 
 }
-

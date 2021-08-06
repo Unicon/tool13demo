@@ -14,7 +14,7 @@ package net.unicon.lti.controller.lti;
 
 import com.google.common.hash.Hashing;
 import net.unicon.lti.model.PlatformDeployment;
-import net.unicon.lti.model.dto.LoginInitiationDTO;
+import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
