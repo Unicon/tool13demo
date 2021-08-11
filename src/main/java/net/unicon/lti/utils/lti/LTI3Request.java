@@ -187,7 +187,7 @@ public class LTI3Request {
     // We will return some hardcoded JWT's to test the deep Linking LTI Advanced Service standard, but the way this should work
     // is with the tool allowing the user to select the contents to link and generating the JWT with the selection
 
-    Map<String, String> deepLinkJwts;
+    Map<String, List<String>> deepLinkJwts;
 
 
     /**
@@ -1215,11 +1215,11 @@ public class LTI3Request {
         this.deepLinkData = deepLinkData;
     }
 
-    public Map<String, String> getDeepLinkJwts() {
+    public Map<String, List<String>> getDeepLinkJwts() {
         return deepLinkJwts;
     }
 
-    public void setDeepLinkJwts(Map<String, String> deepLinkJwts) {
+    public void setDeepLinkJwts(Map<String, List<String>> deepLinkJwts) {
         this.deepLinkJwts = deepLinkJwts;
     }
 

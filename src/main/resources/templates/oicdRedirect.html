@@ -18,104 +18,116 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
       xml:lang="en">
 <head>
-    <title>LTI Starter Oicd Redirect</title>
+    <title>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
 
-<h4>LTI Starter Oidc Redirect</h4>
+<h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
+<h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled completely on the back end, so the user will never see this page/information as they will be sent directly to the tool's landing page (the next UI page).</h5>
 
-<h5>This is what we received from the platform</h5>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-primary">
-            <label>iss:</label>
-            <span th:text="${initiation_dto.iss}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>login_hint: </label>
-            <span th:text="${initiation_dto.loginHint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>target_link_uri:</label>
-            <span th:text="${initiation_dto.targetLinkUri}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>lti_message_hint:</label>
-            <span th:text="${initiation_dto.ltiMessageHint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>client_id (received):</label>
-            <span th:text="${client_id_received}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>lti_deployment_id (received):</label>
-            <span th:text="${deployment_id_received}"/>
-        </li>
-    </ul>
+<button class="accordion large-font">
+    Click to view the form data we received from the platform
+</button>
+<div class="panel">
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-primary">
+                <label>iss:</label>
+                <span th:text="${initiation_dto.iss}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>login_hint: </label>
+                <span th:text="${initiation_dto.loginHint}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>target_link_uri:</label>
+                <span th:text="${initiation_dto.targetLinkUri}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>lti_message_hint:</label>
+                <span th:text="${initiation_dto.ltiMessageHint}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>client_id (received):</label>
+                <span th:text="${client_id_received}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>lti_deployment_id (received):</label>
+                <span th:text="${deployment_id_received}"/>
+            </li>
+        </ul>
+    </div>
 </div>
 
-<p>&nbsp;</p>
-<h5>This is what we are going to send to the OIDC Authorization Endpoint</h5>
+<br/>
+<h4>This is what we are going to send to the OIDC Authorization Endpoint</h4>
 
 <div class="alert alert-primary">Redirect URL: <span th:text="${oicdEndpoint}"/></div>
 
-<h5>POST VERSION</h5>
+<button class="accordion large-font">
+    Click to view the POST version of Step 2 of the LTI Core Standard Launch
+</button>
+<div class="panel">
 
-<form th:action="${oicdEndpoint}" method="post">
-    <div class="form-group">
-        <label for="client_id">client_id:</label>
-        <input type="text" id="client_id" name="client_id" th:value="${client_id}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="login_hint">login_hint:</label>
-        <input type="text" id="login_hint" name="login_hint" th:value="${login_hint}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="lti_message_hint">lti_message_hint:</label>
-        <input type="text" id="lti_message_hint" name="lti_message_hint" th:value="${lti_message_hint}"
-               class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="nonce">nonce:</label>
-        <input type="text" id="nonce" name="nonce" th:value="${nonce_hash}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="prompt">prompt:</label>
-        <input type="text" id="prompt" name="prompt" th:value="${prompt}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="redirect_uri">redirect_uri:</label>
-        <input type="text" id="redirect_uri" name="redirect_uri" th:value="${redirect_uri}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="response_mode">response_mode:</label>
-        <input type="text" id="response_mode" name="response_mode" th:value="${response_mode}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="response_type">response_type:</label>
-        <input type="text" id="response_type" name="response_type" th:value="${response_type}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="scope">scope:</label>
-        <input type="text" id="scope" name="scope" th:value="${scope}" class="form-control"/>
-    </div>
-    <div class="form-group">
-        <label for="state">state:</label>
-        <input type="text" id="state" class="form-control" name="state" th:value="${state}"/>
-    </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
+    <form th:action="${oicdEndpoint}" method="post">
+        <div class="form-group">
+            <label for="client_id">client_id:</label>
+            <input type="text" id="client_id" name="client_id" th:value="${client_id}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="login_hint">login_hint:</label>
+            <input type="text" id="login_hint" name="login_hint" th:value="${login_hint}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="lti_message_hint">lti_message_hint:</label>
+            <input type="text" id="lti_message_hint" name="lti_message_hint" th:value="${lti_message_hint}"
+                   class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="nonce">nonce:</label>
+            <input type="text" id="nonce" name="nonce" th:value="${nonce_hash}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="prompt">prompt:</label>
+            <input type="text" id="prompt" name="prompt" th:value="${prompt}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="redirect_uri">redirect_uri:</label>
+            <input type="text" id="redirect_uri" name="redirect_uri" th:value="${redirect_uri}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="response_mode">response_mode:</label>
+            <input type="text" id="response_mode" name="response_mode" th:value="${response_mode}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="response_type">response_type:</label>
+            <input type="text" id="response_type" name="response_type" th:value="${response_type}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="scope">scope:</label>
+            <input type="text" id="scope" name="scope" th:value="${scope}" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label for="state">state:</label>
+            <input type="text" id="state" class="form-control" name="state" th:value="${state}"/>
+        </div>
+        <input type="submit" value="Submit POST" class="btn btn-primary">
+    </form>
+</div>
 
-<p>&nbsp;</p>
+<br/>
 
-<h5>GET VERSION</h5>
+<button class="accordion large-font">
+    Click to view the GET version of Step 2 of the LTI Core Standard Launch
+</button>
+<div class="panel">
+    <div class="alert alert-primary">GET URL: <span th:text="${oicdEndpointComplete}"/></div>
+</div>
+<a th:href="${oicdEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step 2</a>
 
-<div class="alert alert-primary">GET URL: <span th:text="${oicdEndpointComplete}"/></div>
-
-<a th:href="${oicdEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Send it as a url</a>
-
+<script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>
 </html>
