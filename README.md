@@ -30,6 +30,22 @@ Then go to the following default URL:
 NOTE: To run it and connect it to real LMSs it is recommended to run it in an accessible server 
 with a valid certificate.
 
+Endpoints
+---------
+Target: https://localhost:443/lti3   
+OIDC Initiation: https://localhost:443/oidc/login_initiations
+
+Creating the database
+---------------------
+Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx Set the right
+values in the properties file.
+
+mysql> create database xxDATABASENAMExxx DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)
+
+mysql> create user 'xxxuserNamexxx'@'%' identified by 'xxxPasswordxxx'; Query OK, 0 rows affected (0.00 sec)
+
+mysql> grant all on xxDATABASENAMExxx.* to 'xxxuserNamexxx'@'%'; Query OK, 0 rows affected (0.00 sec)
+
 Customizing
 -----------
 Use the application.properties to control various aspects of the Spring Boot application (like setup your own database
@@ -49,20 +65,30 @@ Adding PKCS8 RSA Keys to the application.properties file
 7. `cat pkcs8.key`
 8. Copy this value to `oidc.privatekey` inside the application.properties file. Ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 
+Setting Up SSL Cert for Local Development
+-----------------------------------------
+Note: As of 8/11/2021, for Mac, this works with Firefox but not Chrome.
+1. `cd ~/PATH/tool13demo/src/main/resources`
+2. Generate ssl certificate in the resources directory: `keytool -genkeypair -alias keystoreAlias -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 3650`
+3. Enter any values desired when prompted, but make sure you remember the password that you used.
+4. In the `application.properties` file, ensure that each of these variables have the correct values filled in:
+```
+server.port=443
+security.require-ssl=true
+server.ssl.key-store=classpath:keystore.p12
+server.ssl.key-store-password=<password from step 2>
+server.ssl.keyStoreType=PKCS12
+server.ssl.keyAlias=keystoreAlias
+security.headers.frame=false
+application.url=https://localhost:443
+```
+5. After running the spring boot application, you should be able to reach it at https://localhost:443
+
+
 Using Ngrok For Local SSL Cert
 -------------------------------------
 1. Download and install ngrok
 2. `./ngrok http 9090` (Note: This port number must match the value of `server.port` in the application.properties file.)
-3. Utilize the https url from ngrok when registering your tool with the platform
+3. Utilize the https url from ngrok when registering your tool with the platform   
+
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
-   
-Creating the database
----------
-Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx Set the right
-values in the properties file.
-
-mysql> create database xxDATABASENAMExxx DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)
-
-mysql> create user 'xxxuserNamexxx'@'%' identified by 'xxxPasswordxxx'; Query OK, 0 rows affected (0.00 sec)
-
-mysql> grant all on xxDATABASENAMExxx.* to 'xxxuserNamexxx'@'%'; Query OK, 0 rows affected (0.00 sec)

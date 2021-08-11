@@ -25,348 +25,302 @@ http://www.thymeleaf.org "
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
-<h4>Lti 3 was successful and we have this: </h4>
+<h4>LTI 1.3 Deep Linking Initiation Request was successful!</h4>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>iss:</strong></label>
-            <span th:text="${lTI3Request.iss}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>aud:</strong></label>
-            <span th:text="${lTI3Request.aud}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>iat:</strong></label>
-            <span th:text="${lTI3Request.iat}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>exp:</strong></label>
-            <span th:text="${lTI3Request.exp}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>sub:</strong></label>
-            <span th:text="${lTI3Request.sub}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-
-<div>
-
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>deepLinkingSettings (a map):</strong></label>
-            <span th:text="${lTI3Request.deepLinkingSettings}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkReturnUrl:</strong></label>
-            <span th:text="${lTI3Request.deepLinkReturnUrl}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkAcceptTypes (a List):</strong></label>
-            <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkAcceptMediaTypes:</strong></label>
-            <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkAcceptPresentationDocumentTargets (a List):</strong></label>
-            <span th:text="${lTI3Request.deepLinkAcceptMediaTypes}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkAcceptMultiple:</strong></label>
-            <span th:text="${lTI3Request.deepLinkAcceptMultiple}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkAutoCreate:</strong></label>
-            <span th:text="${lTI3Request.deepLinkAutoCreate}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkTitle:</strong></label>
-            <span th:text="${lTI3Request.deepLinkTitle}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkText:</strong></label>
-            <span th:text="${lTI3Request.deepLinkText}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>deepLinkData:</strong></label>
-            <span th:text="${lTI3Request.deepLinkData}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-
-<div>
-    <label><strong>JW1 content. EMPTY answer:</strong></label>
-    JW1 is Empty.
-</div>
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
-    <div class="form-group">
-        <label for="JWT">Item1:</label>
-        <input type="text" id="JWT" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt1')}" class="form-control"/>
+<button class="accordion">
+    Click to view the Deep Linking data received from the LTI Request
+</button>
+<div class="panel">
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>iss:</strong></label>
+                <span th:text="${lTI3Request.iss}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>aud:</strong></label>
+                <span th:text="${lTI3Request.aud}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>iat:</strong></label>
+                <span th:text="${lTI3Request.iat}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>exp:</strong></label>
+                <span th:text="${lTI3Request.exp}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>sub:</strong></label>
+                <span th:text="${lTI3Request.sub}"/>
+            </li>
+        </ul>
     </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
+    <p>&nbsp;</p>
 
-<p>&nbsp;</p>
-<div>
-    <label><strong>JW2 content. ONE ltiResourceLink:</strong></label>
-    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt2Map')),'\n','&lt;br /&gt;'))})]
-</div>
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
-    <div class="form-group">
-        <label for="JWT2">Item2:</label>
-        <input type="text" id="JWT2" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt2')}"
-               class="form-control"/>
+    <div>
+
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>deepLinkingSettings (a map):</strong></label>
+                <span th:text="${lTI3Request.deepLinkingSettings}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkReturnUrl:</strong></label>
+                <span th:text="${lTI3Request.deepLinkReturnUrl}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkAcceptTypes (a List):</strong></label>
+                <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkAcceptMediaTypes:</strong></label>
+                <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkAcceptPresentationDocumentTargets (a List):</strong></label>
+                <span th:text="${lTI3Request.deepLinkAcceptMediaTypes}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkAcceptMultiple:</strong></label>
+                <span th:text="${lTI3Request.deepLinkAcceptMultiple}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkAutoCreate:</strong></label>
+                <span th:text="${lTI3Request.deepLinkAutoCreate}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkTitle:</strong></label>
+                <span th:text="${lTI3Request.deepLinkTitle}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkText:</strong></label>
+                <span th:text="${lTI3Request.deepLinkText}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>deepLinkData:</strong></label>
+                <span th:text="${lTI3Request.deepLinkData}"/>
+            </li>
+        </ul>
     </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
-
-
-<p>&nbsp;</p>
-
-<div>
-    <label><strong>JW2b content. ONE NON ltiResourceLink:</strong></label>
-    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt2bMap')),'\n','&lt;br /&gt;'))})]
 </div>
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
-    <div class="form-group">
-        <label for="JWT2b">Item2b:</label>
-        <input type="text" id="JWT2b" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt2b')}"
-               class="form-control"/>
+
+<br/>
+<h4>Content Menu:</h4>
+<div>Select the link(s) you would like to add to your course.</div>
+<tr th:each="instance : ${lTI3Request.deepLinkJwts}">
+    <button class="accordion">
+        <label><strong><span th:text="${instance.key}"/></strong></label>
+    </button>
+    <div class="panel">
+        <span th:text="${instance.value[1]}" style="white-space: pre"/>
+        <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+            <div class="form-group">
+                <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
+            </div>
+            <input type="submit" value="Select" class="btn btn-primary">
+        </form>
     </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
+    <p></p>
+    </tr>
+</tr>
 
-
-<p>&nbsp;</p>
-
-<div>
-    <label><strong>JW3 content. TWO ltiResourceLinks and TWO other types:</strong></label>
-
-    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt3Map')),'\n','&lt;br /&gt;'))})]
-</div>
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
-    <div class="form-group">
-        <label for="JWT3">item3:</label>
-        <input type="text" id="JWT3" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt3')}"
-               class="form-control"/>
+<button class="accordion">
+    Click to view additional data received from the LTI request
+</button>
+<div class="panel">
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiMessageType:</strong></label>
+                <span th:text="${lTI3Request.ltiMessageType}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiVersion:</strong></label>
+                <span th:text="${lTI3Request.ltiVersion}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiGivenName:</strong></label>
+                <span th:text="${lTI3Request.ltiGivenName}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiFamilyName:</strong></label>
+                <span th:text="${lTI3Request.ltiFamilyName}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiMiddleName:</strong></label>
+                <span th:text="${lTI3Request.ltiMiddleName}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiPicture:</strong></label>
+                <span th:text="${lTI3Request.ltiPicture}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiEmail:</strong></label>
+                <span th:text="${lTI3Request.ltiEmail}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>locale:</strong></label>
+                <span th:text="${lTI3Request.locale}"/>
+            </li>
+        </ul>
     </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
+    <p>&nbsp;</p>
 
-<p>&nbsp;</p>
-
-<div>
-    <label><strong>JW3b content. TWO ltiResourceLinks:</strong></label>
-    [(${#strings.unescapeJava(#strings.replace(#strings.escapeJava(lTI3Request.deepLinkJwts.get('jwt3bMap')),'\n','&lt;br /&gt;'))})]
-</div>
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
-    <div class="form-group">
-        <label for="JWT3b">item3:</label>
-        <input type="text" id="JWT3b" name="JWT" th:value="${lTI3Request.deepLinkJwts.get('jwt3b')}"
-               class="form-control"/>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>nonce</strong></label>
+                <span th:text="${lTI3Request.nonce}"/>
+            </li>
+        </ul>
     </div>
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
 
-<p>&nbsp;</p>
+    <p>&nbsp;</p>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiMessageType:</strong></label>
-            <span th:text="${lTI3Request.ltiMessageType}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiVersion:</strong></label>
-            <span th:text="${lTI3Request.ltiVersion}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiGivenName:</strong></label>
-            <span th:text="${lTI3Request.ltiGivenName}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiFamilyName:</strong></label>
-            <span th:text="${lTI3Request.ltiFamilyName}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiMiddleName:</strong></label>
-            <span th:text="${lTI3Request.ltiMiddleName}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiPicture:</strong></label>
-            <span th:text="${lTI3Request.ltiPicture}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiEmail:</strong></label>
-            <span th:text="${lTI3Request.ltiEmail}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>locale:</strong></label>
-            <span th:text="${lTI3Request.locale}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>lti11LegacyUserId</strong></label>
+                <span th:text="${lTI3Request.lti11LegacyUserId}"/>
+            </li>
+        </ul>
+    </div>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>nonce</strong></label>
-            <span th:text="${lTI3Request.nonce}"/>
-        </li>
-    </ul>
-</div>
+    <p>&nbsp;</p>
 
-<p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiTargetLinkUrl</strong></label>
+                <span th:text="${lTI3Request.ltiTargetLinkUrl}"/>
+            </li>
+        </ul>
+    </div>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>lti11LegacyUserId</strong></label>
-            <span th:text="${lTI3Request.lti11LegacyUserId}"/>
-        </li>
-    </ul>
-</div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>Roles, is a list:</strong></label>
+                <span th:text="${lTI3Request.ltiRoles}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
+                <span th:text="${lTI3Request.ltiRoleScopeMentor}"/>
+            </li>
+        </ul>
+    </div>
 
-<p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiResourceLink, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiResourceLink}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiContext, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiContext}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiToolPlatform, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiToolPlatform}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiEndpoint, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiEndpoint}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiNamesRoleService, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiNamesRoleService}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiCaliperEndpointService}"/>
+            </li>
+        </ul>
+    </div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiLaunchPresentation, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiLaunchPresentation}"/>
+            </li>
+        </ul>
+    </div>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiTargetLinkUrl</strong></label>
-            <span th:text="${lTI3Request.ltiTargetLinkUrl}"/>
-        </li>
-    </ul>
-</div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiExtension, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiExtension}"/>
+            </li>
+        </ul>
+    </div>
 
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>Roles, is a list:</strong></label>
-            <span th:text="${lTI3Request.ltiRoles}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
-            <span th:text="${lTI3Request.ltiRoleScopeMentor}"/>
-        </li>
-    </ul>
-</div>
+    <p>&nbsp;</p>
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>ltiCustom, is a map:</strong></label>
+                <span th:text="${lTI3Request.ltiCustom}"/>
+            </li>
+        </ul>
+    </div>
 
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiResourceLink, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiResourceLink}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiContext, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiContext}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiToolPlatform, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiToolPlatform}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiEndpoint, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiEndpoint}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiNamesRoleService, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiNamesRoleService}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiCaliperEndpointService}"/>
-        </li>
-    </ul>
-</div>
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiLaunchPresentation, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiLaunchPresentation}"/>
-        </li>
-    </ul>
+
+    <p>&nbsp;</p>
+
+
+    <h4>SESSION</h4>
+
+    <p>We added some parameters in the session too:</p>
+
+    <div>
+        <ul class="list-group">
+            <li class="list-group-item ">
+                <label><strong>user_id</strong></label>
+                <span th:text="${#session.getAttribute('user_id')}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>user_role</strong></label>
+                <span th:text="${#session.getAttribute('user_role')}"/>
+            </li>
+            <li class="list-group-item ">
+                <label><strong>The Lti context id:</strong></label>
+                <span th:text="${#session.getAttribute('context_id')}"/>
+            </li>
+        </ul>
+    </div>
 </div>
 
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiExtension, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiExtension}"/>
-        </li>
-    </ul>
-</div>
-
-<p>&nbsp;</p>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>ltiCustom, is a map:</strong></label>
-            <span th:text="${lTI3Request.ltiCustom}"/>
-        </li>
-    </ul>
-</div>
-
-
-<p>&nbsp;</p>
-
-
-<h4>SESSION</h4>
-
-<p>We added some parameters in the session too:</p>
-
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>user_id</strong></label>
-            <span th:text="${#session.getAttribute('user_id')}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>user_role</strong></label>
-            <span th:text="${#session.getAttribute('user_role')}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>The Lti context id:</strong></label>
-            <span th:text="${#session.getAttribute('context_id')}"/>
-        </li>
-    </ul>
-</div>
-
+<script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>
 </html>
