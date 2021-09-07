@@ -13,26 +13,36 @@
 package net.unicon.lti.model.ags;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LineItem {
     @JsonProperty("id")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String id;
     @JsonProperty("scoreMaximum")
     private String scoreMaximum;
     @JsonProperty("label")
     private String label;
     @JsonProperty("resourceId")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String resourceId;
     @JsonProperty("tag")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String tag;
     @JsonProperty("resourceLinkId")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String resourceLinkId;
     @JsonProperty("startDateTime")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String startDateTime;
     @JsonProperty("endDateTime")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String endDateTime;
+    @JsonProperty("results")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Results results;
 
     public LineItem() { //Empty on purpose
     }
@@ -99,5 +109,13 @@ public class LineItem {
 
     public void setEndDateTime(String endDateTime) {
         this.endDateTime = endDateTime;
+    }
+
+    public Results getResults() {
+        return results;
+    }
+
+    public void setResults(Results results) {
+        this.results = results;
     }
 }

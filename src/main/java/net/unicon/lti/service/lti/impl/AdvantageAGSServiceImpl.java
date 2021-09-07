@@ -25,6 +25,7 @@ import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.AdvantageConnectorHelper;
 import net.unicon.lti.utils.TextConstants;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,12 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     //Calling the AGS service and getting a paginated result of lineitems.
     @Override
     public LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context) throws ConnectionException {
+        return getLineItems(LTIToken,context, false, null);
+    }
+
+
+    @Override
+    public LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context, boolean results, LTIToken resultsToken) throws ConnectionException {
         LineItems lineItems = new LineItems();
         log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
@@ -105,6 +112,12 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
                 String exceptionMsg = "Can't get the AGS";
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);
+            }
+            if (results) {
+                for (LineItem lineItem : lineItems.getLineItemList()) {
+                    Results results1 = getResults(resultsToken, context, lineItem.getId());
+                    lineItem.setResults(results1);
+                }
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
@@ -151,7 +164,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity<LineItem> request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, lineItem);
+            HttpEntity<LineItem> request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, lineItem, TextConstants.LINEITEM_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String PUT_LINEITEM = context.getLineitems() + "/" + lineItem.getId();
@@ -209,45 +222,32 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     @Override
-    public LineItems postLineItems(LTIToken LTIToken, LtiContextEntity context, LineItems lineItems) throws ConnectionException {
+    public LineItems postLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException {
 
         LineItems resultLineItems = new LineItems();
         log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity<LineItems> request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, lineItems);
+            HttpEntity<LineItem> request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, lineItem, TextConstants.LINEITEM_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String POST_LINEITEMS = context.getLineitems();
             log.debug("POST_LINEITEMS -  " + POST_LINEITEMS);
-            ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
-                    exchange(POST_LINEITEMS, HttpMethod.POST, request, LineItem[].class);
+            ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
+                    exchange(POST_LINEITEMS, HttpMethod.POST, request, LineItem.class);
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
-                List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(lineItemsGetResponse.getBody())));
-                //We deal here with pagination
-                log.debug("We have {} lineItems", lineItems.getLineItemList().size());
-                String nextPage = advantageConnectorHelper.nextPage(lineItemsGetResponse.getHeaders());
-                log.debug("We have next page: " + nextPage);
-                while (nextPage != null) {
-                    ResponseEntity<LineItems> responseForNextPage = restTemplate.exchange(nextPage, HttpMethod.GET,
-                            request, LineItems.class);
-                    LineItems nextLineItemsList = responseForNextPage.getBody();
-                    List<LineItem> nextLineItems = Objects.requireNonNull(nextLineItemsList).getLineItemList();
-                    log.debug("We have {} lineitems in the next page", nextLineItemsList.getLineItemList().size());
-                    lineItemsList.addAll(nextLineItems);
-                    nextPage = advantageConnectorHelper.nextPage(responseForNextPage.getHeaders());
-                }
-                resultLineItems.getLineItemList().addAll(lineItemsList);
+                LineItem lineItems =lineItemsGetResponse.getBody();
+                resultLineItems.getLineItemList().add(lineItems);
             } else {
-                String exceptionMsg = "Can't post lineitems";
+                String exceptionMsg = "Can't post lineitem";
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't post lineitems");
+            exceptionMsg.append("Can't post lineitem");
             log.error(exceptionMsg.toString(), e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
@@ -329,5 +329,25 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     //POST SCORES
+
+    @Override
+    public void cleanLineItem(LineItem lineItem){
+        if (StringUtils.isBlank(lineItem.getResourceId())){
+            lineItem.setResourceId(null);
+        }
+        if (StringUtils.isBlank(lineItem.getResourceLinkId())){
+            lineItem.setResourceLinkId(null);
+        }
+        if (StringUtils.isBlank(lineItem.getStartDateTime())){
+            lineItem.setStartDateTime(null);
+        }
+        if (StringUtils.isBlank(lineItem.getEndDateTime())){
+            lineItem.setEndDateTime(null);
+        }
+        if (StringUtils.isBlank(lineItem.getTag())){
+            lineItem.setTag(null);
+        }
+
+    }
 
 }

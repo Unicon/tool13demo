@@ -24,7 +24,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
 </head>
 <body>
-<h4>Assignment and Grade Services: </h4>
+<h4>Assignment and Grade Services </h4>
 <p>&nbsp;</p>
 <div th:if="${noSessionValues}">
     <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
@@ -33,19 +33,53 @@
         service without a session created. </p>
 </div>
 
-<div th:if="${deleteResults != null and deleteResulst}">
+<div th:if="${deleteResults != null and deleteResults}">
     <p>LineItem deleted</p>
 </div>
-<div th:if="${deleteResults != null and !deleteResulst}">
+<div th:if="${deleteResults != null and !deleteResults}">
     <p>LineItem NO deleted</p>
 </div>
 
+<h4>Create a new LineItem: </h4>
+<form action="#" method="post" th:action="@{/ags/}" th:object="${lineItem}">
+    <table>
+        <tr>
+            <td>Label: </td><td><input type="text" id="label" name="label" /></td>
+        </tr>
+        <tr>
+            <td>Tag: </td><td><input type="text" id="tag" name="tag" /></td>
+        </tr>
+        <tr>
+            <td>ScoreMaximum: </td><td><input type="text" id="scoreMaximum"  name="scoreMaximum" /></td>
+        </tr>
+        <tr>
+            <td>ResourceId: </td><td><input type="text" id="resourceId" name="resourceId" /></td>
+        </tr>
+        <tr>
+            <td>ResourceLinkId: </td><td><input type="text" id="resourceLinkId" name="resourceLinkId" /></td>
+        </tr>
+        <tr>
+            <td>StartDateTime: </td><td><input type="text" id="startDateTime" name="startDateTime" /></td>
+        </tr>
+        <tr>
+            <td>EnDateTime: </td><td><input type="text" id="endDateTime" name="endDateTime" /></td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Create new LineItem" /></td><td><input type="reset" value="Reset" /></td>
+        </tr>
+    </table>
+</form>
+<p>&nbsp;</p>
+
 <div th:if="${results != null and !single and !#lists.isEmpty(results)}">
+
     <h4>LineItems on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+
     <table class="table table-striped">
         <caption>Lineitmes</caption>
         <thead class="thead-dark">
         <tr>
+            <th scope="col"></th>
             <th scope="col">#</th>
             <th scope="col">Id</th>
             <th scope="col">scoreMaximum</th>
@@ -59,6 +93,7 @@
         </thead>
         <tbody>
         <tr th:each="lineitem,rowStat : ${results}">
+            <td><a th:href="@{/ags/delete/{did}(did=${#strings.substringAfter(lineitem.id,'/line_items/')})}">Delete</a></td>
             <td th:text="${rowStat.count}">1</td>
             <td th:text="${lineitem.id}"></td>
             <td th:text="${lineitem.scoreMaximum}"></td>
@@ -71,12 +106,41 @@
         </tr>
         </tbody>
     </table>
+
+
+    <div th:each="lineitem,rowStat : ${results}">
+        <p> --LINEITEM--</p>
+
+        <p th:text="${rowStat.count}">1</p>
+        <p th:text="${lineitem.id}"></p>
+        <p th:text="${lineitem.scoreMaximum}"></p>
+        <p th:text="${lineitem.label}"></p>
+        <p th:text="${lineitem.resourceId}"></p>
+        <p th:text="${lineitem.tag}"></p>
+        <p th:text="${lineitem.resourceLinkId}"></p>
+        <p th:text="${lineitem.startDateTime}"></p>
+        <p th:text="${lineitem.endDateTime}"></p>
+
+        <div th:if="${lineitem.results != null and lineitem.results.resultList != null}">
+            <div th:each="result,rowStat2 : ${lineitem.results.resultList}">
+                <p> RESULT-----------------</p>
+                <p th:text="${rowStat2.count}">1</p>
+                <p th:text="${result.id}"></p>
+                <p th:text="${result.userId}"></p>
+                <p th:text="${result.resultMaximum}"></p>
+                <p th:text="${result.resultScore}"></p>
+                <p th:text="${result.comment}"></p>
+                <p th:text="${result.scoreOf}"></p>
+                <p> -----------------</p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div th:if="${results != null and single and !#lists.isEmpty(results)}">
     <h4>LineItem created/updated on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
     <table class="table table-striped">
-        <caption>Lineitmes</caption>
         <thead class="thead-dark">
         <tr>
             <th scope="col">#</th>
