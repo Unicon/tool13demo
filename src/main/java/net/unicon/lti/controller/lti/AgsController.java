@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -83,9 +84,10 @@ public class AgsController {
                 //Call the ags service to get the users on the context
                 // 1. Get the token
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
                 // 2. Call the service
-                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
+                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
 
                 // 3. update the model
                 model.addAttribute(TextConstants.SINGLE, false);
@@ -99,8 +101,8 @@ public class AgsController {
 
 
     // Create a new lineitem
-    @RequestMapping(value = "/", method = RequestMethod.POST)
-    public String agsPostLineItem(HttpServletRequest req, Principal principal, Model model, @RequestBody LineItems lineItems) throws ConnectionException {
+    @RequestMapping(value = "/", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String agsPostLineItem(HttpServletRequest req, Principal principal, Model model, LineItem lineItem) throws ConnectionException {
 
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
@@ -122,10 +124,11 @@ public class AgsController {
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
-                LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItems(LTIToken, context, lineItems);
+                advantageAGSServiceServiceImpl.cleanLineItem(lineItem);
+                LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItem(LTIToken, context, lineItem);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, false);
+                model.addAttribute(TextConstants.SINGLE, true);
                 model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
             }
         } else {

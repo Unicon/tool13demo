@@ -17,7 +17,7 @@ public interface AdvantageConnectorHelper {
     HttpEntity createTokenizedRequestEntity(LTIToken LTIToken);
 
     // We put the token in the Authorization as a simple Bearer one.
-    HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, LineItem lineItem);
+    HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, LineItem lineItem, String type);
 
     // We put the token in the Authorization as a simple Bearer one.
     HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems);

@@ -16,15 +16,19 @@ public interface AdvantageAGSService {
     //Calling the AGS service and getting a paginated result of lineitems.
     LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context) throws ConnectionException;
 
+    LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context, boolean results, LTIToken resultsToken) throws ConnectionException;
+
     boolean deleteLineItem(LTIToken LTIToken, LtiContextEntity context, String id) throws ConnectionException;
 
     LineItem putLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException;
 
     LineItem getLineItem(LTIToken LTIToken, LtiContextEntity context, String id) throws ConnectionException;
 
-    LineItems postLineItems(LTIToken LTIToken, LtiContextEntity context, LineItems lineItems) throws ConnectionException;
+    LineItems postLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException;
 
     Results getResults(LTIToken LTITokenResults, LtiContextEntity context, String lineItemId) throws ConnectionException;
 
     Results postScore(LTIToken LTITokenScores, LTIToken LTITokenResults,LtiContextEntity context, String lineItemId, Score score) throws ConnectionException;
+
+    void cleanLineItem(LineItem lineItem);
 }
