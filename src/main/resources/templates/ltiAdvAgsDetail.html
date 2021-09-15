@@ -33,47 +33,6 @@
         service without a session created. </p>
 </div>
 
-<div th:if="${deleteResults != null and deleteResults}">
-    <p>LineItem deleted</p>
-</div>
-<div th:if="${deleteResults != null and !deleteResults}">
-    <p>LineItem NO deleted</p>
-</div>
-
-<div th:if="${!noSessionValues}">
-<h4>Create a new LineItem: </h4>
-<form action="#" method="post" th:action="@{/ags/}" th:object="${lineItem}">
-    <table>
-        <tr>
-            <td>Label: </td><td><input type="text" id="label" name="label" /></td>
-        </tr>
-        <tr>
-            <td>Tag: </td><td><input type="text" id="tag" name="tag" /></td>
-        </tr>
-        <tr>
-            <td>ScoreMaximum: </td><td><input type="text" id="scoreMaximum"  name="scoreMaximum" /></td>
-        </tr>
-        <tr>
-            <td>ResourceId: </td><td><input type="text" id="resourceId" name="resourceId" /></td>
-        </tr>
-        <tr>
-            <td>ResourceLinkId: </td><td><input type="text" id="resourceLinkId" name="resourceLinkId" /></td>
-        </tr>
-        <tr>
-            <td>StartDateTime: </td><td><input type="text" id="startDateTime" name="startDateTime" /></td>
-        </tr>
-        <tr>
-            <td>EnDateTime: </td><td><input type="text" id="endDateTime" name="endDateTime" /></td>
-        </tr>
-        <tr>
-            <td><input type="submit" value="Create new LineItem" /></td><td><input type="reset" value="Reset" /></td>
-        </tr>
-    </table>
-</form>
-<p>&nbsp;</p>
-</div>
-
-
 
 <div th:if="${results != null and !#lists.isEmpty(results)}">
     <h4>LineItem created/updated on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
@@ -109,13 +68,11 @@
 
 <div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
 
-    <h4>LineItems on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+    <h4>LineItem Info <span th:text="${#session.getAttribute('context_id')}"/></h4>
 
     <table class="table table-striped">
         <thead class="thead-dark">
         <tr>
-            <th scope="col"></th>
-            <th scope="col"></th>
             <th scope="col">#</th>
             <th scope="col">Id</th>
             <th scope="col">scoreMaximum</th>
@@ -129,8 +86,6 @@
         </thead>
         <tbody>
         <tr th:each="lineitem,rowStat : ${lineitems}">
-            <td><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - 1]})}">Delete</a></td>
-            <td><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - 1]})}">Detail</a></td>
             <td th:text="${rowStat.count}">1</td>
             <td th:text="${lineitem.id}"></td>
             <td th:text="${lineitem.scoreMaximum}"></td>
@@ -143,11 +98,39 @@
         </tr>
         </tbody>
     </table>
+
+    <h3> SCORES </h3>
+
+    <div th:each="lineitem : ${lineitems}">
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Id</th>
+            <th scope="col">UserId</th>
+            <th scope="col">resultMaximum</th>
+            <th scope="col">resultScore</th>
+            <th scope="col">comment</th>
+            <th scope="col">scoreOf</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="result,rowStat2 : ${lineitem.results.resultList}">
+            <td th:text="${rowStat2.count}">1</td>
+            <td th:text="${result.id}"></td>
+            <td th:text="${result.userId}"></td>
+            <td th:text="${result.resultMaximum}"></td>
+            <td th:text="${result.resultScore}"></td>
+            <td th:text="${result.comment}"></td>
+            <td th:text="${result.scoreOf}"></td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 
 
 <div th:if="${lineitems != null and #lists.isEmpty(lineitems)}">
-    <p>No existing lineitems for this context/tool</p>
+    <p>No existing lineitem</p>
 </div>
 
 

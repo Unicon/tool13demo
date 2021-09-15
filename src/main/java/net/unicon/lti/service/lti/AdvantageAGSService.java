@@ -22,7 +22,7 @@ public interface AdvantageAGSService {
 
     LineItem putLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException;
 
-    LineItem getLineItem(LTIToken LTIToken, LtiContextEntity context, String id) throws ConnectionException;
+    LineItem getLineItem(LTIToken LTIToken, LTIToken LTITokenResults, LtiContextEntity context, String id) throws ConnectionException;
 
     LineItems postLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException;
 

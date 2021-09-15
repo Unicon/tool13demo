@@ -308,7 +308,7 @@ public class LTI3Request {
         // We update the database in case we have new values. (New users, new resources...etc)
         if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
             //Load data from DB related with this request and update it if needed with the new values.
-            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByClientId(this.aud).get(0);
+            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
             ltiDataService.loadLTIDataFromDB(this, linkId);
             if (update) {
                 if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
@@ -442,7 +442,7 @@ public class LTI3Request {
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
         try {
-            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0).getKeyId());
+            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0).getKeyId());
         } catch (Exception e) {
             log.error("No deployment found");
         }

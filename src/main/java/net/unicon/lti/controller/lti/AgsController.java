@@ -54,6 +54,7 @@ public class AgsController {
 
     static final Logger log = LoggerFactory.getLogger(AgsController.class);
     static final String LTIADVAGSMAIN = "ltiAdvAgsMain";
+    static final String LTIADVAGSDETAIL = "ltiAdvAgsDetail";
 
     @Autowired
     LtiContextRepository ltiContextRepository;
@@ -90,8 +91,7 @@ public class AgsController {
                 LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, false);
-                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -121,15 +121,17 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
                 advantageAGSServiceServiceImpl.cleanLineItem(lineItem);
                 LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItem(LTIToken, context, lineItem);
+                LineItems lineItemsResults = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, true);
                 model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.LINEITEMS, lineItemsResults.getLineItemList());
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -160,19 +162,19 @@ public class AgsController {
                 //Call the ags service to post a lineitem
                 // 1. Get the token
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
-                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, context, id);
+                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, true);
-                model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
+                model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResult));
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
         }
-        return LTIADVAGSMAIN;
+        return LTIADVAGSDETAIL;
     }
 
 
@@ -205,7 +207,6 @@ public class AgsController {
                 LineItem lineItemsResult = advantageAGSServiceServiceImpl.putLineItem(LTIToken, context, lineItem);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, true);
                 model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
             }
         } else {
@@ -244,8 +245,7 @@ public class AgsController {
                 LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
 
                 // 3. update the model
-                model.addAttribute(TextConstants.SINGLE, false);
-                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
+                model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
                 model.addAttribute("deleteResults", deleteResult);
             }
         } else {
