@@ -190,7 +190,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     @Override
-    public LineItem getLineItem(LTIToken LTIToken, LtiContextEntity context, String id) throws ConnectionException {
+    public LineItem getLineItem(LTIToken LTIToken, LTIToken resultsToken, LtiContextEntity context, String id) throws ConnectionException {
         LineItem lineItem;
         log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
@@ -206,7 +206,8 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 lineItem = lineItemsGetResponse.getBody();
-                //We deal here with pagination
+                Results results1 = getResults(resultsToken, context, lineItem.getId());
+                lineItem.setResults(results1);
             } else {
                 String exceptionMsg = "Can't get the lineitem " + id;
                 log.error(exceptionMsg);

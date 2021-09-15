@@ -26,6 +26,7 @@ public class TextConstants {
     public static final String NO_SESSION_VALUES = "noSessionValues";
     public static final String SINGLE = "single";
     public static final String RESULTS = "results";
+    public static final String LINEITEMS = "lineitems";
     public static final String ERROR = "Error";
     public static final String HTML_CONTENT = "htmlContent";
     public static final String LTI3_SUFFIX = "/lti3/";
