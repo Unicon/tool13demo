@@ -492,9 +492,9 @@ public class LTI3Request {
         if (isRoleAdministrator()) {
             normalizedRoleName = LtiStrings.LTI_ROLE_ADMIN;
         } else if (isRoleInstructor()) {
-            normalizedRoleName = LtiStrings.LTI_ROLE_INSTRUCTOR;
+            normalizedRoleName = LtiStrings.LTI_ROLE_MEMBERSHIP_INSTRUCTOR;
         } else if (isRoleLearner()) {
-            normalizedRoleName = LtiStrings.LTI_ROLE_LEARNER;
+            normalizedRoleName = LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER;
         }
         return normalizedRoleName;
     }

@@ -18,6 +18,8 @@ import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.ags.LineItem;
 import net.unicon.lti.model.ags.LineItems;
+import net.unicon.lti.model.ags.Results;
+import net.unicon.lti.model.ags.Score;
 import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -255,8 +257,43 @@ public class AgsController {
     }
 
 
-    // View scores
+    // Post Score
+    @RequestMapping(value = "/score/{id}", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    public String agsPostScore(HttpServletRequest req, Principal principal, Model model, Score score, @PathVariable("id") String id) throws ConnectionException {
 
-    //Send scores
+        //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
+        //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
+        // to avoid access to all the courses and platforms.
+        HttpSession session = req.getSession();
+        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
+            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
+            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
+            //We find the right deployment:
+            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+            if (platformDeployment.isPresent()) {
+                //Get the context in the query
+                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+
+                //Call the ags service to post a lineitem
+                // 1. Get the token
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                LTIToken scoresToken = advantageAGSServiceServiceImpl.getToken("scores", platformDeployment.get());
+                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+
+                // 2. Call the service
+                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+                Results scoreResults = advantageAGSServiceServiceImpl.postScore(scoresToken, resultsToken, context, lineItemsResult.getId(), score);
+                LineItem lineItemsResultNew = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+
+                // 3. update the model
+                model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResultNew));
+            }
+        } else {
+            model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
+        }
+        return LTIADVAGSDETAIL;
+    }
 
 }
