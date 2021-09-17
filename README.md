@@ -35,16 +35,20 @@ Endpoints
 Target: https://localhost:443/lti3   
 OIDC Initiation: https://localhost:443/oidc/login_initiations
 
-Creating the database
+Creating the Postgres database
 ---------------------
-Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx Set the right
-values in the properties file.
-
-mysql> create database xxDATABASENAMExxx DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)
-
-mysql> create user 'xxxuserNamexxx'@'%' identified by 'xxxPasswordxxx'; Query OK, 0 rows affected (0.00 sec)
-
-mysql> grant all on xxDATABASENAMExxx.* to 'xxxuserNamexxx'@'%'; Query OK, 0 rows affected (0.00 sec)
+1. Install PostgresQL (version 13.4 as of today)
+2. Create a Postgres user and database for this project by entering the following in the Terminal:
+```bash
+psql postgres
+CREATE ROLE lti13user WITH LOGIN PASSWORD 'yourpassword';
+ALTER ROLE lti13user CREATEDB;
+\q 
+psql postgres -U lti13user
+CREATE DATABASE lti13middleware;
+GRANT ALL PRIVILEGES ON DATABASE lti13middleware TO lti13user;
+```
+3. Ensure that the values in the application.properties file match the database name, user, and password that you used in the previous step.
 
 Customizing
 -----------
