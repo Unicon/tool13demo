@@ -141,10 +141,10 @@ public class LTIJWTServiceImpl implements LTIJWTService {
         Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String aud;
         //D2L needs a different aud, maybe others too
-        if (platformDeployment.getoAuth2TokenAud() != null) {
-            aud = platformDeployment.getoAuth2TokenAud();
+        if (platformDeployment.getOAuth2TokenAud() != null) {
+            aud = platformDeployment.getOAuth2TokenAud();
         } else {
-            aud = platformDeployment.getoAuth2TokenUrl();
+            aud = platformDeployment.getOAuth2TokenUrl();
         }
         String state = Jwts.builder()
                 .setHeaderParam("kid", TextConstants.DEFAULT_KID)
