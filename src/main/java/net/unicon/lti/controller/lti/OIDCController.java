@@ -130,7 +130,7 @@ public class OIDCController {
             // We add that information so the thymeleaf template can display it (and prepare the links)
             //model.addAllAttributes(parameters);
             // These 3 are to display what we received from the platform.
-            if (ltiDataService.getDemoMode()){
+            if (ltiDataService.getDemoMode()) {
                 model.addAllAttributes(parameters);
                 model.addAttribute("initiation_dto", loginInitiationDTO);
                 model.addAttribute("client_id_received", clientIdValue);
@@ -205,7 +205,8 @@ public class OIDCController {
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", NONE);  //Always this value, as specified in the standard.
-        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + "/lti3");  // One of the valids reditect uris.
+        //authRequestMap.put("redirect_uri", loginInitiationDTO.getTargetLinkUri());
+        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + "/lti3");  // One of the valid redirect uris.
         authRequestMap.put("response_mode", FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", ID_TOKEN); //Always this value, as specified in the standard.
         authRequestMap.put("scope", OPEN_ID);  //Always this value, as specified in the standard.

@@ -26,3 +26,5 @@
 
 /.scannerwork/
 /sonar-project.properties
+
+*.p12

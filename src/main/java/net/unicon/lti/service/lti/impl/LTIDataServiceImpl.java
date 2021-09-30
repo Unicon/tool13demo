@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.service.lti.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.LtiLinkEntity;
@@ -22,8 +23,6 @@ import net.unicon.lti.repository.AllRepositories;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.lti.LTI3Request;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,11 +35,9 @@ import java.util.List;
  * This manages all the data processing for the LTIRequest (and for LTI in general)
  * Necessary to get appropriate TX handling and service management
  */
+@Slf4j
 @Service
 public class LTIDataServiceImpl implements LTIDataService {
-
-    static final Logger log = LoggerFactory.getLogger(LTIDataServiceImpl.class);
-
     @Autowired
     AllRepositories repos;
 
@@ -56,6 +53,9 @@ public class LTIDataServiceImpl implements LTIDataService {
 
     @Value("${lti13.demoMode:false}")
     private boolean demoMode;
+
+    @Value("${lti13.enableDeepLinking}")
+    private boolean deepLinkingEnabled;
 
 
     /**
@@ -373,12 +373,22 @@ public class LTIDataServiceImpl implements LTIDataService {
     }
 
     @Override
-    public Boolean getDemoMode() {
+    public boolean getDemoMode() {
         return demoMode;
     }
 
     @Override
-    public void setDemoMode(Boolean demoMode) {
+    public void setDemoMode(boolean demoMode) {
         this.demoMode = demoMode;
+    }
+
+    @Override
+    public boolean getDeepLinkingEnabled() {
+        return deepLinkingEnabled;
+    }
+
+    @Override
+    public void setDeepLinkingEnabled(boolean deepLinkingEnabled) {
+        this.deepLinkingEnabled = deepLinkingEnabled;
     }
 }

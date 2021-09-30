@@ -40,7 +40,11 @@ public interface LTIDataService {
 
     void setOwnPublicKey(String ownPublicKey);
 
-    Boolean getDemoMode();
+    boolean getDemoMode();
 
-    void setDemoMode(Boolean demoMode);
+    void setDemoMode(boolean demoMode);
+
+    boolean getDeepLinkingEnabled();
+
+    void setDeepLinkingEnabled(boolean deepLinkingEnabled);
 }

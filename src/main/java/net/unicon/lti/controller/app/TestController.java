@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.controller.app;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import java.security.Principal;
 
 @Controller
 @RequestMapping(value = TestController.REQUEST_ROOT, produces = MediaType.APPLICATION_JSON_VALUE)
+@ConditionalOnExpression("${lti13.enableRoleTesting}")
 public class TestController {
     static final String REQUEST_ROOT = "api/test";
 

@@ -12,51 +12,48 @@
  */
 package net.unicon.lti.controller.lti;
 
+import com.google.common.io.ByteStreams;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
-import net.unicon.lti.exceptions.ConnectionException;
-import net.unicon.lti.exceptions.DataServiceException;
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.LtiLinkEntity;
-import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
-import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.Principal;
 import java.util.List;
 
 /**
  * This LTI 3 redirect controller will retrieve the LTI3 requests and redirect them to the right page.
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/lti3")
 public class LTI3Controller {
-
-    static final Logger log = LoggerFactory.getLogger(LTI3Controller.class);
-
     @Autowired
     LTIJWTService ltijwtService;
-
-    @Autowired
-    APIJWTService apiJWTService;
 
     @Autowired
     LtiLinkRepository ltiLinkRepository;
@@ -64,12 +61,8 @@ public class LTI3Controller {
     @Autowired
     LTIDataService ltiDataService;
 
-    @Autowired
-    LtiContextRepository ltiContextRepository;
-
     @RequestMapping({"", "/"})
-    public String home(HttpServletRequest req, Principal principal, Model model) throws DataServiceException, ConnectionException {
-
+    public String lti3(HttpServletRequest req, Model model) {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
@@ -91,7 +84,9 @@ public class LTI3Controller {
             }
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
-            if (ltiDataService.getDemoMode()) {
+            if (!ltiDataService.getDemoMode()) {
+                return "forward:/lti3/target";
+            } else {
                 model.addAttribute("lTI3Request", lti3Request);
                 if (link == null) {
                     link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
@@ -107,7 +102,7 @@ public class LTI3Controller {
                 } else {
                     model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
                 }
-                if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
+                if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING) && ltiDataService.getDeepLinkingEnabled()) {
                     //Let's create the LtiLinkEntity's in our database
                     //This should be done AFTER the user selects the link in the content selector, and we are doing it before
                     //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
@@ -121,24 +116,30 @@ public class LTI3Controller {
                         ltiLinkRepository.save(ltiLinkEntity2);
                     }
                     return "lti3DeepLink";
+                } else if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
+                    return TextConstants.LTI3ERROR;
                 }
                 return "lti3Result";
-            } else {
-                String oneTimeToken = apiJWTService.buildJwt(
-                        true,
-                        lti3Request);
-                return "redirect:/app/app.html?token=" + oneTimeToken;
             }
         } catch (SignatureException ex) {
             model.addAttribute(TextConstants.ERROR, ex.getMessage());
             return TextConstants.LTI3ERROR;
-        } catch (GeneralSecurityException e) {
-            model.addAttribute(TextConstants.ERROR, e.getMessage());
-            return TextConstants.LTI3ERROR;
-        } catch (IOException e) {
-            model.addAttribute(TextConstants.ERROR, e.getMessage());
-            return TextConstants.LTI3ERROR;
         }
+    }
+
+    @PostMapping(value = "/target", produces = MediaType.TEXT_HTML_VALUE)
+    public void getExternalPage(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String link = req.getParameter("link");
+        LTI3Request lti3Request = LTI3Request.getInstance(link);
+        String target = lti3Request.getLtiTargetLinkUrl();
+        System.out.println(target);
+        String jwt = req.getParameter("id_token");
+        String redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", jwt).build().toUriString();
+
+        CloseableHttpClient client = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(redirect);
+        CloseableHttpResponse response = client.execute(httpPost);
+        ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
     }
 
 }

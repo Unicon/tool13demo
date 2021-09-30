@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.controller.lti;
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
@@ -22,10 +23,9 @@ import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -55,13 +55,12 @@ import java.util.List;
  * Sample Key "key" and secret "secret"
  */
 @SuppressWarnings("ALL")
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/registration")
+@ConditionalOnExpression("${lti13.enableDynamicRegistration}")
 public class RegistrationController {
-
-    static final Logger log = LoggerFactory.getLogger(RegistrationController.class);
-
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
 
@@ -73,7 +72,6 @@ public class RegistrationController {
 
     @Value("${application.url}")
     private String localUrl;
-
 
     @Value("${application.name}")
     private String clientName;

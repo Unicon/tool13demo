@@ -13,11 +13,10 @@
 package net.unicon.lti.controller.lti;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.oauth.OAuthUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -38,15 +37,13 @@ import java.util.Map;
 /**
  * Serving the public key of the tool.
  */
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/jwks")
 public class JWKController {
-
     @Autowired
     LTIDataService ltiDataService;
-
-    static final Logger log = LoggerFactory.getLogger(JWKController.class);
 
     @RequestMapping(value = "/jwk", method = RequestMethod.GET, produces = "application/json;")
     @ResponseBody
