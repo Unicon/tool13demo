@@ -25,7 +25,6 @@ import static org.mockito.Mockito.when;
 @WebMvcTest(ConfigurationController.class)
 public class ConfigurationControllerTest {
     private PlatformDeployment platformDeployment = new PlatformDeployment();
-    private ResponseEntity<PlatformDeployment> platformDeploymentResponseEntity;
 
     @InjectMocks
     private ConfigurationController configurationController = new ConfigurationController();

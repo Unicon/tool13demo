@@ -31,11 +31,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +63,8 @@ public class LTI3Controller {
     @Autowired
     LTIDataService ltiDataService;
 
+    private CloseableHttpClient client = HttpClients.createDefault();
+
     @RequestMapping({"", "/"})
     public String lti3(HttpServletRequest req, Model model) {
         //First we will get the state, validate it
@@ -69,18 +73,26 @@ public class LTI3Controller {
         String link = req.getParameter("link");
         try {
             Jws<Claims> claims = ltijwtService.validateState(state);
-            LTI3Request lti3Request = LTI3Request.getInstance(link);
+            LTI3Request lti3Request = LTI3Request.getInstance(link); // validates nonce & id_token
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the clientId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
-                model.addAttribute(TextConstants.ERROR, " Bad Client Id");
-                return TextConstants.LTI3ERROR;
+                if (model != null) {
+                    model.addAttribute(TextConstants.ERROR, " Bad Client Id");
+                    return TextConstants.LTI3ERROR;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid client_id");
+                }
             }
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
-                model.addAttribute(TextConstants.ERROR, " Bad Deployment Id");
-                return TextConstants.LTI3ERROR;
+                if (model != null) {
+                    model.addAttribute(TextConstants.ERROR, " Bad Deployment Id");
+                    return TextConstants.LTI3ERROR;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
+                }
             }
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
@@ -132,11 +144,9 @@ public class LTI3Controller {
         String link = req.getParameter("link");
         LTI3Request lti3Request = LTI3Request.getInstance(link);
         String target = lti3Request.getLtiTargetLinkUrl();
-        System.out.println(target);
         String jwt = req.getParameter("id_token");
         String redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", jwt).build().toUriString();
 
-        CloseableHttpClient client = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(redirect);
         CloseableHttpResponse response = client.execute(httpPost);
         ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
