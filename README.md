@@ -6,10 +6,20 @@ IMS LTI 1.3 based starter (sample) application written using Java and Spring Boo
 The goal is to have a Java based web app which can serve as the basis (or starting point) for building a fully compliant
 LTI 1.3 tool.
 
+Prerequisites
+-------
+If you do not have Java installed we recommend installing the [adoptium](https://adoptium.net/installation.html) version through homebrew
+
+    brew install --cask temurin
+
+You will also need Maven
+
+    brew install maven
+
 
 Build
 -----
-This will produce a lti13demo.jar file in the *target* directory
+This will produce a lti13middleware.jar file in the *target* directory
 
     mvn install 
 
@@ -21,14 +31,14 @@ Quick Run
 ---------
 You can run the app in place to try it out without having to install and deploy a servlet container.
 
-    mvn clean install -DskipTests=true spring-boot:run
+    mvn clean install spring-boot:run
 
 Then go to the following default URL:
 
     https://localhost:9090/
 
 NOTE: To run it and connect it to real LMSs it is recommended to run it in an accessible server 
-with a valid certificate.
+with a valid certificate. (See steps below for Adding PKCS8 RSA Keys, Setting Up SSL Cert and Using Ngrok)
 
 Endpoints
 ---------
@@ -58,16 +68,23 @@ use a properties file external to the jar to avoid to store sensitive values in 
 
 ```--spring.config.location=/home/yourhomefolder/application-local.properties```
 
+Full Run
+-------
+The following command below will run the app with the `application-local.properties` file assuming you placed it in the root of the project.
+Find the name of the .jar file in the *target* directory and replace `"name-of-.jar"` with your `.jar`
+
+    java -jar target/"name-of-.jar" --spring.config.location=/application-local.properties
+
 Adding PKCS8 RSA Keys to the application.properties file
 --------------------------------------------------------
 1. cd to the directory that you want the keys to be located
 2. `openssl genrsa -out keypair.pem 2048`
 3. `openssl rsa -in keypair.pem -pubout -out publickey.crt`
 4. `cat publickey.crt`
-5. Copy this value to `oidc.publickey` inside the application.properties file. Ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+5. Copy this value to `oidc.publickey` inside the application.properties file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 6. `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key`
 7. `cat pkcs8.key`
-8. Copy this value to `oidc.privatekey` inside the application.properties file. Ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+8. Copy this value to `oidc.privatekey` inside the application.properties file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 
 Setting Up SSL Cert for Local Development
 -----------------------------------------
@@ -88,11 +105,11 @@ application.url=https://localhost:443
 ```
 5. After running the spring boot application, you should be able to reach it at https://localhost:443
 
-
 Using Ngrok For Local SSL Cert
 -------------------------------------
 1. Download and install ngrok
-2. `./ngrok http 9090` (Note: This port number must match the value of `server.port` in the application.properties file.)
-3. Utilize the https url from ngrok when registering your tool with the platform   
+2. You will need to set up an account to use localhost. See the [setup instructions](https://dashboard.ngrok.com/get-started/setup)
+3. `./ngrok http 443` (Note: This port number must match the value of `server.port` in the application.properties file.)
+4. Utilize the https url from ngrok when registering your tool with the platform   
 
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
