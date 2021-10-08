@@ -27,4 +27,5 @@
 /.scannerwork/
 /sonar-project.properties
 
+application-local.properties
 *.p12
