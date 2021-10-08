@@ -113,3 +113,21 @@ Using Ngrok For Local SSL Cert
 4. Utilize the https url from ngrok when registering your tool with the platform   
 
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+
+Turning Demo/Test Features On/Off
+---------------------------------
+In the `application.properties` file, the following env variables have been added.
+```
+lti13.demoMode=false
+lti13.enableAGS=true
+lti13.enableMembership=false
+lti13.enableDynamicRegistration=false
+lti13.enableDeepLinking=false
+lti13.enableRoleTesting=false
+lti13.enableTokenController=false
+```
+ - `lti13.demoMode` must have a value of `true` for AGS, Membership, or Deep Linking (the LTI Advantage Services) to function regardless of the value of their individual env variables. This is because each of these services is currently a demo.
+ - `lti13.enableAGS` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Assignments and Grades (AGS) demo service to function.
+ - `lti13.enableMembership` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Membership demo service to function.
+ - `lti13.enableDeepLinking` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Deep Linking demo service to function.
+ - The remaining new env vars `lti13.enableDynamicRegistration`, `lti13.enableRoleTesting`, `lti13.enableTokenController` are for test endpoints. `lti13.enableDynamicRegistration` corresponds to the `RegistrationController` which has not been tested. `lti13.enableRoleTesting` corresponds to the `TestController` which I suspect will be deleted as role authorization is not needed. `lti13.enableTokenController` corresponds to `TokenController` which I suspect will be deleted if it remains unused.
