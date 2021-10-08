@@ -22,6 +22,7 @@ import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
@@ -29,8 +30,6 @@ import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,15 +46,11 @@ import java.util.UUID;
  * This manages all the data processing for the LTIRequest (and for LTI in general)
  * Necessary to get appropriate TX handling and service management
  */
+@Slf4j
 @Service
 public class LTIJWTServiceImpl implements LTIJWTService {
-
-    static final Logger log = LoggerFactory.getLogger(LTIJWTServiceImpl.class);
-
     @Autowired
     LTIDataService ltiDataService;
-
-    String error;
 
     /**
      * This will check that the state has been signed by us and retrieve the issuer private key.

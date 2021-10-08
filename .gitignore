@@ -28,4 +28,4 @@
 /sonar-project.properties
 
 application-local.properties
-src/main/resources/keystore.p12
+*.p12

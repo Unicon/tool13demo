@@ -18,6 +18,7 @@ import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.BadTokenException;
 import net.unicon.lti.service.app.APIJWTService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping(value = "/api/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
+@ConditionalOnExpression("${lti13.enableTokenController}")
 public class TokenController {
 
     @Autowired

@@ -13,6 +13,7 @@
 package net.unicon.lti.controller.lti;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
@@ -21,9 +22,8 @@ import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.AdvantageMembershipService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,13 +38,12 @@ import java.util.Optional;
  * This LTI 3 redirect controller will retrieve the LTI3 requests and redirect them to the right page.
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/membership")
+@ConditionalOnExpression("${lti13.enableMembership}")
 public class MembershipController {
-
-    static final Logger log = LoggerFactory.getLogger(MembershipController.class);
-
     @Autowired
     LtiContextRepository ltiContextRepository;
 

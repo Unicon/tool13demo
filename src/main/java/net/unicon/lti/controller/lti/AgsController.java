@@ -27,6 +27,7 @@ import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -50,6 +51,7 @@ import java.util.Optional;
 @Controller
 @Scope("session")
 @RequestMapping("/ags")
+@ConditionalOnExpression("${lti13.enableAGS}")
 public class AgsController {
 
     static final Logger log = LoggerFactory.getLogger(AgsController.class);
