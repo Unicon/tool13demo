@@ -28,9 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -72,10 +70,6 @@ public class LTI3ControllerTest {
 
     private static MockedStatic<LTI3Request> lti3RequestMockedStatic;
 
-    private final PrintStream standardOut = System.out;
-    private final ByteArrayOutputStream outputStreamCaptor = new ByteArrayOutputStream();
-
-
     @Configuration
     static class ContextConfiguration {
 
@@ -91,7 +85,6 @@ public class LTI3ControllerTest {
         when(jwsClaims.getBody()).thenReturn(claims);
         when(ltijwtService.validateState(VALID_STATE)).thenReturn(jwsClaims);
         lti3RequestMockedStatic.when(() -> LTI3Request.getInstance("https://tool.com/test")).thenReturn(lti3Request);
-        System.setOut(new PrintStream(outputStreamCaptor));
     }
 
     @AfterEach
