@@ -104,7 +104,10 @@ public class LTI3ControllerTest {
         when(claims.get("clientId")).thenReturn("client-id-1");
         when(lti3Request.getAud()).thenReturn("bad-client-id");
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> {lti3Controller.lti3(req, null);});
+        ResponseStatusException exception = Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> {lti3Controller.lti3(req, res);}
+        );
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
         assertEquals(exception.getReason(), "Invalid client_id");
@@ -117,7 +120,10 @@ public class LTI3ControllerTest {
         when(lti3Request.getAud()).thenReturn("client-id-1");
         when(lti3Request.getLtiDeploymentId()).thenReturn("bad-deployment-id");
 
-        ResponseStatusException exception = Assertions.assertThrows(ResponseStatusException.class, () -> {lti3Controller.lti3(req, null);});
+        ResponseStatusException exception = Assertions.assertThrows(
+                ResponseStatusException.class,
+                () -> {lti3Controller.lti3(req, res);}
+        );
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
         assertEquals(exception.getReason(), "Invalid deployment_id");
@@ -125,21 +131,12 @@ public class LTI3ControllerTest {
 
     @Test
     public void testLTI3DemoModeOff() {
-        when(claims.get("clientId")).thenReturn("client-id-1");
-        when(claims.get("ltiDeploymentId")).thenReturn("deployment-id-1");
-        when(lti3Request.getAud()).thenReturn("client-id-1");
-        when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
-        when(ltiDataService.getDemoMode()).thenReturn(false);
-
-        String response = lti3Controller.lti3(req, null);
-        Mockito.verify(ltijwtService).validateState(VALID_STATE);
-        Mockito.verify(ltiDataService).getDemoMode();
-        assertEquals("forward:/lti3/target", response);
-    }
-
-    @Test
-    public void testTarget() {
         try {
+            when(claims.get("clientId")).thenReturn("client-id-1");
+            when(claims.get("ltiDeploymentId")).thenReturn("deployment-id-1");
+            when(lti3Request.getAud()).thenReturn("client-id-1");
+            when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
+            when(ltiDataService.getDemoMode()).thenReturn(false);
             String testPostResponse = "testing response";
             ServletOutputStream outputStream = Mockito.mock(ServletOutputStream.class);
             when(res.getOutputStream()).thenReturn(outputStream);
@@ -149,9 +146,30 @@ public class LTI3ControllerTest {
             when(entity.getContent()).thenReturn(IOUtils.toInputStream(testPostResponse, "UTF-8"));
             when(response.getEntity()).thenReturn(entity);
             when(client.execute(any(HttpPost.class))).thenReturn(response);
-            lti3Controller.getExternalPage(req, res);
+
+            lti3Controller.lti3(req, res);
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(client).execute(any(HttpPost.class));
             Mockito.verify(outputStream).write(any(byte[].class), eq(0), eq(testPostResponse.length()));
+        } catch (IOException e) {
+            fail("IOException should not be thrown.");
+        }
+    }
+
+    @Test
+    public void testLTI3DemoModeOn() {
+        when(claims.get("clientId")).thenReturn("client-id-1");
+        when(claims.get("ltiDeploymentId")).thenReturn("deployment-id-1");
+        when(lti3Request.getAud()).thenReturn("client-id-1");
+        when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
+        when(ltiDataService.getDemoMode()).thenReturn(true);
+
+        lti3Controller.lti3(req, res);
+        Mockito.verify(ltijwtService).validateState(VALID_STATE);
+        Mockito.verify(ltiDataService).getDemoMode();
+        try {
+            Mockito.verify(res).sendRedirect(any(String.class));
         } catch (IOException e) {
             fail("IOException should not be thrown.");
         }
