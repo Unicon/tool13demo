@@ -24,6 +24,7 @@ import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
+import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -44,6 +45,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /**
@@ -65,7 +67,7 @@ public class LTI3Controller {
 
     LTI3Request lti3Request;
 
-    private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+    private final CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
     public void lti3(HttpServletRequest req, HttpServletResponse res)  {
@@ -89,8 +91,8 @@ public class LTI3Controller {
 
             if (!ltiDataService.getDemoMode()) {
                 String target = lti3Request.getLtiTargetLinkUrl();
-                String jwt = req.getParameter("id_token");
-                String redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", jwt).build().toUriString();
+                String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
+                String redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUriString();
                 HttpPost httpPost = new HttpPost(redirect);
                 CloseableHttpResponse response = client.execute(httpPost);
                 ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
@@ -101,6 +103,8 @@ public class LTI3Controller {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
         } catch (IOException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
+        } catch (GeneralSecurityException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }
     }
 
