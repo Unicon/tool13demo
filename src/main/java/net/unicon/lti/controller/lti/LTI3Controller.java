@@ -67,7 +67,7 @@ public class LTI3Controller {
 
     LTI3Request lti3Request;
 
-    private final CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+    private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
     public void lti3(HttpServletRequest req, HttpServletResponse res)  {
