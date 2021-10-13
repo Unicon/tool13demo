@@ -29,6 +29,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -140,13 +144,21 @@ public class LTI3ControllerTest {
             when(response.getEntity()).thenReturn(entity);
             when(client.execute(any(HttpPost.class))).thenReturn(response);
 
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(1024);
+            KeyPair kp = kpg.generateKeyPair();
+            Base64.Encoder encoder = Base64.getEncoder();
+            String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";
+            when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKey);
+            when(lti3Request.getClaims()).thenReturn(claims);
+
             lti3Controller.lti3(req, res);
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
             Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(client).execute(any(HttpPost.class));
             Mockito.verify(outputStream).write(any(byte[].class), eq(0), eq(testPostResponse.length()));
-        } catch (IOException e) {
-            fail("IOException should not be thrown.");
+        } catch (IOException | NoSuchAlgorithmException e) {
+            fail("Exception should not be thrown.");
         }
     }
 
