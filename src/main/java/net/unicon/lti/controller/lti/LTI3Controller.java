@@ -95,7 +95,8 @@ public class LTI3Controller {
                 CloseableHttpResponse response = client.execute(httpPost);
                 ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
             } else {
-                res.sendRedirect("/demo?link=" + link);
+                String redirectPath = link == null ? "/demo" : "/demo?link=" + link;
+                res.sendRedirect(redirectPath);
             }
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
