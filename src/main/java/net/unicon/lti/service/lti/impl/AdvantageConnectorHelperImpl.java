@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.service.lti.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.PlatformDeployment;
@@ -25,8 +26,6 @@ import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,17 +45,16 @@ import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+@Slf4j
 @Service
 public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
-
     @Autowired
     LTIJWTService ltijwtService;
 
+    RestTemplate restTemplate;
+
     @Autowired
     private ExceptionMessageGenerator exceptionMessageGenerator;
-
-    static final Logger log = LoggerFactory.getLogger(AdvantageConnectorHelperImpl.class);
-
 
     @Override
     public HttpEntity createRequestEntity(String apiKey) {
@@ -97,7 +95,7 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
     public HttpEntity<Score> createTokenizedRequestEntity(LTIToken LTIToken, Score score) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + LTIToken.getAccess_token());
-        headers.set(HttpHeaders.CONTENT_TYPE, "application/vnd.ims.lis.v2.score+json");
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/vnd.ims.lis.v1.score+json");
         return new HttpEntity<>(score, headers);
     }
 
@@ -105,26 +103,15 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
     //The platformDeployment has the URL to ask for the token.
     @Override
     public LTIToken getToken(PlatformDeployment platformDeployment, String scope) throws ConnectionException {
-        LTIToken LTIToken = null;
-        try {
+        LTIToken ltiToken = null;
+        ResponseEntity<LTIToken> reportPostResponse = null;
 
-            // We need an specific request for the token.
+        try {
+            // We need a specific request for the token.
             HttpEntity request = createTokenRequest(scope, platformDeployment);
             final String POST_TOKEN_URL = platformDeployment.getOAuth2TokenUrl();
             log.debug("POST_TOKEN_URL -  " + POST_TOKEN_URL);
-            ResponseEntity<LTIToken> reportPostResponse = postEntity(POST_TOKEN_URL, request, platformDeployment, scope);
-            if (reportPostResponse != null) {
-                HttpStatus status = reportPostResponse.getStatusCode();
-                if (status.is2xxSuccessful()) {
-                    LTIToken = reportPostResponse.getBody();
-                } else {
-                    String exceptionMsg = "Can't get the token: " + status.getReasonPhrase();
-                    log.error(exceptionMsg);
-                    throw new ConnectionException(exceptionMsg);
-                }
-            } else {
-                log.warn("Problem getting the token");
-            }
+            reportPostResponse = postEntity(POST_TOKEN_URL, request, platformDeployment, scope);
         } catch (Exception e) {
             log.error("ERROR GETTING THE TOKEN", e);
             StringBuilder exceptionMsg = new StringBuilder();
@@ -132,16 +119,29 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
             log.error(exceptionMsg.toString());
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
-        return LTIToken;
-    }
 
+        if (reportPostResponse != null) {
+            HttpStatus status = reportPostResponse.getStatusCode();
+            if (status.is2xxSuccessful()) {
+                ltiToken = reportPostResponse.getBody();
+            } else {
+                String exceptionMsg = "Can't get the token: " + status.getReasonPhrase();
+                log.error(exceptionMsg);
+                throw new ConnectionException(exceptionMsg);
+            }
+        } else {
+            String exceptionMsg = "Problem getting the token";
+            log.error(exceptionMsg);
+            throw new ConnectionException(exceptionMsg);
+        }
+        return ltiToken;
+    }
 
     private ResponseEntity<LTIToken> postEntity(String POST_TOKEN_URL, HttpEntity request, PlatformDeployment platformDeployment, String scope) throws GeneralSecurityException, IOException {
         ResponseEntity<LTIToken> reportPostResponse;
-        RestTemplate restTemplate = createRestTemplate();
+        restTemplate = restTemplate == null ? createRestTemplate() : restTemplate;
         try {
-            reportPostResponse = restTemplate.
-                    postForEntity(POST_TOKEN_URL, request, LTIToken.class);
+            reportPostResponse = restTemplate.postForEntity(POST_TOKEN_URL, request, LTIToken.class);
         } catch (Exception ex) {
             log.error("ERROR GETTING THE TOKEN", ex);
             log.error("Can't get the token. Exception. We will try again with a JSON Payload");

@@ -522,7 +522,7 @@ public class LTI3Request {
             try {
                 return Integer.valueOf(map.get(integerToGet).toString());
             } catch (Exception ex) {
-                log.error("No integer when expected in: {0}. Returning null", integerToGet);
+                log.error("No integer when expected in: {}. Returning null", integerToGet);
                 return null;
             }
         } else {
@@ -535,7 +535,7 @@ public class LTI3Request {
             try {
                 return (List<String>) map.get(listToGet);
             } catch (Exception ex) {
-                log.error("No list when expected in: {0} Returning null", listToGet);
+                log.error("No list when expected in: {} Returning null", listToGet);
                 return new ArrayList<>();
             }
         } else {
@@ -548,7 +548,7 @@ public class LTI3Request {
             try {
                 return jws.getBody().get(mapToGet, Map.class);
             } catch (Exception ex) {
-                log.error("No map integer when expected in: {0}. Returning null", mapToGet);
+                log.error("No map integer when expected in: {}. Returning null", mapToGet);
                 return new HashMap<>();
             }
         } else {
