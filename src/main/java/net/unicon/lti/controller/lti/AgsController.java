@@ -13,6 +13,7 @@
 package net.unicon.lti.controller.lti;
 
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
@@ -22,10 +23,9 @@ import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.AdvantageAGSService;
+import net.unicon.lti.utils.AGSScope;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
@@ -48,13 +48,12 @@ import java.util.Optional;
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
 @SuppressWarnings("SameReturnValue")
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/ags")
 @ConditionalOnExpression("${lti13.enableAGS}")
 public class AgsController {
-
-    static final Logger log = LoggerFactory.getLogger(AgsController.class);
     static final String LTIADVAGSMAIN = "ltiAdvAgsMain";
     static final String LTIADVAGSDETAIL = "ltiAdvAgsDetail";
 
@@ -86,8 +85,8 @@ public class AgsController {
 
                 //Call the ags service to get the users on the context
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_LINEITEMS_SCOPE, platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_RESULTS_SCOPE, platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
                 // 2. Call the service
                 LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
@@ -122,8 +121,8 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_LINEITEMS_SCOPE, platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_RESULTS_SCOPE, platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
@@ -163,8 +162,8 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_LINEITEMS_SCOPE, platformDeployment.get());
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_RESULTS_SCOPE, platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
@@ -201,7 +200,7 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_LINEITEMS_SCOPE, platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
@@ -239,7 +238,7 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken(AGSScope.AGS_LINEITEMS_SCOPE, platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service

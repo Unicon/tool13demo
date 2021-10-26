@@ -177,4 +177,15 @@ public class LtiStrings {
     public static final String PLATFORM_CONFIGURATION = "platform_configuration";
     public static final String TOOL_CONFIGURATION = "tool_configuration";
 
+    //Assignments & Grades Service (AGS)
+    public static final String ACTIVITY_PROGRESS_INITIALIZED = "Initialized";
+    public static final String ACTIVITY_PROGRESS_STARTED = "Started";
+    public static final String ACTIVITY_PROGRESS_IN_PROGRESS = "InProgress";
+    public static final String ACTIVITY_PROGRESS_SUBMITTED = "Submitted";
+    public static final String ACTIVITY_PROGRESS_COMPLETED = "Completed";
+    public static final String GRADING_PROGRESS_FULLY_GRADED = "FullyGraded";
+    public static final String GRADING_PROGRESS_PENDING = "Pending";
+    public static final String GRADING_PROGRESS_PENDING_MANUAL = "PendingManual";
+    public static final String GRADING_PROGRESS_FAILED = "Failed";
+    public static final String GRADING_PROGRESS_NOT_READY = "NotReady";
 }
