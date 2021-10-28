@@ -109,7 +109,7 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
         try {
             // We need a specific request for the token.
             HttpEntity request = createTokenRequest(scope, platformDeployment);
-            final String POST_TOKEN_URL = platformDeployment.getOAuth2TokenUrl();
+            final String POST_TOKEN_URL = platformDeployment.getoAuth2TokenUrl();
             log.debug("POST_TOKEN_URL -  " + POST_TOKEN_URL);
             reportPostResponse = postEntity(POST_TOKEN_URL, request, platformDeployment, scope);
         } catch (Exception e) {

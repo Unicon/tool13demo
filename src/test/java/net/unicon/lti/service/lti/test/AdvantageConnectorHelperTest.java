@@ -78,7 +78,7 @@ public class AdvantageConnectorHelperTest {
     public void testGetTokenForAGSScores() {
         try {
             PlatformDeployment platformDeployment = new PlatformDeployment();
-            platformDeployment.setOAuth2TokenUrl("https://lms.com/oauth2/token");
+            platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
             when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
             LTIToken ltiToken = new LTIToken();
             ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.OK);
@@ -99,7 +99,7 @@ public class AdvantageConnectorHelperTest {
         try {
             Exception exception = assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
-                platformDeployment.setOAuth2TokenUrl("https://lms.com/oauth2/token");
+                platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
                 when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
                 LTIToken ltiToken = new LTIToken();
                 ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.BAD_REQUEST);
@@ -121,7 +121,7 @@ public class AdvantageConnectorHelperTest {
         try {
             Exception exception = assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
-                platformDeployment.setOAuth2TokenUrl("https://lms.com/oauth2/token");
+                platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
                 when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
                 when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(null);
 
@@ -141,7 +141,7 @@ public class AdvantageConnectorHelperTest {
         try {
             assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
-                platformDeployment.setOAuth2TokenUrl("https://lms.com/oauth2/token");
+                platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
                 when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenThrow(GeneralSecurityException.class);
 
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());

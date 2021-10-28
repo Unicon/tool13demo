@@ -12,8 +12,6 @@
  */
 package net.unicon.lti.model;
 
-import lombok.Data;
-
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,7 +24,6 @@ import javax.persistence.Table;
 import java.util.Objects;
 import java.util.Set;
 
-@Data
 @Entity
 @Table(name = "iss_configuration")
 public class PlatformDeployment extends BaseEntity {
@@ -58,6 +55,79 @@ public class PlatformDeployment extends BaseEntity {
 
     @OneToMany(mappedBy = "platformDeployment", fetch = FetchType.LAZY)
     private Set<LtiContextEntity> contexts;
+
+
+    public long getKeyId() {
+        return keyId;
+    }
+
+    public void setKeyId(long keyId) {
+        this.keyId = keyId;
+    }
+
+    public String getIss() {
+        return iss;
+    }
+
+    public void setIss(String iss) {
+        this.iss = iss;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getOidcEndpoint() {
+        return oidcEndpoint;
+    }
+
+    public void setOidcEndpoint(String oidcEndpoint) {
+        this.oidcEndpoint = oidcEndpoint;
+    }
+
+    public String getJwksEndpoint() {
+        return jwksEndpoint;
+    }
+
+    public void setJwksEndpoint(String jwksEndpoint) {
+        this.jwksEndpoint = jwksEndpoint;
+    }
+
+    public String getoAuth2TokenUrl() {
+        return oAuth2TokenUrl;
+    }
+
+    public void setoAuth2TokenUrl(String oAuth2TokenUrl) {
+        this.oAuth2TokenUrl = oAuth2TokenUrl;
+    }
+
+    public String getoAuth2TokenAud() {
+        return oAuth2TokenAud;
+    }
+
+    public void setoAuth2TokenAud(String oAuth2TokenAud) {
+        this.oAuth2TokenAud = oAuth2TokenAud;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
+    }
+
+    public Set<LtiContextEntity> getContexts() {
+        return contexts;
+    }
+
+    public void setContexts(Set<LtiContextEntity> contexts) {
+        this.contexts = contexts;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -97,7 +97,7 @@ public class ConfigurationController {
         }
 
         PlatformDeployment platformDeploymentToChange = platformDeploymentSearchResult.get();
-        platformDeploymentToChange.setOAuth2TokenUrl(platformDeployment.getOAuth2TokenUrl());
+        platformDeploymentToChange.setoAuth2TokenUrl(platformDeployment.getoAuth2TokenUrl());
         platformDeploymentToChange.setClientId(platformDeployment.getClientId());
         platformDeploymentToChange.setDeploymentId(platformDeployment.getDeploymentId());
         platformDeploymentToChange.setIss(platformDeployment.getIss());
