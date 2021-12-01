@@ -108,8 +108,8 @@ echo "  Creating Dockerrun.aws.json file"
 echo -e "============================================================\n"
 
 cp deploy/Dockerrun.aws.json.template "$DOCKERRUN_FILENAME"
-sed -i '' "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_NUMBER}/" "$DOCKERRUN_FILENAME"
-sed -i '' "s/ECR_IMAGE_TAG/${AWS_ECR_IMAGE_TAG}/" "$DOCKERRUN_FILENAME"
+sed -i "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_NUMBER}/" "$DOCKERRUN_FILENAME"
+sed -i "s/ECR_IMAGE_TAG/${AWS_ECR_IMAGE_TAG}/" "$DOCKERRUN_FILENAME"
 cat "$DOCKERRUN_FILENAME"
 
 
