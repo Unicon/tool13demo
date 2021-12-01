@@ -37,7 +37,7 @@ public class SQSMessageReceiver {
     @Autowired
     AdvantageAGSService advantageAGSServiceImpl;
 
-    @SqsListener(value = "${cloud.aws.end-point.uri}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    @SqsListener(value = "${lti13.grade-passback-queue}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void receiveMessage(
             String sqsLineItemJson,
             @Header("ApproximateReceiveCount") int receiveCount,

@@ -1,0 +1,25 @@
+**/.git
+**/.DS_Store
+**/node_modules
+Dockerfile
+.dockerignore
+.git
+.gitignore
+docker-compose.*
+.ebextensions
+
+.byebug_history
+npm-debug.log
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+coverage
+
+Dockerrun.aws.travis*
+.env
+*.key
+*.pem
+*.crt

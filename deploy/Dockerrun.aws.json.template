@@ -1,0 +1,12 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/lti-service:ECR_IMAGE_TAG",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8080"
+    }
+  ]
+}

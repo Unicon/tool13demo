@@ -135,5 +135,5 @@ lti13.enableTokenController=false
 Setup SQS for AGS Grade Pass Back
 ---------------------------------
 1. The access key and secret key for an AWS IAM user with programmatic access to SQS should be filled in for `cloud.aws.credentials.access-key` and `cloud.aws.credentials.secret-key` in the application.properties file. Alternatively, environment variables may be set for `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`.
-2. The URI for a SQS queue should be filled in for either `cloud.aws.end-point.uri` in the application.properties file, or `AGS_SQS_URI` as an environment variable.
+2. The URI for a SQS queue should be filled in for either `lti13.grade-passback-queue` or as `LTI13_GRADE_PASSBACK_QUEUE` environment variable.
 3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the application.properties file or `AWS_REGION` as an environment variable.
