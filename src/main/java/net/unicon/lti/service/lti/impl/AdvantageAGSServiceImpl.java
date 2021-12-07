@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.service.lti.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.LtiContextEntity;
@@ -307,7 +308,9 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
+            ObjectMapper Obj = new ObjectMapper();
+            String jsonStr = Obj.writeValueAsString(score);
+            HttpEntity<String> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, jsonStr);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String POST_SCORES = lineItemId + "/scores";
