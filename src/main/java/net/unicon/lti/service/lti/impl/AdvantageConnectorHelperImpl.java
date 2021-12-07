@@ -94,10 +94,10 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
 
     // We put the token in the Authorization as a simple Bearer one.
     @Override
-    public HttpEntity<Score> createTokenizedRequestEntity(LTIToken LTIToken, Score score) {
+    public HttpEntity<String> createTokenizedRequestEntity(LTIToken LTIToken, String score) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + LTIToken.getAccess_token());
-        headers.set(HttpHeaders.CONTENT_TYPE, "application/vnd.ims.lis.v2.score+json");
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/vnd.ims.lis.v1.score+json");
         return new HttpEntity<>(score, headers);
     }
 

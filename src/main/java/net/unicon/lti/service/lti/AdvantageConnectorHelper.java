@@ -16,6 +16,10 @@ public interface AdvantageConnectorHelper {
     // We put the token in the Authorization as a simple Bearer one.
     HttpEntity createTokenizedRequestEntity(LTIToken LTIToken);
 
+    //TODO. I needed to change the score one to send a JSON string instead the object.
+    // The Lineitems are working fine as they are, but if someday they don't work we will need
+    // to do the same.
+
     // We put the token in the Authorization as a simple Bearer one.
     HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, LineItem lineItem, String type);
 
@@ -23,7 +27,7 @@ public interface AdvantageConnectorHelper {
     HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems);
 
     // We put the token in the Authorization as a simple Bearer one.
-    HttpEntity<Score> createTokenizedRequestEntity(LTIToken LTIToken, Score score);
+    HttpEntity<String> createTokenizedRequestEntity(LTIToken LTIToken, String score);
 
     //Asking for a token. The scope will come in the scope parameter
     //The platformDeployment has the URL to ask for the token.
