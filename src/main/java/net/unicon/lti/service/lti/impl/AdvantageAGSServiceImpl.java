@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.service.lti.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.LtiContextEntity;
@@ -24,10 +25,9 @@ import net.unicon.lti.model.ags.Score;
 import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.AdvantageConnectorHelper;
+import net.unicon.lti.utils.AGSScope;
 import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -45,6 +45,7 @@ import java.util.Objects;
  * This manages all the Membership call for the LTIRequest (and for LTI in general)
  * Necessary to get appropriate TX handling and service management
  */
+@Slf4j
 @Service
 public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
@@ -54,20 +55,10 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     @Autowired
     private ExceptionMessageGenerator exceptionMessageGenerator;
 
-    static final Logger log = LoggerFactory.getLogger(AdvantageAGSServiceImpl.class);
-
     //Asking for a token with the right scope.
     @Override
-    public LTIToken getToken(String type, PlatformDeployment platformDeployment) throws ConnectionException {
-
-        String scope = "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem";
-        if (type.equals("results")) {
-            scope = "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly";
-        }
-        if (type.equals("scores")) {
-            scope = "https://purl.imsglobal.org/spec/lti-ags/scope/score";
-        }
-        return advantageConnectorHelper.getToken(platformDeployment, scope);
+    public LTIToken getToken(AGSScope agsScope, PlatformDeployment platformDeployment) throws ConnectionException {
+        return advantageConnectorHelper.getToken(platformDeployment, agsScope.getScope());
     }
 
     //Calling the AGS service and getting a paginated result of lineitems.
@@ -329,7 +320,26 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         }
     }
 
-    //POST SCORES
+    @Override
+    public ResponseEntity<Void> postScore(LTIToken lTITokenScores, String lineItemId, Score score) throws ConnectionException {
+        try {
+            log.debug(TextConstants.TOKEN + lTITokenScores.getAccess_token());
+            RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
+
+            // Add the token and score to the request entity
+            HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
+
+            final String POST_SCORES = lineItemId + "/scores";
+            log.debug("POST_SCORES -  " + POST_SCORES);
+            ResponseEntity<Void> postScoreResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
+            return postScoreResponse;
+        } catch (Exception e) {
+            StringBuilder exceptionMsg = new StringBuilder();
+            exceptionMsg.append("Can't post scores");
+            log.error(exceptionMsg.toString(), e);
+            throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
+        }
+    }
 
     @Override
     public void cleanLineItem(LineItem lineItem){

@@ -1,0 +1,43 @@
+language: minimal
+services:
+  - docker
+env:
+  - DOCKER_COMPOSE_VERSION=1.29.2
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+  - pip install --user awscli
+before_script:
+  - deploy/docker_registry_login.sh
+  - docker-compose -f docker-compose.yml build
+  - docker-compose -f docker-compose.yml up -d db
+notifications:
+  slack:
+    secure: jEoICshI8S2R/QgcaE2s2jII/gQIZcAjbE/BPS79fCPO/n1UkhLp9dvOXIl3gfCa6RCQ/VHurwpKp/V2Baz08jPzlKpcbEjQpdLzGFNekq6F/hJAcYJSxjpX2uG+0VnsAEPt4BBGv+XN66UoVsisycR9ZokzIbxBB8d1aZ1RPxQW0vW696HcdPF1XeMMY1hGHLInzAJ/hhPu1Pdp/xw4GjODqEy1/s2bNXhbJoP38DAUm+UTKAfHo+s6E8MrAmyfCUPH77JXagS/ydfxe/PZiOpJzyqyoXWvg0E6wrGiA5t+V7pvgQen2zqik1IcUaCyxmdMMP8JCYZtIjnK8SAHJYD5UigXWP+Zznfc+oUOsmpsrxcZJj35DoCFl7UiL6pHjSBdam0GpaW5feczMfHwkLUZksImfJ6o0aC6qF4TVUb8Po716Q9zmC1uupuDg0/0adPNE8gMs28CSIncsPtZM9HMzETF/G4BOdsSin712Pgd7vPqrhSN7jH+80Q9q0+sXuM1atxtqzOXxHnPA+F2JBG4xsyiidHvrv3vykENcMaXvBy0nj+ltKq6rXPlgW3T4wEMD+eeEyeI2xb5c7foDzaMkcMG181D7dB/NRCscXa/uejXdMlN1L2RzkMTSiuxcard0QCJgoJeRqhv/oGkVvoq4yNMEhcn2I2QpAO9ATE=
+jobs:
+  include:
+    - stage: "deploy to AWS"
+      name: "deploy to dev"
+      deploy:
+        - provider: script
+          script: bash deploy/docker_beanstalk_deploy.sh dev
+          on:
+            branch: dev-env
+    - stage: "deploy to AWS"
+      name: "deploy to staging"
+      deploy:
+        - provider: script
+          script: bash deploy/docker_beanstalk_deploy.sh stg
+          on:
+            branch: staging-env
+    - stage: "deploy to AWS"
+      name: "deploy to production"
+      if: tag =~ ^release/\d{4}-\d{2}-\d{2}
+      deploy:
+        - provider: script
+          script: bash deploy/docker_beanstalk_deploy.sh prod
+          on:
+            all_branches: true
+

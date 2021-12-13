@@ -13,81 +13,34 @@
 package net.unicon.lti.model.ags;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Score {
-    @JsonProperty("userId")
+    @JsonProperty(value = "userId", required = true)
     private String userId;
+
     @JsonProperty("scoreMaximum")
-    private String scoreMaximum;
+    private float scoreMaximum;
+
     @JsonProperty("scoreGiven")
-    private String scoreGiven;
+    private float scoreGiven;
+
+    @JsonInclude(JsonInclude.Include.NON_ABSENT)
     @JsonProperty("comment")
     private String comment;
-    @JsonProperty("activityProgress")
+
+    @JsonProperty(value = "activityProgress", required = true)
     private String activityProgress;
-    @JsonProperty("gradingProgress")
+
+    @JsonProperty(value = "gradingProgress", required = true)
     private String gradingProgress;
-    @JsonProperty("timestamp")
+
+    @JsonProperty(value = "timestamp", required = true)
     private String timestamp;
-
-    public Score() { //Empty on purpose
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getScoreMaximum() {
-        return scoreMaximum;
-    }
-
-    public void setScoreMaximum(String scoreMaximum) {
-        this.scoreMaximum = scoreMaximum;
-    }
-
-    public String getScoreGiven() {
-        return scoreGiven;
-    }
-
-    public void setScoreGiven(String scoreGiven) {
-        this.scoreGiven = scoreGiven;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public String getActivityProgress() {
-        return activityProgress;
-    }
-
-    public void setActivityProgress(String activityProgress) {
-        this.activityProgress = activityProgress;
-    }
-
-    public String getGradingProgress() {
-        return gradingProgress;
-    }
-
-    public void setGradingProgress(String gradingProgress) {
-        this.gradingProgress = gradingProgress;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
 }

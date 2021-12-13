@@ -28,4 +28,12 @@
 /sonar-project.properties
 
 application-local.properties
+
+# Deployment artifacts
+Dockerrun.aws.travis*
+
+# Locally generated certificates
+*.key
+*.pem
+*.crt
 *.p12

@@ -8,10 +8,12 @@ import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.ags.Results;
 import net.unicon.lti.model.ags.Score;
 import net.unicon.lti.model.oauth2.LTIToken;
+import net.unicon.lti.utils.AGSScope;
+import org.springframework.http.ResponseEntity;
 
 public interface AdvantageAGSService {
     //Asking for a token with the right scope.
-    LTIToken getToken(String scope, PlatformDeployment platformDeployment) throws ConnectionException;
+    LTIToken getToken(AGSScope agsScope, PlatformDeployment platformDeployment) throws ConnectionException;
 
     //Calling the AGS service and getting a paginated result of lineitems.
     LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context) throws ConnectionException;
@@ -29,6 +31,8 @@ public interface AdvantageAGSService {
     Results getResults(LTIToken LTITokenResults, LtiContextEntity context, String lineItemId) throws ConnectionException;
 
     Results postScore(LTIToken LTITokenScores, LTIToken LTITokenResults,LtiContextEntity context, String lineItemId, Score score) throws ConnectionException;
+
+    ResponseEntity<Void> postScore(LTIToken LTITokenScores, String lineItemId, Score score) throws ConnectionException;
 
     void cleanLineItem(LineItem lineItem);
 }
