@@ -25,6 +25,7 @@ import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -61,7 +62,7 @@ import java.util.Set;
 @Controller
 @Scope("session")
 @RequestMapping("/registration")
-//@ConditionalOnExpression("${lti13.enableDynamicRegistration}")
+@ConditionalOnExpression("${lti13.enableDynamicRegistration}")
 public class RegistrationController {
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
