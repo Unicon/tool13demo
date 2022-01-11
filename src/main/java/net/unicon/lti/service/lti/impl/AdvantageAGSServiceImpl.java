@@ -321,8 +321,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     @Override
-    public ResponseEntity<Void> postScore(LTIToken lTITokenScores, String lineItemId, Score score) throws ConnectionException {
-        try {
+    public ResponseEntity<Void> postScore(LTIToken lTITokenScores, String lineItemId, Score score) {
             log.debug(TextConstants.TOKEN + lTITokenScores.getAccess_token());
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
 
@@ -333,12 +332,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             log.debug("POST_SCORES -  " + POST_SCORES);
             ResponseEntity<Void> postScoreResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
             return postScoreResponse;
-        } catch (Exception e) {
-            StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't post scores");
-            log.error(exceptionMsg.toString(), e);
-            throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
-        }
     }
 
     @Override
