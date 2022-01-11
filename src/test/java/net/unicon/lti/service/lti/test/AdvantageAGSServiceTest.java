@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -79,14 +80,14 @@ public class AdvantageAGSServiceTest {
         when(advantageConnectorHelper.createTokenizedRequestEntity(ltiToken, score)).thenReturn(httpEntity);
         when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class))).thenThrow(RestClientException.class);
 
-        assertThrows(ConnectionException.class, () -> {
+        assertThrows(RestClientException.class, () -> {
             advantageAGSService.postScore(ltiToken, "https://lms.com/line_item/456", score);
         });
 
         verify(advantageConnectorHelper).createRestTemplate();
         verify(advantageConnectorHelper).createTokenizedRequestEntity(ltiToken, score);
         verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class));
-        verify(exceptionMessageGenerator).exceptionMessage(eq("Can't post scores"), any(Exception.class));
+        verify(exceptionMessageGenerator, never()).exceptionMessage(any(String.class), any(Exception.class));
     }
 
 }
