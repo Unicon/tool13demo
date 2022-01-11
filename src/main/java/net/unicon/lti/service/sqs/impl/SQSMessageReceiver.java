@@ -108,7 +108,6 @@ public class SQSMessageReceiver {
             newTimeout = newTimeout < 0 || newTimeout > 43199 ? 43199 : newTimeout;
             visibility.extend(newTimeout);
 
-            log.error(ex.toString());
             log.error("Score failed to post to LMS: {}", sqsLineItemJson);
             String lineItemsUrl = lineItemUrlToLineItemsUrl(lineItemUrl);
             LtiContextEntity course = ltiContextRepository.findByLineitems(lineItemsUrl);
