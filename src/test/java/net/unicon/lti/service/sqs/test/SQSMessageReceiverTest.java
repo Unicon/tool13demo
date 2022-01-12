@@ -59,7 +59,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessageWithNegativeScore() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": -0.2}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": -0.2}";
 
             sqsMessageReceiver.receiveMessage(sqsLineItemJson, 1, visibility, acknowledgment);
             verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString());
@@ -76,7 +76,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessageWithScoreGreaterThanOne() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": 1.1}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": 1.1}";
 
             sqsMessageReceiver.receiveMessage(sqsLineItemJson, 1, visibility, acknowledgment);
             verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString());
@@ -125,9 +125,26 @@ public class SQSMessageReceiverTest {
     }
 
     @Test
-    public void testReceiveMessageWithInvalidPlatformDeployment() {
+    public void testReceiveMessageWithOldLineItemUrlSchema() {
         try {
             String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": 0.8}";
+
+            sqsMessageReceiver.receiveMessage(sqsLineItemJson, 1, visibility, acknowledgment);
+            verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString());
+            verify(advantageAGSService, never()).getToken(eq(AGSScope.AGS_SCORES_SCOPE), any(PlatformDeployment.class));
+            verify(advantageAGSService, never()).postScore(any(LTIToken.class), anyString(), any(Score.class));
+            verify(ltiContextRepository).findByLineitems(eq(""));
+            verify(acknowledgment, never()).acknowledge();
+            verify(visibility, times(1)).extend(30);
+        } catch (ConnectionException e) {
+            fail("Exception should not be thrown.");
+        }
+    }
+
+    @Test
+    public void testReceiveMessageWithInvalidPlatformDeployment() {
+        try {
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": 0.8}";
 
             sqsMessageReceiver.receiveMessage(sqsLineItemJson, 1, visibility, acknowledgment);
             verify(platformDeploymentRepository, times(1)).findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString());
@@ -144,7 +161,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessageWithoutAccessToken() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -164,7 +181,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreFailure() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -189,7 +206,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreFailureWithMoodleLineitemUrlFormat() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"http://localhost:8000/mod/lti/services.php/3/lineitems/6/lineitem?type_id=14\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"http://localhost:8000/mod/lti/services.php/3/lineitems/6/lineitem?type_id=14\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -214,7 +231,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreFailureWithBlackboardLineitemUrlFormat() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"https://example.com/learn/api/v1/lti/courses/_122_1/lineItems/_7454_1\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"https://example.com/learn/api/v1/lti/courses/_122_1/lineItems/_7454_1\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -239,7 +256,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreFailureWithCanvasLineitemUrlFormat() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"https://test.instructure.com/api/lti/courses/3348/line_items/503\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"https://test.instructure.com/api/lti/courses/3348/line_items/503\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -264,7 +281,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreFailureWithD2LBrightspaceLineitemUrlFormat() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"https://test.brightspace.com/d2l/api/lti/ags/2.0/deployment/a748e0da-6cd3-4f8d-acf3-73f2e11457c9/orgunit/6836/lineitems/1\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"https://test.brightspace.com/d2l/api/lti/ags/2.0/deployment/a748e0da-6cd3-4f8d-acf3-73f2e11457c9/orgunit/6836/lineitems/1\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);
@@ -289,7 +306,7 @@ public class SQSMessageReceiverTest {
     @Test
     public void testReceiveMessagePostScoreSuccess() {
         try {
-            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"line_item_url\": \"test5\", \"score\": 0.8}";
+            String sqsLineItemJson = "{\"client_id\": \"test1\", \"user_id\": \"test2\", \"deployment_id\": \"test3\", \"issuer\": \"test4\", \"lineitem_url\": \"test5\", \"score\": 0.8}";
             PlatformDeployment platformDeployment = new PlatformDeployment();
             List<PlatformDeployment> platformDeploymentList = Collections.singletonList(platformDeployment);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(anyString(), anyString(), anyString())).thenReturn(platformDeploymentList);

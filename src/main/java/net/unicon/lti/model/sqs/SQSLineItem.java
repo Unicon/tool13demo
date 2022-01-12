@@ -22,8 +22,8 @@ public class SQSLineItem {
 
     private String issuer;
 
-    @JsonProperty("line_item_url")
-    private String lineItemUrl;
+    @JsonProperty("lineitem_url")
+    private String lineitemUrl;
 
     private float score; // between 0.0 - 1.0
 
