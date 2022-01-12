@@ -62,7 +62,7 @@ public class SQSMessageReceiver {
             SQSLineItem sqsLineItem = objectMapper.readValue(sqsLineItemJson, SQSLineItem.class);
 
             // Save lineitem url for logging
-            lineItemUrl = sqsLineItem.getLineItemUrl();
+            lineItemUrl = sqsLineItem.getLineitemUrl();
 
             // Validation
             if (sqsLineItem.getScore() < 0 || sqsLineItem.getScore() > 1) {
@@ -86,7 +86,7 @@ public class SQSMessageReceiver {
                 // 2. Post score
                 if (scoresToken != null && !StringUtils.isEmpty(scoresToken.getAccess_token())) {
                     log.debug(TextConstants.TOKEN + scoresToken.getAccess_token());
-                    ResponseEntity<Void> response = advantageAGSServiceImpl.postScore(scoresToken, sqsLineItem.getLineItemUrl(), score);
+                    ResponseEntity<Void> response = advantageAGSServiceImpl.postScore(scoresToken, sqsLineItem.getLineitemUrl(), score);
                     HttpStatus status = response.getStatusCode();
                     log.debug(status.name());
                     if (status.is2xxSuccessful()) {
