@@ -26,3 +26,9 @@
 
 /.scannerwork/
 /sonar-project.properties
+
+# Locally generated certificates
+*.key
+*.pem
+*.crt
+*.p12
