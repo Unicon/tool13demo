@@ -12,6 +12,8 @@
  */
 package net.unicon.lti.model.lti.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +25,8 @@ public class ToolConfigurationDTO {
     private String target_link_uri;
     private Map<String, String> custom_parameters;
     private String description;
-    private List<ToolMessagesSupportedDTO> messages_supported;
+    @JsonProperty("messages")
+    private List<ToolMessagesSupportedDTO> messages;
     private List<String> claims;
 
 
@@ -79,11 +82,11 @@ public class ToolConfigurationDTO {
     }
 
     public List<ToolMessagesSupportedDTO> getMessages_supported() {
-        return messages_supported;
+        return messages;
     }
 
-    public void setMessages_supported(List<ToolMessagesSupportedDTO> messages_supported) {
-        this.messages_supported = messages_supported;
+    public void setMessages_supported(List<ToolMessagesSupportedDTO> messages) {
+        this.messages = messages;
     }
 
     public List<String> getClaims() {
