@@ -32,7 +32,7 @@ with a valid certificate.
 
 Endpoints
 ---------
-Target: https://localhost:443/lti3   
+Target: https://localhost:443/lti3/   
 OIDC Initiation: https://localhost:443/oidc/login_initiations
 
 Creating the database
