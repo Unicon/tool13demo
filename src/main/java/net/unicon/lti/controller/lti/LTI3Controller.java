@@ -42,7 +42,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -109,13 +108,14 @@ public class LTI3Controller {
 //                }
 //                ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
             } else {
-                res.sendRedirect("/demo?link=" + link);
+                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
+//                res.sendRedirect("/demo?link=" + link);
             }
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
         } catch (GeneralSecurityException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }
