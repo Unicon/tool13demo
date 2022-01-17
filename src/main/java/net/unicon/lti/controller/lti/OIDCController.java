@@ -205,7 +205,7 @@ public class OIDCController {
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", NONE);  //Always this value, as specified in the standard.
-        authRequestMap.put("redirect_uri", "definitely invalid");  // One of the valid redirect uris.
+        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + "/lti3");  // One of the valid redirect uris.
         authRequestMap.put("response_mode", FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", ID_TOKEN); //Always this value, as specified in the standard.
         authRequestMap.put("scope", OPEN_ID);  //Always this value, as specified in the standard.
