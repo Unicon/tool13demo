@@ -22,6 +22,7 @@ import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
@@ -41,6 +42,7 @@ import java.util.List;
  */
 
 @Slf4j
+@Scope("session")
 public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
     LTIDataService ltiDataService;
     LTIJWTService ltijwtService;
