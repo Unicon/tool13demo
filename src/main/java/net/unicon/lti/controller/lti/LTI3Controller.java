@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.controller.lti;
 
+import com.google.common.io.ByteStreams;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.LtiLinkEntity;
 import net.unicon.lti.repository.LtiLinkRepository;
@@ -35,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 /**
@@ -59,15 +62,19 @@ public class LTI3Controller {
     private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
-    public String lti3(HttpServletRequest req)  {
+    public void lti3(HttpServletRequest req, HttpServletResponse res)  {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
 
-        return "test reached lti3";
 
-//        try {
+
+        try {
+            ByteStreams.copy(new ByteArrayInputStream(("testing ui output").getBytes()), res.getOutputStream());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //            Jws<Claims> claims = ltijwtService.validateState(state);
 //            lti3Request = LTI3Request.getInstance(link); // validates nonce & id_token
 //            // This is just an extra check that we have added, but it is not necessary.
