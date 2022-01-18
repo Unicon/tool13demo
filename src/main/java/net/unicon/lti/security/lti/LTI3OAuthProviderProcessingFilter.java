@@ -34,6 +34,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -70,7 +71,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             throw new IllegalStateException("LTI request MUST be an HttpServletRequest (cannot only be a ServletRequest)");
         }
 
-        if((((HttpServletRequest) servletRequest).getRequestURI().equals(TextConstants.LTI3_SUFFIX))) {
+        if ((((HttpServletRequest) servletRequest).getRequestURI().equals(TextConstants.LTI3_SUFFIX))) {
             try {
 
                 // This is just for logging.
@@ -85,6 +86,8 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 log.info("-------------------------------------------------------------------------------------------------------");
                 log.info("Request URL in Filter: {}", httpServletRequest.getRequestURL().toString());
                 log.info("Request URI in Filter: {}", httpServletRequest.getRequestURI());
+                log.info("Request Method in Filter: {}", httpServletRequest.getMethod());
+                log.info("Request Cookies in Filter: {}", Arrays.toString(httpServletRequest.getCookies()));
 
                 // First we validate that the state is a good state.
 
