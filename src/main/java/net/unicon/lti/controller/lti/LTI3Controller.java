@@ -12,7 +12,6 @@
  */
 package net.unicon.lti.controller.lti;
 
-import com.google.common.io.ByteStreams;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
@@ -26,8 +25,6 @@ import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -35,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,8 +42,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -72,7 +68,7 @@ public class LTI3Controller {
     private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
-    public void lti3(HttpServletRequest req, HttpServletResponse res)  {
+    public ResponseEntity<Void> lti3(HttpServletRequest req, HttpServletResponse res)  {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
@@ -101,29 +97,29 @@ public class LTI3Controller {
 //                HttpPost httpPost = new HttpPost(redirect);
 //                httpPost.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ltiDataService.getLocalUrl());
 //                httpPost.setEntity(entity);
-                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
-                HttpPost httpPost = new HttpPost(redirect);
-                CloseableHttpResponse response = client.execute(httpPost);
-//                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
+//                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
+//                HttpPost httpPost = new HttpPost(redirect);
+//                CloseableHttpResponse response = client.execute(httpPost);
+                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
 
-                if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
-                    log.error("Unsuccessful Post to Application");
-                    log.error(String.valueOf(response.getStatusLine().getStatusCode()));
-                    log.error(response.getStatusLine().getReasonPhrase());
-                    ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
-                } else {
-                    ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
-                }
+//                if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
+//                    log.error("Unsuccessful Post to Application");
+//                    log.error(String.valueOf(response.getStatusLine().getStatusCode()));
+//                    log.error(response.getStatusLine().getReasonPhrase());
+//                    ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
+//                } else {
+//                    ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
+//                }
             }
             else {
-//                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
-                res.sendRedirect("/demo?link=" + link);
+                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
+//                res.sendRedirect("/demo?link=" + link);
             }
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
         } catch (GeneralSecurityException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }
