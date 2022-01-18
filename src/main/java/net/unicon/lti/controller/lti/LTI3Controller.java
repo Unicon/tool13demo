@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 /**
@@ -63,7 +62,7 @@ public class LTI3Controller {
     private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
-    public String lti3(HttpServletRequest req, HttpServletResponse res)  {
+    public String lti3(HttpServletRequest req)  {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
@@ -75,12 +74,14 @@ public class LTI3Controller {
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the clientId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid client_id");
+                return "invalid client id";
+//                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid client_id");
             }
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
             if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
+                return "invalid deployment id";
+//                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
             }
 
 //            if (!ltiDataService.getDemoMode()) {
@@ -110,7 +111,8 @@ public class LTI3Controller {
 //            }
             return "Mary Test";
         } catch (SignatureException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
+            return "invalid signature";
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
 //        } catch (IOException ex) {
 //            ex.printStackTrace();
 //            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
