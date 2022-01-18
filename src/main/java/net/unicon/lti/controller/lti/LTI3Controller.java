@@ -39,7 +39,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -64,7 +63,7 @@ public class LTI3Controller {
     private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
-    public void lti3(HttpServletRequest req, HttpServletResponse res)  {
+    public String lti3(HttpServletRequest req, HttpServletResponse res)  {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
@@ -107,13 +106,14 @@ public class LTI3Controller {
 //            }
 //            else {
 //                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
-                res.sendRedirect("/demo?link=" + link);
+//                res.sendRedirect("/demo?link=" + link);
 //            }
+            return "Mary Test";
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
+//        } catch (IOException ex) {
+//            ex.printStackTrace();
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
 //        } catch (GeneralSecurityException ex) {
 //            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }
