@@ -70,7 +70,6 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
         if((((HttpServletRequest) servletRequest).getRequestURI().equals(TextConstants.LTI3_SUFFIX))) {
             try {
-                log.debug("Confirming state in session");
 
                 // This is just for logging.
                 HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
@@ -82,6 +81,8 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
                 }
                 log.info("-------------------------------------------------------------------------------------------------------");
+                log.info("Request URL in Filter: {}", httpServletRequest.getRequestURL().toString());
+                log.info("Request URI in Filter: {}", httpServletRequest.getRequestURI());
 
                 // First we validate that the state is a good state.
 

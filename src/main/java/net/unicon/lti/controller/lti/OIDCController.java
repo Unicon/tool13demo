@@ -162,6 +162,8 @@ public class OIDCController {
             }
             session.setAttribute("lti_state", stateList);
 
+            log.info("lti_state in session: {}", session.getAttribute("lti_state"));
+
             if (session.getAttribute("lti_nonce") != null) {
                 List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
                 if (ltiNonce.isEmpty()) {  //If not old nonces... then just the one we have created
