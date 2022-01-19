@@ -83,11 +83,11 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
             }
             log.info("-------------------------------------------------------------------------------------------------------");
-            log.info("Request Session Id in Filter: {}", httpServletRequest.getSession().getId());
-            log.info("Request URL in Filter: {}", httpServletRequest.getRequestURL().toString());
-            log.info("Request URI in Filter: {}", httpServletRequest.getRequestURI());
-            log.info("Request Method in Filter: {}", httpServletRequest.getMethod());
-            log.info("Request Cookies in Filter: {}", Arrays.stream(httpServletRequest.getCookies()).toList().toString());
+            log.info("Request Session Id in OAuthFilter: {}", httpServletRequest.getSession().getId());
+            log.info("Request URL in OAuthFilter: {}", httpServletRequest.getRequestURL().toString());
+            log.info("Request URI in OAuthFilter: {}", httpServletRequest.getRequestURI());
+            log.info("Request Method in OAuthFilter: {}", httpServletRequest.getMethod());
+            log.info("Request Cookies in OAuthFilter: {}", httpServletRequest.getCookies() != null ? Arrays.stream(httpServletRequest.getCookies()).toList().toString() : null);
             Cookie[] cookies = httpServletRequest.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {

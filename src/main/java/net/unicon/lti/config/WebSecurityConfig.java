@@ -58,7 +58,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/registration/**")
                     .antMatchers("/jwks/**")
                     .antMatchers("/files/**")
-                    .antMatchers("https://unicon.instructure.com")
                     .and()
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
@@ -67,6 +66,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Order(20) // VERY HIGH
     @Configuration
     public static class SessionCreationEndpointConfigurationAdapter extends WebSecurityConfigurerAdapter {
+        private SessionCookieFilter sessionCookieFilter;
+
+        @PostConstruct
+        public void init() {
+            sessionCookieFilter = new SessionCookieFilter();
+        }
+
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             // this is open
@@ -75,7 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable()
                     .and()
-                    .addFilterAfter(new SessionCookieFilter(), BasicAuthenticationFilter.class);
+                    .addFilterAfter(sessionCookieFilter, BasicAuthenticationFilter.class);
         }
     }
 

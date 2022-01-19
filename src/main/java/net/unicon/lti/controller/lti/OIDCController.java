@@ -195,6 +195,8 @@ public class OIDCController {
 //            if (!ltiDataService.getDemoMode()) {
 //                return "redirect:" + parameters.get("oicdEndpointComplete");
 //            } else {
+            log.info("set-cookie header in oidc controller: {}", res.getHeader("set-cookie"));
+
                 return "oicdRedirect";
 //            }
         } catch (Exception ex) {

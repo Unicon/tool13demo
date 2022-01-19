@@ -32,7 +32,24 @@ public class SessionCookieFilter extends GenericFilterBean {
         HttpServletResponse resp = (HttpServletResponse) response;
         String requestUrl = req.getRequestURL().toString();
         boolean isResourceRequest = requestUrl != null ? StringUtils.isNoneBlank(PATHS_TO_IGNORE_SETTING_SAMESITE.stream().filter(s -> requestUrl.contains(s)).findFirst().orElse(null)) : null;
+
+        log.info("Request Session Id in SessionCookieFilter: {}", ((HttpServletRequest) request).getSession().getId());
+        log.info("Request URL in SessionCookieFilter: {}", ((HttpServletRequest) request).getRequestURL().toString());
+        log.info("Request URI in SessionCookieFilter: {}", ((HttpServletRequest) request).getRequestURI());
+        log.info("Request Method in SessionCookieFilter: {}", ((HttpServletRequest) request).getMethod());
+        log.info("Request Set-Cookie Header in SessionCookieFilter: {}", ((HttpServletRequest) request).getHeader("set-cookie"));
+        log.info("Response Set-Cookie Header in SessionCookieFilter: {}", ((HttpServletResponse) response).getHeader("set-cookie"));
+        log.info("Request Cookies in SessionCookieFilter: {}", ((HttpServletRequest) request).getCookies() != null ? Arrays.stream(((HttpServletRequest) request).getCookies()).toList().toString() : null);
+        Cookie[] loggingCookies = ((HttpServletRequest) request).getCookies();
+        if (loggingCookies != null) {
+            for (Cookie cookie : loggingCookies) {
+                log.info("Cookie name: {}", cookie.getName());
+                log.info("Cookie value: {}", cookie.getValue());
+            }
+        }
+
         if (!isResourceRequest) {
+            log.info("is not resource request");
             Cookie[] cookies = ((HttpServletRequest) request).getCookies();
             if (cookies != null && cookies.length > 0) {
                 log.info("{} cookies present in post oidc filter", cookies.length);
