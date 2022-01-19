@@ -14,7 +14,6 @@ package net.unicon.lti.config;
 
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
 import net.unicon.lti.security.app.JwtAuthenticationProvider;
-import net.unicon.lti.security.app.SessionCookieFilter;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
 import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
@@ -55,6 +54,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         protected void configure(HttpSecurity http) throws Exception {
             // this is open
             http.requestMatchers()
+                    .antMatchers("/oidc/**")
                     .antMatchers("/registration/**")
                     .antMatchers("/jwks/**")
                     .antMatchers("/files/**")
@@ -63,27 +63,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-    @Order(20) // VERY HIGH
-    @Configuration
-    public static class SessionCreationEndpointConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        private SessionCookieFilter sessionCookieFilter;
-
-        @PostConstruct
-        public void init() {
-            sessionCookieFilter = new SessionCookieFilter();
-        }
-
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            // this is open
-            http.requestMatchers()
-                    .antMatchers("/oidc/**")
-                    .and()
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable()
-                    .and()
-                    .addFilterAfter(sessionCookieFilter, BasicAuthenticationFilter.class);
-        }
-    }
+//    @Order(20) // VERY HIGH
+//    @Configuration
+//    public static class SessionCreationEndpointConfigurationAdapter extends WebSecurityConfigurerAdapter {
+//
+//        @Override
+//        protected void configure(HttpSecurity http) throws Exception {
+//            // this is open
+//            http.requestMatchers()
+//                    .antMatchers("/oidc/**")
+//                    .and()
+//                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+////                    .and()
+////                    .addFilterAfter(sessionCookieFilter, BasicAuthenticationFilter.class);
+//        }
+//    }
 
 
     @Order(30) // VERY HIGH
