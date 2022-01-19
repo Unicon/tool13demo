@@ -131,12 +131,12 @@ public class OIDCController {
             // We add that information so the thymeleaf template can display it (and prepare the links)
             //model.addAllAttributes(parameters);
             // These 3 are to display what we received from the platform.
-//            if (ltiDataService.getDemoMode()) {
+            if (ltiDataService.getDemoMode()) {
                 model.addAllAttributes(parameters);
                 model.addAttribute("initiation_dto", loginInitiationDTO);
                 model.addAttribute("client_id_received", clientIdValue);
                 model.addAttribute("deployment_id_received", deploymentIdValue);
-//            }
+            }
             // This can be implemented in different ways, on this case, we are storing the state and nonce in
             // the httpsession, so we can compare later if they are valid states and nonces.
             HttpSession session = req.getSession();
@@ -180,14 +180,15 @@ public class OIDCController {
                 nonceList.add(nonce);
             }
             session.setAttribute("lti_nonce", nonceList);
-            // Once all is added to the session, and we have the data ready for the html template, we redirect
-//            if (!ltiDataService.getDemoMode()) {
-//                return "redirect:" + parameters.get("oicdEndpointComplete");
-//            } else {
+
             log.info("set-cookie header in oidc controller: {}", res.getHeader("set-cookie"));
 
+            // Once all is added to the session, and we have the data ready for the html template, we redirect
+            if (!ltiDataService.getDemoMode()) {
+                return "redirect:" + parameters.get("oicdEndpointComplete");
+            } else {
                 return "oicdRedirect";
-//            }
+            }
         } catch (Exception ex) {
             model.addAttribute(TextConstants.ERROR, ExceptionUtils.getStackTrace(ex));
             return TextConstants.LTI3ERROR;
