@@ -28,7 +28,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -166,16 +165,6 @@ public class OIDCController {
 
             log.info("lti_state in session: {}", session.getAttribute("lti_state"));
             log.info("Session ID in OIDC Controller: {}", session.getId());
-
-            Cookie ltiStateCookie = new Cookie("lti_state", state);
-            ltiStateCookie.setPath(req.getContextPath());
-            ltiStateCookie.setSecure(true);
-            res.addCookie(ltiStateCookie);
-
-            Cookie ltiNonceCookie = new Cookie("lti_nonce", nonce);
-            ltiNonceCookie.setPath(req.getContextPath());
-            ltiNonceCookie.setSecure(true);
-            res.addCookie(ltiNonceCookie);
 
             if (session.getAttribute("lti_nonce") != null) {
                 List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
