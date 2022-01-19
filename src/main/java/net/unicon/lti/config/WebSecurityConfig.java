@@ -14,6 +14,7 @@ package net.unicon.lti.config;
 
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
 import net.unicon.lti.security.app.JwtAuthenticationProvider;
+import net.unicon.lti.security.app.SessionCookieFilter;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
 import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
@@ -32,7 +33,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -58,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/registration/**")
                     .antMatchers("/jwks/**")
                     .antMatchers("/files/**")
+                    .antMatchers("https://unicon.instructure.com")
                     .and()
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
@@ -74,7 +75,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable()
                     .and()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.ALWAYS);
+                    .addFilterAfter(new SessionCookieFilter(), BasicAuthenticationFilter.class);
         }
     }
 
@@ -136,8 +137,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             /**/
             http.requestMatchers().antMatchers("/lti3/").and()
                     .addFilterBefore(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable().and()
-                    .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
     }
 

@@ -89,9 +89,11 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             log.info("Request Method in Filter: {}", httpServletRequest.getMethod());
             log.info("Request Cookies in Filter: {}", Arrays.stream(httpServletRequest.getCookies()).toList().toString());
             Cookie[] cookies = httpServletRequest.getCookies();
-            for (Cookie cookie : cookies) {
-                log.info("Cookie name: {}", cookie.getName());
-                log.info("Cookie value: {}", cookie.getValue());
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    log.info("Cookie name: {}", cookie.getName());
+                    log.info("Cookie value: {}", cookie.getValue());
+                }
             }
 
             // First we validate that the state is a good state.
