@@ -83,6 +83,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
             }
             log.info("-------------------------------------------------------------------------------------------------------");
+            log.info("Request Session Id in Filter: {}", httpServletRequest.getSession().getId());
             log.info("Request URL in Filter: {}", httpServletRequest.getRequestURL().toString());
             log.info("Request URI in Filter: {}", httpServletRequest.getRequestURI());
             log.info("Request Method in Filter: {}", httpServletRequest.getMethod());
@@ -92,7 +93,6 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 log.info("Cookie name: {}", cookie.getName());
                 log.info("Cookie value: {}", cookie.getValue());
             }
-            log.info("Request Session Id in Filter: {}", httpServletRequest.getSession().getId());
 
             // First we validate that the state is a good state.
 
