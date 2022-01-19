@@ -1,5 +1,6 @@
 package net.unicon.lti.security.app;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.filter.GenericFilterBean;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 public class SessionCookieFilter extends GenericFilterBean {
 
     private final List<String> PATHS_TO_IGNORE_SETTING_SAMESITE = List.of("resources");
@@ -25,6 +27,7 @@ public class SessionCookieFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        log.info("inside post oidc filter");
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
         String requestUrl = req.getRequestURL().toString();
@@ -32,6 +35,7 @@ public class SessionCookieFilter extends GenericFilterBean {
         if (!isResourceRequest) {
             Cookie[] cookies = ((HttpServletRequest) request).getCookies();
             if (cookies != null && cookies.length > 0) {
+                log.info("{} cookies present in post oidc filter", cookies.length);
                 List<Cookie> cookieList = Arrays.asList(cookies);
                 Cookie sessionCookie = cookieList.stream().filter(cookie -> SESSION_COOKIE_NAME.equals(cookie.getName())).findFirst().orElse(null);
                 if (sessionCookie != null) {
