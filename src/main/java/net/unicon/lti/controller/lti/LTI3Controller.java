@@ -13,6 +13,9 @@
 package net.unicon.lti.controller.lti;
 
 import com.google.common.io.ByteStreams;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.LtiLinkEntity;
 import net.unicon.lti.repository.LtiLinkRepository;
@@ -21,7 +24,10 @@ import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
+import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -34,10 +40,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /**
@@ -68,69 +78,63 @@ public class LTI3Controller {
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
 
-
-
-        try {
-            ByteStreams.copy(new ByteArrayInputStream(("testing ui output").getBytes()), res.getOutputStream());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-//            Jws<Claims> claims = ltijwtService.validateState(state);
-//            lti3Request = LTI3Request.getInstance(link); // validates nonce & id_token
-//            // This is just an extra check that we have added, but it is not necessary.
-//            // Checking that the clientId in the status matches the one coming with the ltiRequest.
-//            if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
+        try{
+            Jws<Claims> claims = ltijwtService.validateState(state);
+            lti3Request = LTI3Request.getInstance(link); // validates nonce & id_token
+            // This is just an extra check that we have added, but it is not necessary.
+            // Checking that the clientId in the status matches the one coming with the ltiRequest.
+            if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
 //                return "invalid client_id";
-////                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid client_id");
-//            }
-//            // This is just an extra check that we have added, but it is not necessary.
-//            // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
-//            if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid client_id");
+            }
+            // This is just an extra check that we have added, but it is not necessary.
+            // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
+            if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
 //                return "invalid deployment-id";
-////                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
-//            }
-//
-//            if (!ltiDataService.getDemoMode()) {
-//                String target = lti3Request.getLtiTargetLinkUrl();
-//                log.debug(target);
-//                String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
-////                HttpEntity entity = MultipartEntityBuilder.create().addTextBody("id_token", ltiData).build();
-////                String redirect = UriComponentsBuilder.fromUriString(target).build().toUriString();
-////                HttpPost httpPost = new HttpPost(redirect);
-////                httpPost.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ltiDataService.getLocalUrl());
-////                httpPost.setEntity(entity);
-//                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
+            }
+
+            if (!ltiDataService.getDemoMode()) {
+                String target = lti3Request.getLtiTargetLinkUrl();
+                log.debug(target);
+                String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
+//                HttpEntity entity = MultipartEntityBuilder.create().addTextBody("id_token", ltiData).build();
+//                String redirect = UriComponentsBuilder.fromUriString(target).build().toUriString();
 //                HttpPost httpPost = new HttpPost(redirect);
-//                CloseableHttpResponse response = client.execute(httpPost);
-////                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
-//
-//                if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
-//                    log.error("Unsuccessful Post to Application");
-//                    log.error(String.valueOf(response.getStatusLine().getStatusCode()));
-//                    log.error(response.getStatusLine().getReasonPhrase());
+//                httpPost.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ltiDataService.getLocalUrl());
+//                httpPost.setEntity(entity);
+                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
+                HttpPost httpPost = new HttpPost(redirect);
+                CloseableHttpResponse response = client.execute(httpPost);
+//                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
+
+                if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
+                    log.error("Unsuccessful Post to Application");
+                    log.error(String.valueOf(response.getStatusLine().getStatusCode()));
+                    log.error(response.getStatusLine().getReasonPhrase());
 //                    return "Unsuccessful post to application: " + response.getStatusLine().toString();
-////                    ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
-//                } else {
+                    ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
+                } else {
 //                    return "post to application returned Http Status OK";
-////                    ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
-//                }
-//            }
-//            else {
+                    ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
+                }
+            }
+            else {
 //                return "demo mode enabled";
-////                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
-////                res.sendRedirect("/demo?link=" + link);
-//            }
-//        } catch (SignatureException ex) {
+//                return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(ltiDataService.getLocalUrl() + "/demo?link=" + link)).build();
+                res.sendRedirect("/demo?link=" + link);
+            }
+        } catch (SignatureException ex) {
 //            return "invalid signature";
-////            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-//        } catch (IOException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
+        } catch (IOException ex) {
 //            return "io exception";
-////            ex.printStackTrace();
-////            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
-//        } catch (GeneralSecurityException ex) {
+            ex.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
+        } catch (GeneralSecurityException ex) {
 //            return "general security exception";
-////            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
-//        }
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+        }
     }
 
     @RequestMapping("/demo")
