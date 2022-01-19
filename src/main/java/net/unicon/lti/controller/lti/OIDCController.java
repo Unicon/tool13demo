@@ -163,6 +163,7 @@ public class OIDCController {
             session.setAttribute("lti_state", stateList);
 
             log.info("lti_state in session: {}", session.getAttribute("lti_state"));
+            log.info("Session ID in OIDC Controller: {}", session.getId());
 
             if (session.getAttribute("lti_nonce") != null) {
                 List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
