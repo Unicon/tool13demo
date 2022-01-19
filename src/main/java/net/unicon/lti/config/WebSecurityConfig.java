@@ -63,22 +63,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-//    @Order(20) // VERY HIGH
-//    @Configuration
-//    public static class SessionCreationEndpointConfigurationAdapter extends WebSecurityConfigurerAdapter {
-//
-//        @Override
-//        protected void configure(HttpSecurity http) throws Exception {
-//            // this is open
-//            http.requestMatchers()
-//                    .antMatchers("/oidc/**")
-//                    .and()
-//                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
-////                    .and()
-////                    .addFilterAfter(sessionCookieFilter, BasicAuthenticationFilter.class);
-//        }
-//    }
-
 
     @Order(30) // VERY HIGH
     @Configuration
