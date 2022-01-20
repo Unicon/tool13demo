@@ -26,13 +26,16 @@ import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -46,7 +49,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
@@ -98,20 +100,21 @@ public class LTI3Controller {
                 String target = lti3Request.getLtiTargetLinkUrl();
                 log.debug(target);
                 String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
-//                HttpEntity entity = MultipartEntityBuilder.create().addTextBody("id_token", ltiData).build();
-//                String redirect = UriComponentsBuilder.fromUriString(target).build().toUriString();
-//                HttpPost httpPost = new HttpPost(redirect);
-//                httpPost.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ltiDataService.getLocalUrl());
-//                httpPost.setEntity(entity);
-                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
+                HttpEntity entity = MultipartEntityBuilder.create().addTextBody("id_token", ltiData).build();
+                String redirect = UriComponentsBuilder.fromUriString(target).build().toUriString();
                 HttpPost httpPost = new HttpPost(redirect);
+                httpPost.addHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ltiDataService.getLocalUrl());
+                httpPost.setEntity(entity);
+//                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
+//                HttpPost httpPost = new HttpPost(redirect);
                 CloseableHttpResponse response = client.execute(httpPost);
 //                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
 
                 if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
-                    log.error("Unsuccessful Post to Application");
+                    log.error("Unsuccessful Post to {}", redirect.toString());
                     log.error(String.valueOf(response.getStatusLine().getStatusCode()));
                     log.error(response.getStatusLine().getReasonPhrase());
+                    log.error(new String(response.getEntity().getContent().readAllBytes()));
 //                    return "Unsuccessful post to application: " + response.getStatusLine().toString();
                     ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
                 } else {
