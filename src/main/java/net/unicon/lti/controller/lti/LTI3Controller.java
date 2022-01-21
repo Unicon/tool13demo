@@ -102,7 +102,7 @@ public class LTI3Controller {
 //                URI redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri();
 //                HttpPost httpPost = new HttpPost(redirect);
 //                CloseableHttpResponse response = client.execute(httpPost);
-                return ResponseEntity.status(HttpStatus.FOUND).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
+                return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUri()).build();
 
 //                if (response.getStatusLine().getStatusCode() != HttpStatus.OK.value()) {
 //                    log.error("Unsuccessful Post to {}", redirect.toString());
