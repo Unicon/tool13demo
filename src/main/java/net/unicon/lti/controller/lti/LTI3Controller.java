@@ -118,6 +118,7 @@ public class LTI3Controller {
 //                    return "Unsuccessful post to application: " + response.getStatusLine().toString();
                     ByteStreams.copy(new ByteArrayInputStream(("Unsuccessful post to application: " + response.getStatusLine().toString()).getBytes()), res.getOutputStream());
                 } else {
+                    res.setContentType(MediaType.TEXT_HTML_VALUE);
 //                    return "post to application returned Http Status OK";
                     ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
                 }
