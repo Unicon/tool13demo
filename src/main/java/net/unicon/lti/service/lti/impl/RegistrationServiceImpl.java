@@ -12,12 +12,13 @@
  */
 package net.unicon.lti.service.lti.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.service.lti.RegistrationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -28,41 +29,54 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * This manages the Registration call
  * Necessary to get appropriate TX handling and service management
  */
+@Slf4j
 @Service
 public class RegistrationServiceImpl implements RegistrationService {
-
     @Autowired
     private ExceptionMessageGenerator exceptionMessageGenerator;
 
-    static final Logger log = LoggerFactory.getLogger(RegistrationServiceImpl.class);
+    private RestTemplate restTemplate;
 
     //Calling the membership service and getting a paginated result of users.
     @Override
     public String callDynamicRegistration(String token, ToolRegistrationDTO toolRegistrationDTO, String endpoint) throws ConnectionException {
-        //TODO figure the answer to the post
         String answer;
         try {
-            RestTemplate restTemplate = new RestTemplate(
-                    new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
+            defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
+            restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);
+
             //We add the token in the request with this.
             HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-            HttpEntity request = new HttpEntity<>(toolRegistrationDTO, headers);
+            if (StringUtils.isNotBlank(token)) {
+                log.debug("Token was not blank: {}", token);
+                headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+            }
+            HttpEntity<ToolRegistrationDTO> request = new HttpEntity<>(toolRegistrationDTO, headers);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
 
+            if (log.isDebugEnabled()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String toolRegistrationDTOString = objectMapper.writeValueAsString(toolRegistrationDTO);
+                log.debug(toolRegistrationDTOString);
+            }
+
             log.debug("Endpoint -  " + endpoint);
-            ResponseEntity<String> registrationRequest = restTemplate.
-                    exchange(endpoint, HttpMethod.POST, request, String.class);
+            ResponseEntity<String> registrationRequest = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
             HttpStatus status = registrationRequest.getStatusCode();
             if (status.is2xxSuccessful()) {
                 answer = registrationRequest.getBody();
+                log.debug(answer);
             } else {
+                log.error(registrationRequest.getBody());
                 String exceptionMsg = "Can't get confirmation of the registration";
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);

@@ -12,6 +12,9 @@
  */
 package net.unicon.lti.utils;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class LtiStrings {
 
     private LtiStrings() {
@@ -172,10 +175,15 @@ public class LtiStrings {
     public static final String JWT = "JWT";
     public static final String RS256 = "RS256";
 
+    public static final List<String> LTI_OPTIONAL_CLAIMS = Arrays.asList(LTI_CONTEXT, LTI_PLATFORM, LTI_LAUNCH_PRESENTATION, LTI_LIS, LTI_ROLE_SCOPE_MENTOR, LTI_CUSTOM);
+
     //Dynamic Registration
     public static final String REGISTRATION_TOKEN = "registration_token";
     public static final String PLATFORM_CONFIGURATION = "platform_configuration";
     public static final String TOOL_CONFIGURATION = "tool_configuration";
+    public static final String RESOURCE_MESSAGE_TYPE = "LtiResourceLinkRequest";
+    public static final String DEEP_LINKING_MESSAGE_TYPE = "LtiDeepLinkingRequest";
+    public static final List<String> MESSAGES_SUPPORTED_TYPES = Arrays.asList(RESOURCE_MESSAGE_TYPE, DEEP_LINKING_MESSAGE_TYPE);
 
     //Assignments & Grades Service (AGS)
     public static final String ACTIVITY_PROGRESS_INITIALIZED = "Initialized";

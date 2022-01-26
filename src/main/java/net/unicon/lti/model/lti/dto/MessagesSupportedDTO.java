@@ -12,8 +12,12 @@
  */
 package net.unicon.lti.model.lti.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import net.unicon.lti.utils.lti.MessagesSupportedDeserializer;
+
 import java.util.List;
 
+@JsonDeserialize(using = MessagesSupportedDeserializer.class)
 public class MessagesSupportedDTO {
     String type;
     List<String> placements;
