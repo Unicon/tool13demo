@@ -20,8 +20,6 @@ import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -51,9 +49,6 @@ import java.util.UUID;
 @Scope("session")
 @RequestMapping("/oidc")
 public class OIDCController {
-
-    static final Logger log = LoggerFactory.getLogger(OIDCController.class);
-
     //Constants defined in the LTI standard
     private static final String NONE = "none";
     private static final String FORM_POST = "form_post";
@@ -246,7 +241,6 @@ public class OIDCController {
     }
 
     private StringBuilder addParameter(StringBuilder url, String parameter, String value, boolean first) throws UnsupportedEncodingException {
-
         if (value != null) {
             if (first) {
                 url.append("?").append(parameter).append("=");

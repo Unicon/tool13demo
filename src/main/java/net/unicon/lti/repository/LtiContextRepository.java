@@ -31,5 +31,7 @@ public interface LtiContextRepository extends JpaRepository<LtiContextEntity, Lo
 
     List<LtiContextEntity> findByPlatformDeployment(PlatformDeployment platformDeployment);
 
+    LtiContextEntity findByLineitems(String lineitems);
+
     int deleteByContextKeyAndPlatformDeployment(String contextKey, PlatformDeployment platformDeployment);
 }

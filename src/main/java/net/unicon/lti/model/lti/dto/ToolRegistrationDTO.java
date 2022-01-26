@@ -34,7 +34,7 @@ public class ToolRegistrationDTO {
     private String policy_uri;
     @JsonProperty("https://purl.imsglobal.org/spec/lti-tool-configuration")
     private ToolConfigurationDTO toolConfiguration;
-    private List<String> scope;
+    private String scope;
 
 
     public ToolRegistrationDTO() {//Empty on purpose
@@ -152,11 +152,11 @@ public class ToolRegistrationDTO {
         this.toolConfiguration = toolConfiguration;
     }
 
-    public List<String> getScope() {
+    public String getScope() {
         return scope;
     }
 
-    public void setScope(List<String> scope) {
+    public void setScope(String scope) {
         this.scope = scope;
     }
 }
