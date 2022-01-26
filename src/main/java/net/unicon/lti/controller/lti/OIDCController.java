@@ -13,6 +13,7 @@
 package net.unicon.lti.controller.lti;
 
 import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -45,6 +46,7 @@ import java.util.UUID;
  * This will handle LTI 1 and 2 (many of the paths ONLY make sense for LTI2 though)
  * Sample Key "key" and secret "secret"
  */
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/oidc")
