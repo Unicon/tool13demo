@@ -160,8 +160,8 @@ public class OIDCController {
             }
             session.setAttribute("lti_state", stateList);
 
-            log.info("lti_state in session: {}", session.getAttribute("lti_state"));
-            log.info("Session ID in OIDC Controller: {}", session.getId());
+            log.debug("lti_state in session: {}", session.getAttribute("lti_state"));
+            log.debug("Session ID in OIDC Controller: {}", session.getId());
 
             if (session.getAttribute("lti_nonce") != null) {
                 List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
@@ -177,8 +177,6 @@ public class OIDCController {
                 nonceList.add(nonce);
             }
             session.setAttribute("lti_nonce", nonceList);
-
-            log.info("set-cookie header in oidc controller: {}", res.getHeader("set-cookie"));
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {

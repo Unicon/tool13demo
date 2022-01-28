@@ -72,27 +72,29 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
         }
 
         try {
+            HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
 
             // This is just for logging.
-            HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-            Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
-            log.info("-------------------------------------------------------------------------------------------------------");
-            while (sessionAttributes.hasMoreElements()) {
-                String attName = sessionAttributes.nextElement();
-                log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
+            if (log.isDebugEnabled()) {
+                Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
+                log.debug("-------------------------------------------------------------------------------------------------------");
+                while (sessionAttributes.hasMoreElements()) {
+                    String attName = sessionAttributes.nextElement();
+                    log.debug(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
 
-            }
-            log.info("-------------------------------------------------------------------------------------------------------");
-            log.info("Request Session Id in OAuthFilter: {}", httpServletRequest.getSession().getId());
-            log.info("Request URL in OAuthFilter: {}", httpServletRequest.getRequestURL().toString());
-            log.info("Request URI in OAuthFilter: {}", httpServletRequest.getRequestURI());
-            log.info("Request Method in OAuthFilter: {}", httpServletRequest.getMethod());
-            log.info("Request Cookies in OAuthFilter: {}", httpServletRequest.getCookies() != null ? Arrays.stream(httpServletRequest.getCookies()).toList().toString() : null);
-            Cookie[] cookies = httpServletRequest.getCookies();
-            if (cookies != null) {
-                for (Cookie cookie : cookies) {
-                    log.info("Cookie name: {}", cookie.getName());
-                    log.info("Cookie value: {}", cookie.getValue());
+                }
+                log.debug("-------------------------------------------------------------------------------------------------------");
+                log.debug("Request Session Id in OAuthFilter: {}", httpServletRequest.getSession().getId());
+                log.debug("Request URL in OAuthFilter: {}", httpServletRequest.getRequestURL().toString());
+                log.debug("Request URI in OAuthFilter: {}", httpServletRequest.getRequestURI());
+                log.debug("Request Method in OAuthFilter: {}", httpServletRequest.getMethod());
+                log.debug("Request Cookies in OAuthFilter: {}", httpServletRequest.getCookies() != null ? Arrays.stream(httpServletRequest.getCookies()).toList().toString() : null);
+                Cookie[] cookies = httpServletRequest.getCookies();
+                if (cookies != null) {
+                    for (Cookie cookie : cookies) {
+                        log.debug("Cookie name: {}", cookie.getName());
+                        log.debug("Cookie value: {}", cookie.getValue());
+                    }
                 }
             }
 

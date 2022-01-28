@@ -54,12 +54,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         protected void configure(HttpSecurity http) throws Exception {
             // this is open
             http.requestMatchers()
-                    .antMatchers("/oidc/**")
-                    .antMatchers("/registration/**")
-                    .antMatchers("/jwks/**")
-                    .antMatchers("/files/**")
-                    .and()
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+                .antMatchers("/oidc/**")
+                .antMatchers("/registration/**")
+                .antMatchers("/jwks/**")
+                .antMatchers("/ags/**")
+                .and()
+                .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
     }
 
