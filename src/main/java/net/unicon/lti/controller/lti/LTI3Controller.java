@@ -92,11 +92,12 @@ public class LTI3Controller {
 
                 model.addAttribute("target", target);
                 model.addAttribute("id_token", ltiData);
-                return "lti3Redirect";
+            } else {
+                model.addAttribute("target", "redirect:/demo?link=" + link);
             }
-            else {
-                return "redirect:/demo?link=" + link;
-            }
+
+            return "lti3Redirect";
+
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
         } catch (GeneralSecurityException ex) {
