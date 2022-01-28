@@ -87,7 +87,7 @@ public class LTI3Controller {
 
             if (!ltiDataService.getDemoMode()) {
                 String target = lti3Request.getLtiTargetLinkUrl();
-                log.debug(target);
+                log.debug("Target Link URL: {}", target);
                 String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
 
                 model.addAttribute("target", target);
@@ -107,7 +107,6 @@ public class LTI3Controller {
 
     @RequestMapping("/demo")
     public String demo(HttpServletRequest req, Model model) {
-        System.out.println("inside demo endpoint");
         String link = req.getParameter("link");
         model.addAttribute("lTI3Request", lti3Request);
         if (link == null) {
