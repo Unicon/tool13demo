@@ -93,7 +93,7 @@ public class LTI3Controller {
                 model.addAttribute("target", target);
                 model.addAttribute("id_token", ltiData);
             } else {
-                model.addAttribute("target", "redirect:/demo?link=" + link);
+                model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
             }
 
             return "lti3Redirect";
