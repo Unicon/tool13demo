@@ -169,6 +169,6 @@ public class LTI3ControllerTest {
         String finalResponse = lti3Controller.lti3(req, res, model);
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         Mockito.verify(ltiDataService).getDemoMode();
-        assertEquals(finalResponse, "redirect:/demo?link=https://tool.com/test");
+        assertEquals(finalResponse, "lti3Redirect");
     }
 }
