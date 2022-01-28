@@ -58,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/registration/**")
                 .antMatchers("/jwks/**")
                 .antMatchers("/ags/**")
+                .antMatchers("/demo/**")
                 .and()
                 .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
@@ -118,7 +119,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             /**/
-            http.requestMatchers().antMatchers("/lti3/").antMatchers("/demo/**").and()
+            http.requestMatchers().antMatchers("/lti3/").and()
                     .addFilterBefore(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }
