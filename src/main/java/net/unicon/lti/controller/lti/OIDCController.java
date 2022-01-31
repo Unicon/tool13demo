@@ -13,6 +13,7 @@
 package net.unicon.lti.controller.lti;
 
 import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -27,6 +28,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -44,6 +46,7 @@ import java.util.UUID;
  * This will handle LTI 1 and 2 (many of the paths ONLY make sense for LTI2 though)
  * Sample Key "key" and secret "secret"
  */
+@Slf4j
 @Controller
 @Scope("session")
 @RequestMapping("/oidc")
@@ -67,7 +70,7 @@ public class OIDCController {
      * We receive some parameters (iss, login_hint, target_link_uri, lti_message_hint, and optionally, the deployment_id and the client_id)
      */
     @RequestMapping("/login_initiations")
-    public String loginInitiations(HttpServletRequest req, Model model) {
+    public String loginInitiations(HttpServletRequest req, HttpServletResponse res, Model model) {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
@@ -157,6 +160,9 @@ public class OIDCController {
             }
             session.setAttribute("lti_state", stateList);
 
+            log.debug("lti_state in session: {}", session.getAttribute("lti_state"));
+            log.debug("Session ID in OIDC Controller: {}", session.getId());
+
             if (session.getAttribute("lti_nonce") != null) {
                 List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
                 if (ltiNonce.isEmpty()) {  //If not old nonces... then just the one we have created
@@ -171,6 +177,7 @@ public class OIDCController {
                 nonceList.add(nonce);
             }
             session.setAttribute("lti_nonce", nonceList);
+
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
                 return "redirect:" + parameters.get("oicdEndpointComplete");

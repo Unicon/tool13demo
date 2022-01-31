@@ -12,7 +12,6 @@
  */
 package net.unicon.lti.controller.lti;
 
-import com.google.common.io.ByteStreams;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
@@ -26,8 +25,6 @@ import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -40,11 +37,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
@@ -70,12 +65,13 @@ public class LTI3Controller {
     private CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
 
     @PostMapping(value={"/lti3","/lti3/"}, produces = MediaType.TEXT_HTML_VALUE)
-    public void lti3(HttpServletRequest req, HttpServletResponse res)  {
+    public String lti3(HttpServletRequest req, HttpServletResponse res, Model model)  {
         //First we will get the state, validate it
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
-        try {
+
+        try{
             Jws<Claims> claims = ltijwtService.validateState(state);
             lti3Request = LTI3Request.getInstance(link); // validates nonce & id_token
             // This is just an extra check that we have added, but it is not necessary.
@@ -91,19 +87,19 @@ public class LTI3Controller {
 
             if (!ltiDataService.getDemoMode()) {
                 String target = lti3Request.getLtiTargetLinkUrl();
+                log.debug("Target Link URL: {}", target);
                 String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
-                String redirect = UriComponentsBuilder.fromUriString(target).queryParam("id_token", ltiData).build().toUriString();
-                HttpPost httpPost = new HttpPost(redirect);
-                CloseableHttpResponse response = client.execute(httpPost);
-                ByteStreams.copy(response.getEntity().getContent(), res.getOutputStream());
+
+                model.addAttribute("target", target);
+                model.addAttribute("id_token", ltiData);
             } else {
-                String redirectPath = link == null ? "/demo" : "/demo?link=" + link;
-                res.sendRedirect(redirectPath);
+                model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
             }
+
+            return "lti3Redirect";
+
         } catch (SignatureException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-        } catch (IOException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad Request");
         } catch (GeneralSecurityException ex) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         }

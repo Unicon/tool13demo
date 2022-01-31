@@ -137,3 +137,13 @@ Setup SQS for AGS Grade Pass Back
 1. The authentication to AWS uses Spring's [default authentication chain](https://cloud.spring.io/spring-cloud-static/spring-cloud-aws/1.2.3.RELEASE/multi/multi__basic_setup.html#_sdk_credentials_configuration).
 2. The URI for a SQS queue should be filled in for either `lti13.grade-passback-queue` or as `LTI13_GRADE_PASSBACK_QUEUE` environment variable.
 3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the application.properties file or `AWS_REGION` as an environment variable.
+
+Testing in the Dev/Staging Environment
+--------------------------------------
+1. Push changes to the branch that you want to push to the dev environment (e.g. L3-66-integration-testing)
+2. `git branch -d dev-env`
+3. `git checkout -b dev-env`
+4. `git pull origin L3-66-integration-testing`
+5. `git push --force --set-upstream origin dev-env`
+6. Wait 10-15 minutes for the deployment to complete.
+7. View the logs using `aws logs tail /aws/elasticbeanstalk/lti-service-dev-docker/var/log/eb-docker/containers/eb-current-app/stdouterr.log --follow --since 1h`

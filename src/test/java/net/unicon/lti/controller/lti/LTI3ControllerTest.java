@@ -2,14 +2,10 @@ package net.unicon.lti.controller.lti;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.lti.LTI3Request;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,21 +19,21 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
 import org.springframework.web.server.ResponseStatusException;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @WebMvcTest(LTI3Controller.class)
@@ -60,6 +56,8 @@ public class LTI3ControllerTest {
     @Mock
     private HttpServletResponse res;
 
+    private Model model = new ExtendedModelMap();
+
     @Mock
     Jws<Claims> jwsClaims;
 
@@ -68,9 +66,6 @@ public class LTI3ControllerTest {
 
     @Mock
     LTI3Request lti3Request;
-
-    @Mock
-    CloseableHttpClient client;
 
     private static MockedStatic<LTI3Request> lti3RequestMockedStatic;
 
@@ -103,7 +98,7 @@ public class LTI3ControllerTest {
 
         ResponseStatusException exception = Assertions.assertThrows(
                 ResponseStatusException.class,
-                () -> {lti3Controller.lti3(req, res);}
+                () -> {lti3Controller.lti3(req, res, model);}
         );
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
@@ -119,7 +114,7 @@ public class LTI3ControllerTest {
 
         ResponseStatusException exception = Assertions.assertThrows(
                 ResponseStatusException.class,
-                () -> {lti3Controller.lti3(req, res);}
+                () -> {lti3Controller.lti3(req, res, model);}
         );
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
@@ -134,15 +129,7 @@ public class LTI3ControllerTest {
             when(lti3Request.getAud()).thenReturn("client-id-1");
             when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
             when(ltiDataService.getDemoMode()).thenReturn(false);
-            String testPostResponse = "testing response";
-            ServletOutputStream outputStream = Mockito.mock(ServletOutputStream.class);
-            when(res.getOutputStream()).thenReturn(outputStream);
             when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/test");
-            CloseableHttpResponse response = Mockito.mock(CloseableHttpResponse.class);
-            HttpEntity entity = Mockito.mock(HttpEntity.class);
-            when(entity.getContent()).thenReturn(IOUtils.toInputStream(testPostResponse, "UTF-8"));
-            when(response.getEntity()).thenReturn(entity);
-            when(client.execute(any(HttpPost.class))).thenReturn(response);
 
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
             kpg.initialize(1024);
@@ -152,12 +139,21 @@ public class LTI3ControllerTest {
             when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKey);
             when(lti3Request.getClaims()).thenReturn(claims);
 
-            lti3Controller.lti3(req, res);
+            String response = lti3Controller.lti3(req, res, model);
+
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
             Mockito.verify(ltiDataService).getDemoMode();
-            Mockito.verify(client).execute(any(HttpPost.class));
-            Mockito.verify(outputStream).write(any(byte[].class), eq(0), eq(testPostResponse.length()));
-        } catch (IOException | NoSuchAlgorithmException e) {
+            assertEquals(model.getAttribute("target"), "https://tool.com/test");
+            String finalIdToken = (String) model.getAttribute("id_token");
+            assertNotEquals(finalIdToken, ID_TOKEN);
+
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+
+            assertEquals(response, "lti3Redirect");
+
+        } catch (NoSuchAlgorithmException e) {
             fail("Exception should not be thrown.");
         }
     }
@@ -170,13 +166,9 @@ public class LTI3ControllerTest {
         when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
         when(ltiDataService.getDemoMode()).thenReturn(true);
 
-        lti3Controller.lti3(req, res);
+        String finalResponse = lti3Controller.lti3(req, res, model);
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         Mockito.verify(ltiDataService).getDemoMode();
-        try {
-            Mockito.verify(res).sendRedirect(any(String.class));
-        } catch (IOException e) {
-            fail("IOException should not be thrown.");
-        }
+        assertEquals(finalResponse, "lti3Redirect");
     }
 }
