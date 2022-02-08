@@ -14,6 +14,13 @@ package net.unicon.lti.model.lti.dto;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
+import static net.unicon.lti.utils.LtiStrings.OIDC_DEPLOYMENT_ID;
+import static net.unicon.lti.utils.LtiStrings.OIDC_ISS;
+import static net.unicon.lti.utils.LtiStrings.OIDC_LOGIN_HINT;
+import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_MESSAGE_HINT;
+import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
+
 public class LoginInitiationDTO {
 
     private String iss;
@@ -37,12 +44,12 @@ public class LoginInitiationDTO {
     }
 
     public LoginInitiationDTO(HttpServletRequest req) {
-        this(req.getParameter("iss"),
-                req.getParameter("login_hint"),
-                req.getParameter("target_link_uri"),
-                req.getParameter("lti_message_hint"),
-                req.getParameter("client_id"),
-                req.getParameter("lti_deployment_id")
+        this(req.getParameter(OIDC_ISS),
+                req.getParameter(OIDC_LOGIN_HINT),
+                req.getParameter(OIDC_TARGET_LINK_URI),
+                req.getParameter(OIDC_LTI_MESSAGE_HINT),
+                req.getParameter(OIDC_CLIENT_ID),
+                req.getParameter(OIDC_DEPLOYMENT_ID)
         );
     }
 

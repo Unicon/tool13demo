@@ -24,6 +24,18 @@ public class LtiStrings {
     public static final int ROLE_STUDENT = 0;
     public static final int ROLE_INSTRUCTOR = 1;
 
+    // OIDC Initiation Parameters
+    public static final String OIDC_NONE = "none";
+    public static final String OIDC_FORM_POST = "form_post";
+    public static final String OIDC_ID_TOKEN = "id_token";
+    public static final String OIDC_OPEN_ID = "openid";
+    public static final String OIDC_ISS = "iss";
+    public static final String OIDC_LOGIN_HINT = "login_hint";
+    public static final String OIDC_LTI_MESSAGE_HINT = "lti_message_hint";
+    public static final String OIDC_TARGET_LINK_URI = "target_link_uri";
+    public static final String OIDC_CLIENT_ID = "client_id";
+    public static final String OIDC_DEPLOYMENT_ID = "lti_deployment_id";
+
     //Those are used by the session.
     public static final String LTI_SESSION_USER_ID = "user_id";
     public static final String LTI_SESSION_USER_ROLE = "user_role";
