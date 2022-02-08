@@ -6,6 +6,9 @@ IMS LTI 1.3 based starter (sample) application written using Java and Spring Boo
 The goal is to have a Java based web app which can serve as the basis (or starting point) for building a fully compliant
 LTI 1.3 tool.
 
+Everyday Use
+------------
+------------
 
 Build
 -----
@@ -34,6 +37,10 @@ Endpoints
 ---------
 Target: https://localhost:443/lti3/   
 OIDC Initiation: https://localhost:443/oidc/login_initiations
+
+Instructions to Start from Scratch
+----------------------------------
+----------------------------------
 
 Creating the database
 ---------------------
