@@ -46,7 +46,7 @@ Instructions to Start from Scratch
 Creating the database
 ---------------------
 Connect to your mysql server and use your values on YOURDATABASE, YOURDATABASEUSERNAME, YOURDATABASEUSERPASSWORD Set the right
-values in the properties file.
+values in the properties file. This code was last tested with MySQL version 8.0.28.
 
 `mysql> create database YOURDATABASE DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)`
 
