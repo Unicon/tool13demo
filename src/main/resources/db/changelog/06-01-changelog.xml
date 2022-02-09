@@ -10,41 +10,6 @@
             <column name="lms_user_id" type="VARCHAR(255)"/>
         </addColumn>
     </changeSet>
-    <changeSet id="1628265262144-11" author="ddelblanco (generated)">
-        <dropUniqueConstraint constraintName="UC_API_ONE_USE_TOKEN_TOKEN" tableName="api_one_use_token"/>
-    </changeSet>
-    <changeSet id="1628265262144-1" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="api_one_use_token"/>
-    </changeSet>
-    <changeSet id="1628265262144-2" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="config"/>
-    </changeSet>
-    <changeSet id="1628265262144-3" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="iss_configuration"/>
-    </changeSet>
-    <changeSet id="1628265262144-4" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="lti_context"/>
-    </changeSet>
-    <changeSet id="1628265262144-5" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="lti_link"/>
-    </changeSet>
-    <changeSet id="1628265262144-6" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="lti_membership"/>
-    </changeSet>
-    <changeSet id="1628265262144-7" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="lti_result"/>
-    </changeSet>
-    <changeSet id="1628265262144-8" author="ddelblanco (generated)">
-        <addDefaultValue columnDataType="timestamp" columnName="created_at" defaultValueComputed="CURRENT_TIMESTAMP"
-                         tableName="lti_user"/>
-    </changeSet>
     <changeSet id="1628265262144-9" author="ddelblanco (generated)">
         <dropNotNullConstraint columnDataType="datetime" columnName="login_at" tableName="lti_user"/>
     </changeSet>

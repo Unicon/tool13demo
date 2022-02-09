@@ -178,9 +178,9 @@ public class OIDCController {
             session.setAttribute("lti_nonce", nonceList);
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
-                return "redirect:" + parameters.get("oicdEndpointComplete");
+                return "redirect:" + parameters.get("oidcEndpointComplete");
             } else {
-                return "oicdRedirect";
+                return "oidcRedirect";
             }
         } catch (Exception ex) {
             model.addAttribute(TextConstants.ERROR, ExceptionUtils.getStackTrace(ex));
@@ -212,9 +212,9 @@ public class OIDCController {
         // The state is something that we can create and add anything we want on it.
         // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
         String state = LtiOidcUtils.generateState(ltiDataService, platformDeployment, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
-        authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OICD request.
-        authRequestMap.put("oicdEndpoint", platformDeployment.getOidcEndpoint());  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
-        authRequestMap.put("oicdEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
+        authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OIDC request.
+        authRequestMap.put("oidcEndpoint", platformDeployment.getOidcEndpoint());  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OIDC requests
+        authRequestMap.put("oidcEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
         return authRequestMap;
     }
 
@@ -224,7 +224,7 @@ public class OIDCController {
     private String generateCompleteUrl(Map<String, String> model) throws UnsupportedEncodingException {
         StringBuilder getUrl = new StringBuilder();
 
-        getUrl.append(model.get("oicdEndpoint"));
+        getUrl.append(model.get("oidcEndpoint"));
         getUrl = addParameter(getUrl, "client_id", model.get(CLIENT_ID), true);
         getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
         getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);

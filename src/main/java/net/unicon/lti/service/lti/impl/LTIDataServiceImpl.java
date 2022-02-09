@@ -48,10 +48,10 @@ public class LTIDataServiceImpl implements LTIDataService {
     @Value("${application.url}")
     private String localUrl;
 
-    @Value("${oicd.privatekey}")
+    @Value("${oidc.privatekey}")
     private String ownPrivateKey;
 
-    @Value("${oicd.publickey}")
+    @Value("${oidc.publickey}")
     private String ownPublicKey;
 
     @Value("${lti13.demoMode:false}")
