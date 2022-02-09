@@ -65,14 +65,14 @@
 <br/>
 <h4>This is what we are going to send to the OIDC Authorization Endpoint</h4>
 
-<div class="alert alert-primary">Redirect URL: <span th:text="${oicdEndpoint}"/></div>
+<div class="alert alert-primary">Redirect URL: <span th:text="${oidcEndpoint}"/></div>
 
 <button class="accordion large-font">
     Click to view the POST version of Step 2 of the LTI Core Standard Launch
 </button>
 <div class="panel">
 
-    <form th:action="${oicdEndpoint}" method="post">
+    <form th:action="${oidcEndpoint}" method="post">
         <div class="form-group">
             <label for="client_id">client_id:</label>
             <input type="text" id="client_id" name="client_id" th:value="${client_id}" class="form-control"/>
@@ -124,9 +124,9 @@
     Click to view the GET version of Step 2 of the LTI Core Standard Launch
 </button>
 <div class="panel">
-    <div class="alert alert-primary">GET URL: <span th:text="${oicdEndpointComplete}"/></div>
+    <div class="alert alert-primary">GET URL: <span th:text="${oidcEndpointComplete}"/></div>
 </div>
-<a th:href="${oicdEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step 2</a>
+<a th:href="${oidcEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step 2</a>
 
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>

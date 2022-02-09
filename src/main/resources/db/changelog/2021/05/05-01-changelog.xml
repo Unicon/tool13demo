@@ -158,8 +158,6 @@
         </createTable>
     </changeSet>
     <changeSet id="1620254721593-9" author="ddelblanco (generated)">
-        <addUniqueConstraint columnNames="token" constraintName="UC_API_ONE_USE_TOKEN_TOKEN"
-                             tableName="api_one_use_token"/>
     </changeSet>
     <changeSet id="1620254721593-10" author="ddelblanco (generated)">
         <addForeignKeyConstraint baseColumnNames="key_id" baseTableName="lti_context"

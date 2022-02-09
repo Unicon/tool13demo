@@ -6,12 +6,15 @@ IMS LTI 1.3 based starter (sample) application written using Java and Spring Boo
 The goal is to have a Java based web app which can serve as the basis (or starting point) for building a fully compliant
 LTI 1.3 tool.
 
+Everyday Use
+------------
+------------
 
 Build
 -----
 This will produce a lti13demo.jar file in the *target* directory
 
-    mvn install 
+    mvn clean install 
 
 note, to avoid some test errors if those happen, try
 
@@ -32,19 +35,24 @@ with a valid certificate.
 
 Endpoints
 ---------
-Target: https://localhost:443/lti3/   
+Redirect & Target URI: https://localhost:443/lti3/   
 OIDC Initiation: https://localhost:443/oidc/login_initiations
+Manage Deployment Configurations/Registrations: https://localhost:443/config/
+
+Instructions to Start from Scratch
+----------------------------------
+----------------------------------
 
 Creating the database
 ---------------------
-Connect to your mysql server and use your values on xxDATABASENAMExxx, xxxuserNamexxx, xxxPasswordxxx Set the right
-values in the properties file.
+Connect to your mysql server and use your values on YOURDATABASE, YOURDATABASEUSERNAME, YOURDATABASEUSERPASSWORD Set the right
+values in the properties file. This code was last tested with MySQL version 8.0.28.
 
-mysql> create database xxDATABASENAMExxx DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)
+`mysql> create database YOURDATABASE DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)`
 
-mysql> create user 'xxxuserNamexxx'@'%' identified by 'xxxPasswordxxx'; Query OK, 0 rows affected (0.00 sec)
+`mysql> create user 'YOURDATABASEUSERNAME'@'%' identified by 'YOURDATABASEUSERPASSWORD'; Query OK, 0 rows affected (0.00 sec)`
 
-mysql> grant all on xxDATABASENAMExxx.* to 'xxxuserNamexxx'@'%'; Query OK, 0 rows affected (0.00 sec)
+`mysql> grant all on YOURDATABASE.* to 'YOURDATABASEUSERNAME'@'%'; Query OK, 0 rows affected (0.00 sec)`
 
 Customizing
 -----------
