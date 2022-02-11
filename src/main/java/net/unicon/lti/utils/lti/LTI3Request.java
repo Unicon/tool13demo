@@ -80,6 +80,7 @@ import java.util.Map;
 public class LTI3Request {
     HttpServletRequest httpServletRequest;
     LTIDataService ltiDataService;
+    Jws<Claims> jws;
 
     // these are populated by the loadLTIDataFromDB operation
     PlatformDeployment key;
@@ -224,7 +225,7 @@ public class LTI3Request {
             }
             try {
                 if (ltiDataService != null) {
-                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId);
+                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId, null);
                 } else { //THIS SHOULD NOT HAPPEN
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
@@ -238,19 +239,7 @@ public class LTI3Request {
         return ltiRequest;
     }
 
-    /**
-     * @param request an http servlet request
-     * @param ltiDataService   the service used for accessing LTI data
-     * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
-     * @throws IllegalStateException if this is not an LTI request
-     */
-    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId) throws DataServiceException {
-        if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
-        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
-        this.ltiDataService = ltiDataService;
-        this.httpServletRequest = request;
-        // extract the typical LTI data from the request
-        String jwt = httpServletRequest.getParameter("id_token");
+    protected Jws<Claims> validateAndRetrieveJWTClaims(LTIDataService ltiDataService, String jwt) {
         JwtParser parser = Jwts.parser();
         parser.setSigningKeyResolver(new SigningKeyResolverAdapter() {
 
@@ -279,7 +268,23 @@ public class LTI3Request {
 
             }
         });
-        Jws<Claims> jws = parser.parseClaimsJws(jwt);
+        return parser.parseClaimsJws(jwt);
+    }
+
+    /**
+     * @param request an http servlet request
+     * @param ltiDataService   the service used for accessing LTI data
+     * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
+     * @throws IllegalStateException if this is not an LTI request
+     */
+    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims) throws DataServiceException {
+        if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
+        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
+        this.ltiDataService = ltiDataService;
+        this.httpServletRequest = request;
+        // extract the typical LTI data from the request
+        String jwt = httpServletRequest.getParameter("id_token");
+        this.jws = jwsClaims != null ? jwsClaims : validateAndRetrieveJWTClaims(ltiDataService, jwt);
 
         //This is just for logging.
         Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
@@ -290,7 +295,16 @@ public class LTI3Request {
             log.info("-------------------------------------------------------------------------------------------------------");
         }
 
-        //We check that the LTI request is a valid LTI Request and has the right type.
+        // Validate deployment
+        String iss = jws.getBody().getIssuer();
+        String clientId = jws.getBody().getAudience();
+        String deploymentId = String.valueOf(jws.getBody().get(LtiStrings.LTI_DEPLOYMENT_ID));
+        List<PlatformDeployment> platformDeploymentList = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, deploymentId);
+        if (platformDeploymentList.size() != 1) {
+            throw new IllegalStateException("PlatformDeployment does not exist or is duplicated for issuer: " + iss + ", clientId: " + clientId + ", and deploymentId: " + deploymentId);
+        }
+
+        // We check that the LTI request is a valid LTI Request and has the right type.
         String isLTI3Request = isLTI3Request(jws);
         if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
@@ -306,16 +320,14 @@ public class LTI3Request {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
         // We update the database in case we have new values. (New users, new resources...etc)
-        if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
-            //Load data from DB related with this request and update it if needed with the new values.
-            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
-            ltiDataService.loadLTIDataFromDB(this, linkId);
-            if (update) {
-                if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
-                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
-                } else {
-                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
-                }
+        // Load data from DB related with this request and update it if needed with the new values.
+        PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
+        ltiDataService.loadLTIDataFromDB(this, linkId);
+        if (update) {
+            if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+                ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
+            } else {
+                ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
             }
         }
     }
@@ -730,7 +742,7 @@ public class LTI3Request {
                 httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
                 return "true";
             } else {
-                return "Unknown or already used nounce.";
+                return "Unknown or already used nonce.";
             }
 
         }

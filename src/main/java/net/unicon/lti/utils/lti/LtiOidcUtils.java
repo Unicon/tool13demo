@@ -15,7 +15,6 @@ package net.unicon.lti.utils.lti;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
-import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
@@ -40,15 +39,15 @@ public final class LtiOidcUtils {
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.
      */
-    public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException {
+    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException {
         LocalDateTime date = LocalDateTime.now(ZoneId.of("Z"));
         Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String state = Jwts.builder()
                 .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
                 .setHeaderParam("typ", "JWT") // The type
                 .setIssuer("ltiMiddleware")  //This is our own identifier, to know that we are the issuer.
-                .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
-                .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
+                .setSubject(loginInitiationDTO.getIss()) // We store here the platform issuer to check that matches with the issuer received later
+                .setAudience(clientIdValue)  //We send here the clientId to check it later.
                 .setExpiration(Date.from(date.plusHours(1).toInstant(ZoneOffset.UTC))) //a java.util.Date
                 .setNotBefore(Date.from(date.toInstant(ZoneOffset.UTC))) //a java.util.Date
                 .setIssuedAt(Date.from(date.toInstant(ZoneOffset.UTC))) // for example, now
