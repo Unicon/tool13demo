@@ -18,6 +18,8 @@ import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.utils.TextConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,9 +29,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -46,9 +48,11 @@ public class ConfigurationController {
 
     @GetMapping(value = "/", produces = "application/json;")
     @ResponseBody
-    public ResponseEntity<List<PlatformDeployment>> displayConfigs() {
+    public ResponseEntity<Page<PlatformDeployment>> displayConfigs(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
 
-        List<PlatformDeployment> platformDeploymentListEntityList = platformDeploymentRepository.findAll();
+        Page<PlatformDeployment> platformDeploymentListEntityList = platformDeploymentRepository.findAll(PageRequest.of(page, size));
         if (platformDeploymentListEntityList.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             // You many decide to return HttpStatus.NOT_FOUND
