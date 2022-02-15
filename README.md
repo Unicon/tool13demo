@@ -149,7 +149,7 @@ Turning on AWS Integration for Local Development
 ------------------------------------------------
 Prior to running `mvn clean install spring-boot:run`, do the following:
 1. `unset spring_profiles_active`
-2. Ensure that the following environment variables are set:
+2. Ensure that the following properties are set in the application.properties file:
 ```
 cloud.aws.region.static=us-west-1
 cloud.aws.region.auto=false
@@ -159,6 +159,7 @@ cloud.aws.credentials.access-key=<access key>
 cloud.aws.credentials.secret-key=<secret key>
 cloud.aws.end-point.uri=<sqs uri>
 ```
+3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the application.properties file.
 
 Sample SQS Message for AGS/Grade Passback
 -----------------------------------------
