@@ -142,14 +142,14 @@ Turning off AWS Integration for Local Development
 -------------------------------------------------
 Prior to running `mvn clean install spring-boot:run`, do the following:
 1. `export spring_profiles_active=no-aws`
-2. Ensure that the following property is present and uncommented in the application.properties file:
+2. Ensure that the following property is present and uncommented in the application-local.properties file (or application.properties, whichever is being used locally):
 `spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration`
 
 Turning on AWS Integration for Local Development
 ------------------------------------------------
 Prior to running `mvn clean install spring-boot:run`, do the following:
 1. `unset spring_profiles_active`
-2. Ensure that the following properties are set in the application.properties file:
+2. Ensure that the following properties are set in the application-local.properties file (or application.properties, whichever is being used locally):
 ```
 cloud.aws.region.static=us-west-1
 cloud.aws.region.auto=false
@@ -159,7 +159,7 @@ cloud.aws.credentials.access-key=<access key>
 cloud.aws.credentials.secret-key=<secret key>
 cloud.aws.end-point.uri=<sqs uri>
 ```
-3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the application.properties file.
+3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the application-local.properties file (or application.properties, whichever is being used locally).
 
 Sample SQS Message for AGS/Grade Passback
 -----------------------------------------
