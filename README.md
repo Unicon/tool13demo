@@ -138,6 +138,33 @@ Setup SQS for AGS Grade Pass Back
 2. The URI for a SQS queue should be filled in for either `lti13.grade-passback-queue` or as `LTI13_GRADE_PASSBACK_QUEUE` environment variable.
 3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the application.properties file or `AWS_REGION` as an environment variable.
 
+Turning off AWS Integration for Local Development
+-------------------------------------------------
+Prior to running `mvn clean install spring-boot:run`, do the following:
+1. `export spring_profiles_active=no-aws`
+2. Ensure that the following property is present and uncommented in the application-local.properties file (or application.properties, whichever is being used locally):
+`spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration`
+
+Turning on AWS Integration for Local Development
+------------------------------------------------
+Prior to running `mvn clean install spring-boot:run`, do the following:
+1. `unset spring_profiles_active`
+2. Ensure that the following properties are set in the application-local.properties file (or application.properties, whichever is being used locally):
+```
+cloud.aws.region.static=us-west-1
+cloud.aws.region.auto=false
+cloud.aws.stack.auto=false
+lti13.grade-passback-queue=<queue name>
+cloud.aws.credentials.access-key=<access key>
+cloud.aws.credentials.secret-key=<secret key>
+cloud.aws.end-point.uri=<sqs uri>
+```
+3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the application-local.properties file (or application.properties, whichever is being used locally).
+
+Sample SQS Message for AGS/Grade Passback
+-----------------------------------------
+`{"client_id": "97140000000000230", "user_id": "4f3d12df-e1ae-484f-8b9a-b667864e8100", "deployment_id": "461:5440a08422ab1ee7794a0588b5e4cb4a094c4256", "issuer": "https://canvas.instructure.com", "lineitem_url": "https://canvas.unicon.net/api/lti/courses/3348/line_items/503", "score": 0.3}`
+
 Testing in the Dev/Staging Environment
 --------------------------------------
 1. Push changes to the branch that you want to push to the dev environment (e.g. L3-66-integration-testing)

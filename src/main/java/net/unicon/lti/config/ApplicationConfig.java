@@ -45,7 +45,7 @@ public class ApplicationConfig implements ApplicationContextAware {
     @PostConstruct
     public void init() {
         log.info("INIT");
-        env.setActiveProfiles("dev", "test");
+        env.setActiveProfiles("dev", "test", "no-aws");
         synchronized (configLock) {
             config = this;
         }
