@@ -22,6 +22,7 @@ import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.cloud.aws.messaging.listener.Visibility;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.Header;
@@ -31,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Slf4j
+@Profile("!no-aws")
 @Service
 @NoArgsConstructor
 public class SQSMessageReceiver {
