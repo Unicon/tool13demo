@@ -560,7 +560,7 @@ public class LTI3Request {
             try {
                 return jws.getBody().get(mapToGet, Map.class);
             } catch (Exception ex) {
-                log.error("No map integer when expected in: {}. Returning null", mapToGet);
+                log.info("No map integer when expected in: {}. Returning null", mapToGet);
                 return new HashMap<>();
             }
         } else {

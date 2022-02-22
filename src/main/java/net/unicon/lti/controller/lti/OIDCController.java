@@ -96,7 +96,7 @@ public class OIDCController {
             return TextConstants.LTI3ERROR;
         }
         PlatformDeployment platformDeployment = platformDeploymentList.get(0);
-        if (platformDeploymentList.size() == 1 && clientIdValue == null || deploymentIdValue == null) {
+        if (platformDeploymentList.size() == 1 && (clientIdValue == null || deploymentIdValue == null)) {
             // If there is only one result, we know what the clientId and deploymentId will be
             if (clientIdValue == null) {
                 clientIdValue = platformDeployment.getClientId();
