@@ -106,10 +106,10 @@ Start by building the `.jar` file
 
     mvn clean install
 
-The following command below will run the app with the `application-local.properties` file assuming you placed it in the root of the project.
+The following command below will run the app with the `application-local.properties` file assuming you placed it in the project's resources directory.
 Find the name of the .jar file in the *target* directory and replace `"name-of-.jar"` with your `.jar`
 
-    java -jar target/"name-of-.jar" --spring.config.location=/application-local.properties
+    java -jar target/"name-of-.jar" --spring.config.name=application-local
 
 ## Option 2
 
