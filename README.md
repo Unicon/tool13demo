@@ -48,25 +48,25 @@ psql postgres -U lti13user
 CREATE DATABASE lti13middleware;
 GRANT ALL PRIVILEGES ON DATABASE lti13middleware TO lti13user;
 ```
-3. Ensure that the values in the application.properties file match the database name, user, and password that you used in the previous step.
+3. Ensure that the values in the `.properties` file match the database name, user, and password that you used in the previous step.
 
 ## 2: Create an application-local.properties
 
 It is recommended to use a properties file external to the jar to avoid to store sensitive values in your code. 
 
-1. Copy the `application.properties` from `src/main/resources` to the root of your project and rename it `application-local.properties`
-2. This is where we will edit values for local development
+1. Copy the `application.properties` inside `src/main/resources` and name the copy `application-local.properties`
+2. This is the `.properties` file where we will edit values for local development as described below
 
-## 3: Adding PKCS8 RSA Keys to the application.properties file
+## 3: Adding PKCS8 RSA Keys to the .properties file
 
 1. cd to the directory that you want the keys to be located
 2. `openssl genrsa -out keypair.pem 2048`
 3. `openssl rsa -in keypair.pem -pubout -out publickey.crt`
 4. `cat publickey.crt`
-5. Copy this value to `oidc.publickey` inside the application.properties file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+5. Copy this value to `oidc.publickey` inside the `.properties` file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 6. `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key`
 7. `cat pkcs8.key`
-8. Copy this value to `oidc.privatekey` inside the application.properties file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+8. Copy this value to `oidc.privatekey` inside the `.properties` file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
 
 ## 4: Setting Up SSL Cert for Local Development
 
@@ -115,10 +115,8 @@ Find the name of the .jar file in the *target* directory and replace `"name-of-.
 
 You can run the app in place to try it out without having to install and deploy a servlet container.
 
-TODO: Need to check on the command to run with a `application-local.properties`
 
-
-    mvn clean install -Dspring.config.location=/application-local.properties spring-boot:run 
+    mvn clean install spring-boot:run -Dspring-boot.run.arguments=--spring.config.name=application-local
 
 
 # Testing the application
@@ -134,7 +132,7 @@ You can add this `-DskipTests=true` to either of the build and run command to sk
 
 ### Option 2
 
-    mvn clean install -DskipTests=true spring-boot:run --spring.config.location=/application-local.properties
+    mvn clean install -DskipTests=true spring-boot:run -Dspring-boot.run.arguments=--spring.config.name=application-local
 
 
 ----
@@ -176,7 +174,7 @@ lti13.enableTokenController=false
 
 1. The authentication to AWS uses Spring's [default authentication chain](https://cloud.spring.io/spring-cloud-static/spring-cloud-aws/1.2.3.RELEASE/multi/multi__basic_setup.html#_sdk_credentials_configuration).
 2. The URI for a SQS queue should be filled in for either `lti13.grade-passback-queue` or as `LTI13_GRADE_PASSBACK_QUEUE` environment variable.
-3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the application.properties file or `AWS_REGION` as an environment variable.
+3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the `.properties` file or `AWS_REGION` as an environment variable.
 
 ## Dynamic Registration
 
@@ -188,14 +186,14 @@ If using dynamic registration, ensure that the `domain.url` in the `.properties`
 
 Prior to running `mvn clean install spring-boot:run`, do the following:
 1. `export spring_profiles_active=no-aws`
-2. Ensure that the following property is present and uncommented in the application-local.properties file (or application.properties, whichever is being used locally):
+2. Ensure that the following property is present and uncommented in the `.properties` file:
 `spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration`
 
 ## Turning on AWS Integration for Local Development
 
 Prior to running `mvn clean install spring-boot:run`, do the following:
 1. `unset spring_profiles_active`
-2. Ensure that the following properties are set in the application-local.properties file (or application.properties, whichever is being used locally):
+2. Ensure that the following properties are set in the `.properties` file:
 ```
 cloud.aws.region.static=us-west-1
 cloud.aws.region.auto=false
@@ -205,7 +203,7 @@ cloud.aws.credentials.access-key=<access key>
 cloud.aws.credentials.secret-key=<secret key>
 cloud.aws.end-point.uri=<sqs uri>
 ```
-3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the application-local.properties file (or application.properties, whichever is being used locally).
+3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the `.properties` file.
 
 ## Sample SQS Message for AGS/Grade Passback
 
