@@ -176,12 +176,6 @@ lti13.enableTokenController=false
 2. The URI for a SQS queue should be filled in for either `lti13.grade-passback-queue` or as `LTI13_GRADE_PASSBACK_QUEUE` environment variable.
 3. The region of the SQS queue should be filled in for either `cloud.aws.region.static` in the `.properties` file or `AWS_REGION` as an environment variable.
 
-## Dynamic Registration
-
-If using dynamic registration, ensure that the `domain.url` in the `.properties` file is set to the appropriate version of Waymaker. ie:
-
- `domain.url=https://local.waymaker.xyz`
-
 ## Turning off AWS Integration for Local Development
 
 Prior to running `mvn clean install spring-boot:run`, do the following:
@@ -208,6 +202,12 @@ cloud.aws.end-point.uri=<sqs uri>
 ## Sample SQS Message for AGS/Grade Passback
 
 `{"client_id": "97140000000000230", "user_id": "4f3d12df-e1ae-484f-8b9a-b667864e8100", "deployment_id": "461:5440a08422ab1ee7794a0588b5e4cb4a094c4256", "issuer": "https://canvas.instructure.com", "lineitem_url": "https://canvas.unicon.net/api/lti/courses/3348/line_items/503", "score": 0.3}`
+
+## Dynamic Registration
+
+If using dynamic registration, ensure that the `domain.url` in the `.properties` file is set to the appropriate version of Waymaker. ie:
+
+`domain.url=https://local.waymaker.xyz`
 
 ## Deploying to the Dev/Staging Environment
 
