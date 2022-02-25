@@ -185,25 +185,34 @@ If using dynamic registration, ensure that the `domain.url` in the `.properties`
 ## Turning off AWS Integration for Local Development
 
 Prior to running `mvn clean install spring-boot:run`, do the following:
-1. `export spring_profiles_active=no-aws`
-2. Ensure that the following property is present and uncommented in the `.properties` file:
-`spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration`
+1. Ensure that the following property is present and uncommented in the `.properties` file:
+   `spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextRegionProviderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextResourceLoaderAutoConfiguration,org.springframework.cloud.aws.autoconfigure.context.ContextStackAutoConfiguration`
+2. Set the Spring Boot profile to `no-aws` in the run command by doing one of the following:
+    ### Option 1
+        java -jar target/"name-of-.jar" --spring.config.name=application-local --spring.profiles.active=no-aws
+    ### Option 2
+        mvn clean install -Dspring-boot.run.profiles=no-aws spring-boot:run -Dspring-boot.run.arguments=--spring.config.name=application-local
+
 
 ## Turning on AWS Integration for Local Development
+### Prerequisite: Set up envchain
+1. `brew install envchain`
+2. `envchain --set NAMEYOURAWSENV SPACE_DELIMITED_VARIABLES` For example:  
+    ```envchain --set aws-sqs-gpb AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY```
+3. Enter the values of these variables that correspond to the AWS account for your SQS queue for grade passback.
+4. Confirm the variables are set by running:
+    ```envchain aws-sqs-gpb env | grep AWS_```
 
-Prior to running `mvn clean install spring-boot:run`, do the following:
-1. `unset spring_profiles_active`
-2. Ensure that the following properties are set in the `.properties` file:
+### Turing on AWS Integration
+1. Ensure that the following properties are set in the `.properties` file:
 ```
 cloud.aws.region.static=us-west-1
 cloud.aws.region.auto=false
 cloud.aws.stack.auto=false
 lti13.grade-passback-queue=<queue name>
-cloud.aws.credentials.access-key=<access key>
-cloud.aws.credentials.secret-key=<secret key>
-cloud.aws.end-point.uri=<sqs uri>
 ```
-3. Ensure that the `spring.autoconfigure.exclude` property is commented out in the `.properties` file.
+2. Ensure that the `spring.autoconfigure.exclude` property is commented out in the `.properties` file.
+3. Run the application, ensuring that the no-aws profile is not being set. 
 
 ## Sample SQS Message for AGS/Grade Passback
 
