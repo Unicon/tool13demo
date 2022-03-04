@@ -100,3 +100,30 @@ Using Ngrok For Local SSL Cert
 3. Utilize the https url from ngrok when registering your tool with the platform   
 
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+
+Using Heroku Hosting for Mock HTTPS
+-----------------------------------
+1. Download the Heroku CLI and sign up for a free account on Heroku.
+2. Login to Heroku: `heroku login`
+3. `heroku create your-app-name`
+4. `git push heroku master`
+5. `heroku addons:create cleardb:ignite –a your-app-name`
+6. You will be asked to enter a credit card for Heroku, but you shouldn't get charged anything.
+7. Find your db info: `heroku config –a your_app_name` It should look something like:
+`mysql://username:password@dbhostname.cleardb.net/dbname?reconnect=true`
+8. Update heroku to use the correct `application.properties` file from the `try-heroku-hosting` branch:
+`git push heroku try-heroku-hosting:master`
+9. In your browser, go to heroku.com and click on your app > Settings tab
+10. In the Config Vars section, add the following environment variables:
+```
+APPLICATION_URL=https://your-app-name.herokuapp.com
+OIDC_PRIVATE_KEY=<value described in the PKCS8 RSA Keys section above WITHOUT newlines replaced with '\n'>
+OIDC_PUBLIC_KEY=<value described in the PKCS8 RSA Keys section above WITHOUT newlines replaced with '\n'>
+SPRING_DATASOURCE_URL=jdbc:<value from step 7 but without the username:password@ and without ?reconnect=true>
+SPRING_DATASOURCE_USERNAME=<username from step 7>
+SPRING_DATASOURCE_PASSWORD=<password from step 7>
+CONFIG_PASSWORD=<whatever you want this password to be>
+```
+10. Make sure to click "Add" on the last one. Upon adding these variables, it will restart the spring boot application for you.
+11. You should now be able to hit the https://your-app-name.herokuapp.com/config/ endpoint to view the demo data in the database, and you should be able to register the tool in an LMS.
+Note: SSL is a paid feature of Heroku, so while the LTI Core Standard Launch worked in Canvas on Chrome at the time of writing, the Membership service and AGS service were not able to retrieve the appropriate tokens from the LMS to function.
