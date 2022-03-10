@@ -136,7 +136,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
         Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String aud;
         //D2L needs a different aud, maybe others too
-        if (platformDeployment.getoAuth2TokenAud() != null) {
+        if (StringUtils.isNotBlank(platformDeployment.getoAuth2TokenAud())) {
             aud = platformDeployment.getoAuth2TokenAud();
         } else {
             aud = platformDeployment.getoAuth2TokenUrl();
