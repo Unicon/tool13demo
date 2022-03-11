@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Slf4j
 @Profile("!no-aws")
@@ -50,18 +51,24 @@ public class SQSMessageReceiver {
 
     @SqsListener(value = "${lti13.grade-passback-queue}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void receiveMessage(
-            String sqsLineItemJson,
+            String snsLineItemJson,
             @Header("ApproximateReceiveCount") int receiveCount,
             Visibility visibility,
             Acknowledgment acknowledgment
     ) {
-        log.debug("message received {}", sqsLineItemJson);
+        log.debug("message received {}", snsLineItemJson);
         log.debug("Current time in millis: {}", System.currentTimeMillis());
+        String lineItemJson = "";
         String lineItemUrl = "";
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            SQSLineItem sqsLineItem = objectMapper.readValue(sqsLineItemJson, SQSLineItem.class);
+
+            Map<String, String> snsMap = objectMapper.readValue(snsLineItemJson, Map.class);
+            lineItemJson = snsMap.get("Message");
+            log.debug("lineItem Message: {}", lineItemJson);
+
+            SQSLineItem sqsLineItem = objectMapper.readValue(lineItemJson, SQSLineItem.class);
 
             // Save lineitem url for logging
             lineItemUrl = sqsLineItem.getLineitemUrl();
@@ -110,7 +117,7 @@ public class SQSMessageReceiver {
             newTimeout = newTimeout < 0 || newTimeout > 43199 ? 43199 : newTimeout;
             visibility.extend(newTimeout);
 
-            log.error("Score failed to post to LMS: {}", sqsLineItemJson);
+            log.error("Score failed to post to LMS: {}", lineItemJson);
             String lineItemsUrl = lineItemUrlToLineItemsUrl(lineItemUrl);
             LtiContextEntity course = ltiContextRepository.findByLineitems(lineItemsUrl);
             if (course != null) {
