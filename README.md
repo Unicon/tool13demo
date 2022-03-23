@@ -210,7 +210,19 @@ lti13.grade-passback-queue=<queue name>
 
 ## Sample SQS Message for AGS/Grade Passback
 
-`{"client_id": "97140000000000230", "user_id": "4f3d12df-e1ae-484f-8b9a-b667864e8100", "deployment_id": "461:5440a08422ab1ee7794a0588b5e4cb4a094c4256", "issuer": "https://canvas.instructure.com", "lineitem_url": "https://canvas.unicon.net/api/lti/courses/3348/line_items/503", "score": 0.3}`
+```json
+{
+"Type" : "Notification",
+"MessageId" : "f85561b6-dd51-5de6-8d75-3b128d9598d5",
+"TopicArn" : "arn:aws:sns:us-west-2:725843923591:develop-lti13_grade",
+"Message" : "{\"user_id\":\"4f3d12df-e1ae-484f-8b9a-b667864e8100\",\"lineitem_url\":\"https://canvas.unicon.net/api/lti/courses/3348/line_items/496\",\"client_id\":\"97140000000000230\",\"deployment_id\":\"523:0a47de91cf84ee147f6e534195988508504d3e82\",\"issuer\":\"https://canvas.instructure.com\",\"score\":0.42857142857142855}",
+"Timestamp" : "2022-03-10T19:16:20.157Z",
+"SignatureVersion" : "1",
+"Signature" : "j48wQktGN/UUjwsUK+w7tpn68ANS7/nM8Kwbb848sEZ1Hl7+N1/D8CoDutFHzaT2GbQ+Vh6NFCXtEMyX2LF/UwqqTRqLYknIm7NVCob9/2hADuE6Ix5mPcJKD+Y7nwl6GGu/6I9o+JzVzO2DqOVz7rL3QGnZrJi35RU/SGAxE1NcKl24y6bR+kGPK6O+O3WlyFIPkAP74qIgqdVGtq6v7OJtsDirxBg0JrX4eRNTVMWT+1CK/n78yG8EWs9SARHaLtN+donriYuw59G7ofkwKVmjYniJixpz1hIsyTzP/TZpi+Fn8ZobYMB5WsuUkjnqZTsV45Q/Wm14Ul8rMvUYEg==",
+"SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-7ff5318490ec183fbaddaa2a969abfda.pem",
+"UnsubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-west-2:725843923591:develop-lti13_grade:e4402d2e-ab0c-4fdf-b3a7-dc0d745466e5"
+}
+```
 
 ## Dynamic Registration
 
