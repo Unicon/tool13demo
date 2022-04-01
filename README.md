@@ -18,7 +18,8 @@ LTI 1.3 tool.
 
 If you do not have Java v16 installed we recommend installing the [adoptium](https://adoptium.net/installation.html) version through homebrew
 
-    brew install --cask temurin
+    brew tap homebrew/cask-versions
+    brew install --cask temurin16
 
 You will also need Maven
 
