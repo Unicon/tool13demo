@@ -113,7 +113,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 log.debug("State in cookie was {}", ltiStateCookie.get().getValue());
                 throw new IllegalStateException("LTI request doesn't contain the expected state");
             }
-            // Forth, we validate the state to be sure that is correct
+            // Fourth, we validate the state to be sure that is correct
             Jws<Claims> stateClaims = ltijwtService.validateState(state);
             if (stateClaims == null) {
                 throw new IllegalStateException("LTI state is invalid");
