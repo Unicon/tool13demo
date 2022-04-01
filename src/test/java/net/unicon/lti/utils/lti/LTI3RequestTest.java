@@ -16,11 +16,14 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
+import static net.unicon.lti.utils.TextConstants.LTI_STATE_COOKIE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,6 +35,10 @@ public class LTI3RequestTest {
     private static final String SAMPLE_ISS = "https://platform-lms.com";
     private static final String SAMPLE_CLIENT_ID = "sample-client-id";
     private static final String SAMPLE_DEPLOYMENT_ID = "sample-deployment-id";
+    private static final Cookie NONCE_COOKIE = new Cookie(LTI_NONCE_COOKIE_NAME, "nonce-value");
+    private static final Cookie JSESSIONID_COOKIE = new Cookie("JSESSIONID", "test");
+    private static final Cookie STATE_COOKIE = new Cookie(LTI_STATE_COOKIE_NAME, "test-state");
+
 
     @Mock
     private LTIDataService ltiDataService;
@@ -141,7 +148,7 @@ public class LTI3RequestTest {
     }
 
     @Test
-    public void testLTI3RequestWithMissingNonce() {
+    public void testLTI3RequestWithMissingNonceCookie() {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
@@ -149,7 +156,8 @@ public class LTI3RequestTest {
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        mockHttpSession.setAttribute("lti_nonce", new ArrayList<String>());
+        Cookie[] cookies = {JSESSIONID_COOKIE, STATE_COOKIE};
+        when(req.getCookies()).thenReturn(cookies);
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -164,6 +172,78 @@ public class LTI3RequestTest {
     }
 
     @Test
+    public void testLTI3RequestWithMissingCookies() {
+        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
+        when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
+        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
+        when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        Cookie[] cookies = {};
+        when(req.getCookies()).thenReturn(cookies);
+        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
+
+        IllegalStateException exception = Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+        );
+        verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_NONCE), eq(String.class));
+        assertEquals("Nonce error: Nonce = null in the JWT or in the session.", exception.getMessage());
+    }
+
+    @Test
+    public void testLTI3RequestWithMissingNonce() {
+        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
+        when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
+        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
+        when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        Cookie[] cookies = {new Cookie(LTI_NONCE_COOKIE_NAME, ""), JSESSIONID_COOKIE, STATE_COOKIE};
+        when(req.getCookies()).thenReturn(cookies);
+        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
+
+        IllegalStateException exception = Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+        );
+        verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_NONCE), eq(String.class));
+        assertEquals("Nonce error: Unknown or already used nonce.", exception.getMessage());
+    }
+
+    @Test
+    public void testLTI3RequestWithInvalidNonceCookie() {
+        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
+        when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
+        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
+        when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        Cookie[] cookies = {new Cookie(LTI_NONCE_COOKIE_NAME, "5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"), JSESSIONID_COOKIE, STATE_COOKIE};
+        when(req.getCookies()).thenReturn(cookies);
+        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
+
+        IllegalStateException exception = Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+        );
+        verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class));
+        verify(claims).get(eq(LtiStrings.LTI_NONCE), eq(String.class));
+        assertEquals("Nonce error: Unknown or already used nonce.", exception.getMessage());
+    }
+
+    @Test
     public void testLTI3RequestWithInvalidNonce() {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
@@ -172,8 +252,9 @@ public class LTI3RequestTest {
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
-        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
+        Cookie[] cookies = {new Cookie(LTI_NONCE_COOKIE_NAME, "5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"), JSESSIONID_COOKIE, STATE_COOKIE};
+        when(req.getCookies()).thenReturn(cookies);
+        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6easdfc42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
@@ -195,7 +276,8 @@ public class LTI3RequestTest {
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
+        Cookie[] cookies = {new Cookie(LTI_NONCE_COOKIE_NAME, "5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"), JSESSIONID_COOKIE, STATE_COOKIE};
+        when(req.getCookies()).thenReturn(cookies);
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("ba5938df7756a32ca3a4f89c40d88ff742651bc3ff417f6a4b7443f6f1e6a16c");
 
         Assertions.assertThrows(NullPointerException.class, () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);});

@@ -27,15 +27,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +45,8 @@ import static net.unicon.lti.utils.LtiStrings.OIDC_FORM_POST;
 import static net.unicon.lti.utils.LtiStrings.OIDC_ID_TOKEN;
 import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
 import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
+import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
+import static net.unicon.lti.utils.TextConstants.LTI_STATE_COOKIE_NAME;
 
 /**
  * This LTI controller should be protected by OAuth 1.0a (on the /oauth path)
@@ -118,31 +119,11 @@ public class OIDCController {
                 model.addAttribute("client_id_received", clientIdValue);
                 model.addAttribute("deployment_id_received", deploymentIdValue);
             }
-            // This can be implemented in different ways, on this case, we are storing the state and nonce in
-            // the httpsession, so we can compare later if they are valid states and nonces.
-            HttpSession session = req.getSession();
-            List<String> stateList = session.getAttribute("lti_state") != null ?
-                    (List) session.getAttribute("lti_state") :
-                    new ArrayList<>();
-            String state = parameters.get("state");
 
-            // We will keep several states and nonces, and we should delete them once we use them.
-            if (!stateList.contains(state)) { // if it is a different state and there are more... we add it with the to the string.
-                stateList.add(state);
-            }
-            session.setAttribute("lti_state", stateList);
-
-            log.debug("lti_state in session: {}", session.getAttribute("lti_state"));
-            log.debug("Session ID in OIDC Controller: {}", session.getId());
-
-            List<String> nonceList = session.getAttribute("lti_nonce") != null ?
-                    (List) session.getAttribute("lti_nonce") :
-                    new ArrayList<>();
-            String nonce = parameters.get("nonce");
-            if (!nonceList.contains(nonce)) {
-                nonceList.add(nonce);
-            }
-            session.setAttribute("lti_nonce", nonceList);
+            // This can be implemented in different ways. In this case, we are storing the state and nonce in
+            // cookies, so we can compare later if they are valid.
+            res.addCookie(generateLtiOidcCookie(LTI_STATE_COOKIE_NAME, parameters.get("state")));
+            res.addCookie(generateLtiOidcCookie(LTI_NONCE_COOKIE_NAME, parameters.get("nonce")));
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
@@ -223,6 +204,15 @@ public class OIDCController {
             url.append(URLEncoder.encode(value, String.valueOf(StandardCharsets.UTF_8)));
         }
         return url;
+    }
+
+    private Cookie generateLtiOidcCookie(String name, String value) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setSecure(true);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        log.debug(name + " cookie in OIDC Controller: {}", cookie.getValue());
+        return cookie;
     }
 
 }

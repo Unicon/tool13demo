@@ -22,6 +22,8 @@ public class TextConstants {
         throw new IllegalStateException("Utility class");
     }
 
+    public static final String LTI_STATE_COOKIE_NAME = "lti_state";
+    public static final String LTI_NONCE_COOKIE_NAME = "lti_nonce";
     public static final String TOKEN = "Token - ";
     public static final String NO_SESSION_VALUES = "noSessionValues";
     public static final String SINGLE = "single";
