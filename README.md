@@ -16,7 +16,7 @@ LTI 1.3 tool.
 
 # Prerequisites
 
-If you do not have Java installed we recommend installing the [adoptium](https://adoptium.net/installation.html) version through homebrew
+If you do not have Java v16 installed we recommend installing the [adoptium](https://adoptium.net/installation.html) version through homebrew
 
     brew install --cask temurin
 
@@ -63,10 +63,10 @@ It is recommended to use a properties file external to the jar to avoid to store
 2. `openssl genrsa -out keypair.pem 2048`
 3. `openssl rsa -in keypair.pem -pubout -out publickey.crt`
 4. `cat publickey.crt`
-5. Copy this value to `oidc.publickey` inside the `.properties` file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+5. Copy this value to `oidc.publickey` inside the `.properties` file. The key needs to all be on one line, with a newline character, `\n`, preceding and following the string that you copy in between `---BEGIN PUBLIC KEY---` and `---END PUBLIC KEY---`.
 6. `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in keypair.pem -out pkcs8.key`
 7. `cat pkcs8.key`
-8. Copy this value to `oidc.privatekey` inside the `.properties` file. The key needs to all be on one line, ensure that each newline is indicated by \n (may need to do a find `\n` and replace with `\\n`)
+8. Copy this value to `oidc.privatekey` inside the `.properties` file. The key needs to all be on one line, with a newline character, `\n`, preceding and following the string that you copy in between `---BEGIN PRIVATE KEY---` and `---END PRIVATE KEY---`.
 
 ## 4: Setting Up SSL Cert for Local Development
 
