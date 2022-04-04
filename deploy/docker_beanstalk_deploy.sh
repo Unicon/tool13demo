@@ -100,7 +100,7 @@ docker push \
 #   4. Update a Beanstalk environment with that app version.
 #
 
-DOCKERRUN_FILENAME="Dockerrun.aws.${AWS_ECR_IMAGE_TAG}.json"
+DOCKERRUN_FILENAME="Dockerrun.aws.json"
 ZIP_FILE_NAME="lti-service-beanstalk-${AWS_ECR_IMAGE_TAG}.zip"
 
 echo -e "\n============================================================"
