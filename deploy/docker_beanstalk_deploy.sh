@@ -101,7 +101,7 @@ docker push \
 #
 
 DOCKERRUN_FILENAME="Dockerrun.aws.${AWS_ECR_IMAGE_TAG}.json"
-
+ZIP_FILE_NAME="lti-service-beanstalk-${AWS_ECR_IMAGE_TAG}.zip"
 
 echo -e "\n============================================================"
 echo "  Creating Dockerrun.aws.json file"
@@ -112,19 +112,23 @@ sed -i "s/AWS_ACCOUNT_ID/${AWS_ACCOUNT_NUMBER}/" "$DOCKERRUN_FILENAME"
 sed -i "s/ECR_IMAGE_TAG/${AWS_ECR_IMAGE_TAG}/" "$DOCKERRUN_FILENAME"
 cat "$DOCKERRUN_FILENAME"
 
+echo -e "\n============================================================"
+echo "  Creating beankstalk zip archive"
+echo -e "============================================================\n"
+zip "$ZIP_FILE_NAME" -r $DOCKERRUN_FILENAME .platform/ 
+
 
 echo -e "\n============================================================"
 echo "  Uploading to S3: $DOCKERRUN_FILENAME -> s3://${S3_BUCKET_NAME}"
 echo -e "============================================================\n"
 
-aws s3 cp "$DOCKERRUN_FILENAME" "s3://${S3_BUCKET_NAME}/"
-
+aws s3 cp "$ZIP_FILE_NAME" "s3://${S3_BUCKET_NAME}/"
 
 echo -e "\n============================================================"
 echo "  Creating application version"
 echo -e "============================================================\n"
 
-aws elasticbeanstalk create-application-version --region us-west-2 --application-name "$BEANSTALK_APPLICATION" --version-label "$AWS_ECR_IMAGE_TAG" --description "Git commit $TRAVIS_COMMIT" --source-bundle S3Bucket="$S3_BUCKET_NAME",S3Key="$DOCKERRUN_FILENAME"
+aws elasticbeanstalk create-application-version --region us-west-2 --application-name "$BEANSTALK_APPLICATION" --version-label "$AWS_ECR_IMAGE_TAG" --description "Git commit $TRAVIS_COMMIT" --source-bundle S3Bucket="$S3_BUCKET_NAME",S3Key="$ZIP_FILE_NAME"
 
 
 echo -e "\n============================================================"
