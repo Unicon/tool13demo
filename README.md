@@ -6,6 +6,15 @@ IMS LTI 1.3 based starter (sample) application written using Java and Spring Boo
 The goal is to have a Java based web app which can serve as the basis (or starting point) for building a fully compliant
 LTI 1.3 tool.
 
+### Endpoints
+#### Accessible without an LMS:
+- Manage Deployment Configurations/Registrations: https://localhost:443/config/
+- JWKS: https://localhost:443/jwks/jwk  
+#### Only Accessible within an LMS:
+- Redirect & Target URI: https://localhost:443/lti3
+- OIDC Initiation: https://localhost:443/oidc/login_initiations
+- Dynamic Registration: https://localhost:443/registration
+
 Everyday Use
 ------------
 ------------
@@ -26,22 +35,18 @@ You can run the app in place to try it out without having to install and deploy 
 
     mvn clean install -DskipTests=true spring-boot:run
 
-Then go to the following default URL:
-
-    https://localhost:9090/
-
 NOTE: To run it and connect it to real LMSs it is recommended to run it in an accessible server 
 with a valid certificate.
 
-Endpoints
----------
-Redirect & Target URI: https://localhost:443/lti3/   
-OIDC Initiation: https://localhost:443/oidc/login_initiations
-Manage Deployment Configurations/Registrations: https://localhost:443/config/
 
 Instructions to Start from Scratch
 ----------------------------------
 ----------------------------------
+Prerequisites
+-------------
+- Install Java 8
+- Install Maven
+- Install MySQL
 
 Creating the database
 ---------------------
