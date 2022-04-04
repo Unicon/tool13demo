@@ -15,10 +15,6 @@ LTI 1.3 tool.
 - OIDC Initiation: https://localhost:443/oidc/login_initiations
 - Dynamic Registration: https://localhost:443/registration
 
-# Prerequisites
- - Install Java 8
- - Install Maven
-
 Everyday Use
 ------------
 ------------
@@ -46,6 +42,10 @@ with a valid certificate.
 Instructions to Start from Scratch
 ----------------------------------
 ----------------------------------
+Prerequisites
+-------------
+- Install Java 8
+- Install Maven
 
 Creating the database
 ---------------------
