@@ -12,6 +12,9 @@
  */
 package net.unicon.lti.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -53,6 +56,7 @@ public class PlatformDeployment extends BaseEntity {
     @Column(name = "deployment_id")
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "platformDeployment", fetch = FetchType.LAZY)
     private Set<LtiContextEntity> contexts;
 
@@ -121,6 +125,7 @@ public class PlatformDeployment extends BaseEntity {
         this.deploymentId = deploymentId;
     }
 
+    @JsonIgnore
     public Set<LtiContextEntity> getContexts() {
         return contexts;
     }

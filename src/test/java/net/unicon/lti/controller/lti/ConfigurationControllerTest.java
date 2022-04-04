@@ -10,22 +10,24 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @WebMvcTest(ConfigurationController.class)
 public class ConfigurationControllerTest {
     private PlatformDeployment platformDeployment = new PlatformDeployment();
-    private ResponseEntity<PlatformDeployment> platformDeploymentResponseEntity;
 
     @InjectMocks
     private ConfigurationController configurationController = new ConfigurationController();
@@ -44,21 +46,24 @@ public class ConfigurationControllerTest {
 
     @Test
     public void testDisplayConfigs() {
-        ResponseEntity<List<PlatformDeployment>> platformDeploymentResponseEntity = new ResponseEntity<>(Arrays.asList(platformDeployment), HttpStatus.OK);
-        when(platformDeploymentRepository.findAll()).thenReturn(Arrays.asList(platformDeployment));
+        Page<PlatformDeployment> platformDeploymentPage = new PageImpl<>(Arrays.asList(platformDeployment));
+        ResponseEntity<Page<PlatformDeployment>> platformDeploymentResponseEntity = new ResponseEntity<>(platformDeploymentPage, HttpStatus.OK);
+        when(platformDeploymentRepository.findAll(any(PageRequest.class))).thenReturn(platformDeploymentPage);
 
-        ResponseEntity<List<PlatformDeployment>> found = configurationController.displayConfigs();
-        Mockito.verify(platformDeploymentRepository).findAll();
+        ResponseEntity<Page<PlatformDeployment>> found = configurationController.displayConfigs(0, 10);
+        Mockito.verify(platformDeploymentRepository).findAll(any(PageRequest.class));
         assertEquals(platformDeploymentResponseEntity.getStatusCode(), found.getStatusCode());
         assertEquals(platformDeploymentResponseEntity.getBody(), found.getBody());
     }
 
     @Test
     public void testDisplayConfigsNotFound() {
-        when(platformDeploymentRepository.findAll()).thenReturn(new ArrayList<>());
+        Page<PlatformDeployment> platformDeploymentPage = new PageImpl<>(new ArrayList<>());
+        ResponseEntity<Page<PlatformDeployment>> platformDeploymentResponseEntity = new ResponseEntity<>(platformDeploymentPage, HttpStatus.OK);
+        when(platformDeploymentRepository.findAll(any(PageRequest.class))).thenReturn(platformDeploymentPage);
 
-        ResponseEntity<List<PlatformDeployment>> found = configurationController.displayConfigs();
-        Mockito.verify(platformDeploymentRepository).findAll();
+        ResponseEntity<Page<PlatformDeployment>> found = configurationController.displayConfigs(0, 10);
+        Mockito.verify(platformDeploymentRepository).findAll(any(PageRequest.class));
         assertEquals(HttpStatus.NO_CONTENT, found.getStatusCode());
         assertNull(found.getBody());
     }

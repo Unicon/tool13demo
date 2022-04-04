@@ -34,3 +34,5 @@ application-local.properties
 *.pem
 *.crt
 *.p12
+
+*.DS_Store
