@@ -46,6 +46,7 @@ Prerequisites
 -------------
 - Install Java 8
 - Install Maven
+- Install MySQL
 
 Creating the database
 ---------------------
