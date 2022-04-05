@@ -23,6 +23,7 @@ import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
+import lombok.Data;
 import net.unicon.lti.config.ApplicationConfig;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiContextEntity;
@@ -75,12 +76,15 @@ import java.util.Map;
  *
  */
 @SuppressWarnings("ConstantConditions")
+@Data
 public class LTI3Request {
 
     static final Logger log = LoggerFactory.getLogger(LTI3Request.class);
 
     HttpServletRequest httpServletRequest;
     LTIDataService ltiDataService;
+    Jws<Claims> jws;
+    Claims claims;
 
 
     // these are populated by the loadLTIDataFromDB operation
@@ -224,7 +228,7 @@ public class LTI3Request {
             }
             try {
                 if (ltiDataService != null) {
-                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId);
+                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId, null);
                 } else { //THIS SHOULD NOT HAPPEN
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
@@ -238,19 +242,7 @@ public class LTI3Request {
         return ltiRequest;
     }
 
-    /**
-     * @param request an http servlet request
-     * @param ltiDataService   the service used for accessing LTI data
-     * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
-     * @throws IllegalStateException if this is not an LTI request
-     */
-    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId) throws DataServiceException {
-        if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
-        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
-        this.ltiDataService = ltiDataService;
-        this.httpServletRequest = request;
-        // extract the typical LTI data from the request
-        String jwt = httpServletRequest.getParameter("id_token");
+    protected Jws<Claims> validateAndRetrieveJWTClaims(LTIDataService ltiDataService, String jwt) {
         JwtParser parser = Jwts.parser();
         parser.setSigningKeyResolver(new SigningKeyResolverAdapter() {
 
@@ -279,7 +271,23 @@ public class LTI3Request {
 
             }
         });
-        Jws<Claims> jws = parser.parseClaimsJws(jwt);
+        return parser.parseClaimsJws(jwt);
+    }
+
+    /**
+     * @param request an http servlet request
+     * @param ltiDataService   the service used for accessing LTI data
+     * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
+     * @throws IllegalStateException if this is not an LTI request
+     */
+    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims) throws DataServiceException {
+        if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
+        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
+        this.ltiDataService = ltiDataService;
+        this.httpServletRequest = request;
+        // extract the typical LTI data from the request
+        String jwt = httpServletRequest.getParameter("id_token");
+        this.jws = jwsClaims != null ? jwsClaims : validateAndRetrieveJWTClaims(ltiDataService, jwt);
         //This is just for logging.
         Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
         log.info("----------------------BEFORE---------------------------------------------------------------------------------");
@@ -290,7 +298,16 @@ public class LTI3Request {
         }
         log.info("-------------------------------------------------------------------------------------------------------");
 
-        //We check that the LTI request is a valid LTI Request and has the right type.
+        // Validate deployment
+        String iss = jws.getBody().getIssuer();
+        String clientId = jws.getBody().getAudience();
+        String deploymentId = String.valueOf(jws.getBody().get(LtiStrings.LTI_DEPLOYMENT_ID));
+        List<PlatformDeployment> platformDeploymentList = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, deploymentId);
+        if (platformDeploymentList.size() != 1) {
+            throw new IllegalStateException("PlatformDeployment does not exist or is duplicated for issuer: " + iss + ", clientId: " + clientId + ", and deploymentId: " + deploymentId);
+        }
+
+        // We check that the LTI request is a valid LTI Request and has the right type.
         String isLTI3Request = isLTI3Request(jws);
         if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
@@ -306,16 +323,14 @@ public class LTI3Request {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
         // We update the database in case we have new values. (New users, new resources...etc)
-        if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
-            //Load data from DB related with this request and update it if needed with the new values.
-            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
-            ltiDataService.loadLTIDataFromDB(this, linkId);
-            if (update) {
-                if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
-                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
-                } else {
-                    ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
-                }
+        // Load data from DB related with this request and update it if needed with the new values.
+        PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
+        ltiDataService.loadLTIDataFromDB(this, linkId);
+        if (update) {
+            if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+                ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
+            } else {
+                ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
             }
         }
     }
@@ -546,7 +561,7 @@ public class LTI3Request {
             try {
                 return jws.getBody().get(mapToGet, Map.class);
             } catch (Exception ex) {
-                log.error("No map integer when expected in: {0}. Returning null", mapToGet);
+                log.info("No map integer when expected in: {0}. Returning null", mapToGet);
                 return new HashMap<>();
             }
         } else {
@@ -728,7 +743,7 @@ public class LTI3Request {
                 httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
                 return "true";
             } else {
-                return "Unknown or already used nounce.";
+                return "Unknown or already used nonce.";
             }
 
         }
@@ -798,436 +813,5 @@ public class LTI3Request {
             }
         }
         return roleNum;
-    }
-
-    // GETTERS
-
-
-    public LtiContextEntity getContext() {
-        return context;
-    }
-
-    public LtiLinkEntity getLink() {
-        return link;
-    }
-
-    public LtiMembershipEntity getMembership() {
-        return membership;
-    }
-
-    public LtiUserEntity getUser() {
-        return user;
-    }
-
-    public LtiResultEntity getResult() {
-        return result;
-    }
-
-    public boolean isLoaded() {
-        return loaded;
-    }
-
-    public void setLoaded(boolean loaded) {
-        this.loaded = loaded;
-    }
-
-    public boolean isComplete() {
-        return complete;
-    }
-
-    public void setComplete(boolean complete) {
-        this.complete = complete;
-    }
-
-    public boolean isUpdated() {
-        return updated;
-    }
-
-    public void setUpdated(boolean updated) {
-        this.updated = updated;
-    }
-
-    public int getLoadingUpdates() {
-        return loadingUpdates;
-    }
-
-    public void setLoadingUpdates(int loadingUpdates) {
-        this.loadingUpdates = loadingUpdates;
-    }
-
-    public String getLtiMessageType() {
-        return ltiMessageType;
-    }
-
-    public String getLtiVersion() {
-        return ltiVersion;
-    }
-
-    public String getLtiGivenName() {
-        return ltiGivenName;
-    }
-
-    public String getLtiFamilyName() {
-        return ltiFamilyName;
-    }
-
-    public String getLtiMiddleName() {
-        return ltiMiddleName;
-    }
-
-    public String getLtiPicture() {
-        return ltiPicture;
-    }
-
-    public String getLtiEmail() {
-        return ltiEmail;
-    }
-
-    public void setLtiEmail(String ltiEmail) {
-        this.ltiEmail = ltiEmail;
-    }
-
-    public String getLtiName() {
-        return ltiName;
-    }
-
-    public void setLtiName(String ltiName) {
-        this.ltiName = ltiName;
-    }
-
-    public List<String> getLtiRoles() {
-        return ltiRoles;
-    }
-
-    public List<String> getLtiRoleScopeMentor() {
-        return ltiRoleScopeMentor;
-    }
-
-    public Map<String, Object> getLtiResourceLink() {
-        return ltiResourceLink;
-    }
-
-    public String getLtiLinkId() {
-        return ltiLinkId;
-    }
-
-    public void setLtiLinkId(String ltiLinkId) {
-        this.ltiLinkId = ltiLinkId;
-    }
-
-    public String getLtiLinkTitle() {
-        return ltiLinkTitle;
-    }
-
-    public String getLtiLinkDescription() {
-        return ltiLinkDescription;
-    }
-
-    public Map<String, Object> getLtiContext() {
-        return ltiContext;
-    }
-
-    public String getLtiContextId() {
-        return ltiContextId;
-    }
-
-    public void setLtiContextId(String ltiContextId) {
-        this.ltiContextId = ltiContextId;
-    }
-
-    public String getLtiContextTitle() {
-        return ltiContextTitle;
-    }
-
-    public String getLtiContextLabel() {
-        return ltiContextLabel;
-    }
-
-    public List<String> getLtiContextType() {
-        return ltiContextType;
-    }
-
-    public Map<String, Object> getLtiToolPlatform() {
-        return ltiToolPlatform;
-    }
-
-    public String getLtiToolPlatformName() {
-        return ltiToolPlatformName;
-    }
-
-    public String getLtiToolPlatformContactEmail() {
-        return ltiToolPlatformContactEmail;
-    }
-
-    public String getLtiToolPlatformDesc() {
-        return ltiToolPlatformDesc;
-    }
-
-    public String getLtiToolPlatformUrl() {
-        return ltiToolPlatformUrl;
-    }
-
-    public String getLtiToolPlatformProduct() {
-        return ltiToolPlatformProduct;
-    }
-
-    public String getLtiToolPlatformFamilyCode() {
-        return ltiToolPlatformFamilyCode;
-    }
-
-    public String getLtiToolPlatformVersion() {
-        return ltiToolPlatformVersion;
-    }
-
-    public Map<String, Object> getLtiEndpoint() {
-        return ltiEndpoint;
-    }
-
-    public List<String> getLtiEndpointScope() {
-        return ltiEndpointScope;
-    }
-
-    public String getLtiEndpointLineItems() {
-        return ltiEndpointLineItems;
-    }
-
-    public Map<String, Object> getLtiNamesRoleService() {
-        return ltiNamesRoleService;
-    }
-
-    public String getLtiNamesRoleServiceContextMembershipsUrl() {
-        return ltiNamesRoleServiceContextMembershipsUrl;
-    }
-
-    public List<String> getLtiNamesRoleServiceVersions() {
-        return ltiNamesRoleServiceVersions;
-    }
-
-    public Map<String, Object> getLtiCaliperEndpointService() {
-        return ltiCaliperEndpointService;
-    }
-
-    public List<String> getLtiCaliperEndpointServiceScopes() {
-        return ltiCaliperEndpointServiceScopes;
-    }
-
-    public String getLtiCaliperEndpointServiceUrl() {
-        return ltiCaliperEndpointServiceUrl;
-    }
-
-    public String getLtiCaliperEndpointServiceSessionId() {
-        return ltiCaliperEndpointServiceSessionId;
-    }
-
-    public String getIss() {
-        return iss;
-    }
-
-    public String getAud() {
-        return aud;
-    }
-
-    public Date getIat() {
-        return iat;
-    }
-
-    public Date getExp() {
-        return exp;
-    }
-
-    public String getSub() {
-        return sub;
-    }
-
-    public void setSub(String sub) {
-        this.sub = sub;
-    }
-
-    public String getLti11LegacyUserId() {
-        return lti11LegacyUserId;
-    }
-
-    public String getNonce() {
-        return nonce;
-    }
-
-    public String getLocale() {
-        return locale;
-    }
-
-    public Map<String, Object> getLtiLaunchPresentation() {
-        return ltiLaunchPresentation;
-    }
-
-    public String getLtiPresTarget() {
-        return ltiPresTarget;
-    }
-
-    public int getLtiPresWidth() {
-        return ltiPresWidth;
-    }
-
-    public int getLtiPresHeight() {
-        return ltiPresHeight;
-    }
-
-    public String getLtiPresReturnUrl() {
-        return ltiPresReturnUrl;
-    }
-
-    public Locale getLtiPresLocale() {
-        return ltiPresLocale;
-    }
-
-    public Map<String, Object> getLtiExtension() {
-        return ltiExtension;
-    }
-
-    public Map<String, Object> getLtiCustom() {
-        return ltiCustom;
-    }
-
-    public String getLtiTargetLinkUrl() {
-        return ltiTargetLinkUrl;
-    }
-
-    public String getLtiDeploymentId() {
-        return ltiDeploymentId;
-    }
-
-    public void setLtiDeploymentId(String ltiDeploymentId) {
-        this.ltiDeploymentId = ltiDeploymentId;
-    }
-
-    public PlatformDeployment getKey() {
-        return key;
-    }
-
-    public void setKey(PlatformDeployment key) {
-        this.key = key;
-    }
-
-    public void setContext(LtiContextEntity context) {
-        this.context = context;
-    }
-
-    public void setLink(LtiLinkEntity link) {
-        this.link = link;
-    }
-
-    public void setMembership(LtiMembershipEntity membership) {
-        this.membership = membership;
-    }
-
-    public void setUser(LtiUserEntity user) {
-        this.user = user;
-    }
-
-    public void setResult(LtiResultEntity result) {
-        this.result = result;
-    }
-
-    public int getUserRoleNumber() {
-        return userRoleNumber;
-    }
-
-    public void setUserRoleNumber(int userRoleNumber) {
-        this.userRoleNumber = userRoleNumber;
-    }
-
-    public Map<String, Object> getDeepLinkingSettings() {
-        return deepLinkingSettings;
-    }
-
-    public void setDeepLinkingSettings(Map<String, Object> deepLinkingSettings) {
-        this.deepLinkingSettings = deepLinkingSettings;
-    }
-
-    public String getDeepLinkReturnUrl() {
-        return deepLinkReturnUrl;
-    }
-
-    public void setDeepLinkReturnUrl(String deepLinkReturnUrl) {
-        this.deepLinkReturnUrl = deepLinkReturnUrl;
-    }
-
-    public List<String> getDeepLinkAcceptTypes() {
-        return deepLinkAcceptTypes;
-    }
-
-    public void setDeepLinkAcceptTypes(List<String> deepLinkAcceptTypes) {
-        this.deepLinkAcceptTypes = deepLinkAcceptTypes;
-    }
-
-    public String getDeepLinkAcceptMediaTypes() {
-        return deepLinkAcceptMediaTypes;
-    }
-
-    public void setDeepLinkAcceptMediaTypes(String deepLinkAcceptMediaTypes) {
-        this.deepLinkAcceptMediaTypes = deepLinkAcceptMediaTypes;
-    }
-
-    public List<String> getDeepLinkAcceptPresentationDocumentTargets() {
-        return deepLinkAcceptPresentationDocumentTargets;
-    }
-
-    public void setDeepLinkAcceptPresentationDocumentTargets(List<String> deepLinkAcceptPresentationDocumentTargets) {
-        this.deepLinkAcceptPresentationDocumentTargets = deepLinkAcceptPresentationDocumentTargets;
-    }
-
-    public String getDeepLinkAcceptMultiple() {
-        return deepLinkAcceptMultiple;
-    }
-
-    public void setDeepLinkAcceptMultiple(String deepLinkAcceptMultiple) {
-        this.deepLinkAcceptMultiple = deepLinkAcceptMultiple;
-    }
-
-    public String getDeepLinkAutoCreate() {
-        return deepLinkAutoCreate;
-    }
-
-    public void setDeepLinkAutoCreate(String deepLinkAutoCreate) {
-        this.deepLinkAutoCreate = deepLinkAutoCreate;
-    }
-
-    public String getDeepLinkTitle() {
-        return deepLinkTitle;
-    }
-
-    public void setDeepLinkTitle(String deepLinkTitle) {
-        this.deepLinkTitle = deepLinkTitle;
-    }
-
-    public String getDeepLinkText() {
-        return deepLinkText;
-    }
-
-    public void setDeepLinkText(String deepLinkText) {
-        this.deepLinkText = deepLinkText;
-    }
-
-    public String getDeepLinkData() {
-        return deepLinkData;
-    }
-
-    public void setDeepLinkData(String deepLinkData) {
-        this.deepLinkData = deepLinkData;
-    }
-
-    public Map<String, List<String>> getDeepLinkJwts() {
-        return deepLinkJwts;
-    }
-
-    public void setDeepLinkJwts(Map<String, List<String>> deepLinkJwts) {
-        this.deepLinkJwts = deepLinkJwts;
-    }
-
-    public Map<String, Object> getLtiLis() {
-        return ltiLis;
-    }
-
-    public void setLtiLis(Map<String, Object> ltiLis) {
-        this.ltiLis = ltiLis;
     }
 }

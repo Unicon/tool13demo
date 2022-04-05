@@ -68,7 +68,7 @@ public class LTI3Controller {
     LtiContextRepository ltiContextRepository;
 
     @RequestMapping({"", "/"})
-    public String home(HttpServletRequest req, Principal principal, Model model) throws DataServiceException, ConnectionException {
+    public String lti3(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
 
         //First we will get the state, validate it
         String state = req.getParameter("state");
@@ -78,15 +78,17 @@ public class LTI3Controller {
             Jws<Claims> claims = ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance(link);
             // This is just an extra check that we have added, but it is not necessary.
-            // Checking that the clientId in the status matches the one coming with the ltiRequest.
-            if (!claims.getBody().get("clientId").equals(lti3Request.getAud())) {
-                model.addAttribute(TextConstants.ERROR, " Bad Client Id");
+            // Checking that the clientId in the state (if sent in OIDC initiation request) matches the one coming with the ltiRequest.
+            String clientIdFromState = claims.getBody().get("clientId") != null ? claims.getBody().get("clientId").toString() : null;
+            if (clientIdFromState != null && !clientIdFromState.equals(lti3Request.getAud())) {
+                model.addAttribute(TextConstants.ERROR, "Invalid Client Id");
                 return TextConstants.LTI3ERROR;
             }
             // This is just an extra check that we have added, but it is not necessary.
-            // Checking that the deploymentId in the status matches the one coming with the ltiRequest.
-            if (!claims.getBody().get("ltiDeploymentId").equals(lti3Request.getLtiDeploymentId())) {
-                model.addAttribute(TextConstants.ERROR, " Bad Deployment Id");
+            // Checking that the deploymentId in the state (if sent in the OIDC initiation request) matches the one coming with the ltiRequest.
+            String deploymentIdFromState = claims.getBody().get("ltiDeploymentId") != null ? claims.getBody().get("ltiDeploymentId").toString() : null;
+            if (deploymentIdFromState != null && !deploymentIdFromState.equals(lti3Request.getLtiDeploymentId())) {
+                model.addAttribute(TextConstants.ERROR, "Invalid Deployment Id");
                 return TextConstants.LTI3ERROR;
             }
             //We add the request to the model so it can be displayed. But, in a real application, we would start
