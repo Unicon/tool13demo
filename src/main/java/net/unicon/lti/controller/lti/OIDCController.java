@@ -41,6 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
+import static net.unicon.lti.utils.LtiStrings.OIDC_FORM_POST;
+import static net.unicon.lti.utils.LtiStrings.OIDC_ID_TOKEN;
+import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
+import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
+
 /**
  * This LTI controller should be protected by OAuth 1.0a (on the /oauth path)
  * This will handle LTI 1 and 2 (many of the paths ONLY make sense for LTI2 though)
@@ -52,14 +58,6 @@ import java.util.UUID;
 public class OIDCController {
 
     static final Logger log = LoggerFactory.getLogger(OIDCController.class);
-
-    //Constants defined in the LTI standard
-    private static final String NONE = "none";
-    private static final String FORM_POST = "form_post";
-    private static final String ID_TOKEN = "id_token";
-    private static final String OPEN_ID = "openid";
-    private static final String CLIENT_ID = "client_id";
-    private static final String DEPLOYMENT_ID = "lti_deployment_id";
 
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
@@ -76,57 +74,43 @@ public class OIDCController {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
-        List<PlatformDeployment> platformDeploymentListEntityList;
+        List<PlatformDeployment> platformDeploymentList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
-        String clientIdValue;
-        // If we already have it in the loginInitiationDTO
-        if (loginInitiationDTO.getClientId() != null) {
-            clientIdValue = loginInitiationDTO.getClientId();
-        } else {  // We try to get it from the URL query parameters.
-            clientIdValue = req.getParameter(CLIENT_ID);
-        }
+        String clientIdValue = loginInitiationDTO.getClientId();
         // Getting the deployment_id (that is optional) and can come in the form or in the URL.
-        String deploymentIdValue;
-        // If we already have it in the loginInitiationDTO
-        if (loginInitiationDTO.getDeploymentId() != null) {
-            deploymentIdValue = loginInitiationDTO.getDeploymentId();
-        } else {  // We try to get it from the URL query getDeploymentId.
-            deploymentIdValue = req.getParameter(DEPLOYMENT_ID);
-        }
+        String deploymentIdValue = loginInitiationDTO.getDeploymentId();
 
         // We search for the platformDeployment.
         // We will try all the options here (from more detailed to less), and we will deal with the error if there are more than one result.
         if (clientIdValue != null && deploymentIdValue != null) {
-            platformDeploymentListEntityList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(loginInitiationDTO.getIss(), clientIdValue, deploymentIdValue);
+            platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(loginInitiationDTO.getIss(), clientIdValue, deploymentIdValue);
         } else if (clientIdValue != null) {
-            platformDeploymentListEntityList = platformDeploymentRepository.findByIssAndClientId(loginInitiationDTO.getIss(), clientIdValue);
+            platformDeploymentList = platformDeploymentRepository.findByIssAndClientId(loginInitiationDTO.getIss(), clientIdValue);
         } else if (deploymentIdValue != null) {
-            platformDeploymentListEntityList = platformDeploymentRepository.findByIssAndDeploymentId(loginInitiationDTO.getIss(), deploymentIdValue);
+            platformDeploymentList = platformDeploymentRepository.findByIssAndDeploymentId(loginInitiationDTO.getIss(), deploymentIdValue);
         } else {
-            platformDeploymentListEntityList = platformDeploymentRepository.findByIss(loginInitiationDTO.getIss());
+            platformDeploymentList = platformDeploymentRepository.findByIss(loginInitiationDTO.getIss());
         }
         // We deal with some possible errors
-        if (platformDeploymentListEntityList.isEmpty()) {  //If we don't have configuration
+        if (platformDeploymentList.isEmpty()) {  //If we don't have configuration
             model.addAttribute(TextConstants.ERROR, "Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
                     " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
             return TextConstants.LTI3ERROR;
         }
-        if (platformDeploymentListEntityList.size() > 1) {   // If we have more than one match.
-            model.addAttribute(TextConstants.ERROR, "We have more than one tool deployment with iss: " + loginInitiationDTO.getIss() +
-                    " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
-            return TextConstants.LTI3ERROR;
+        PlatformDeployment platformDeployment = platformDeploymentList.get(0);
+        if (platformDeploymentList.size() == 1 && (clientIdValue == null || deploymentIdValue == null)) {
+            // If there is only one result, we know what the clientId and deploymentId will be
+            if (clientIdValue == null) {
+                clientIdValue = platformDeployment.getClientId();
+            }
+            if (deploymentIdValue == null) {
+                deploymentIdValue = platformDeployment.getDeploymentId();
+            }
         }
-        // If we have arrived here, it means that we have only one result (as expected)
-        PlatformDeployment lti3KeyEntity = platformDeploymentListEntityList.get(0);
-        if (clientIdValue == null) {
-            clientIdValue = lti3KeyEntity.getClientId();
-        }
-        if (deploymentIdValue == null) {
-            deploymentIdValue = lti3KeyEntity.getDeploymentId();
-        }
+
         try {
             // We are going to create the OIDC request,
-            Map<String, String> parameters = generateAuthRequestPayload(lti3KeyEntity, loginInitiationDTO, clientIdValue, deploymentIdValue);
+            Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
             // We add that information so the thymeleaf template can display it (and prepare the links)
             //model.addAllAttributes(parameters);
             // These 3 are to display what we received from the platform.
@@ -139,40 +123,22 @@ public class OIDCController {
             // This can be implemented in different ways, on this case, we are storing the state and nonce in
             // the httpsession, so we can compare later if they are valid states and nonces.
             HttpSession session = req.getSession();
-            List<String> stateList;
-            List<String> nonceList;
+            List<String> stateList = session.getAttribute("lti_state") != null ?
+                    (List) session.getAttribute("lti_state") :
+                    new ArrayList<>();
             String state = parameters.get("state");
-            String nonce = parameters.get("nonce");
 
             // We will keep several states and nonces, and we should delete them once we use them.
-            if (session.getAttribute("lti_state") != null) {
-                List<String> ltiState = (List) session.getAttribute("lti_state");
-                if (ltiState.isEmpty()) {  //If not old states... then just the one we have created
-                    stateList = new ArrayList<>();
-                    stateList.add(state);
-                } else if (ltiState.contains(state)) {  //if the state is already there... then the lti_state is the same. No need to add a duplicate
-                    stateList = ltiState;
-                } else { // if it is a different state and there are more... we add it with the to the string.
-                    ltiState.add(state);
-                    stateList = ltiState;
-                }
-            } else {
-                stateList = new ArrayList<>();
+            if (!stateList.contains(state)) {
                 stateList.add(state);
             }
             session.setAttribute("lti_state", stateList);
 
-            if (session.getAttribute("lti_nonce") != null) {
-                List<String> ltiNonce = (List) session.getAttribute("lti_nonce");
-                if (ltiNonce.isEmpty()) {  //If not old nonces... then just the one we have created
-                    nonceList = new ArrayList<>();
-                    nonceList.add(nonce);
-                } else {
-                    ltiNonce.add(nonce);
-                    nonceList = ltiNonce;
-                }
-            } else {
-                nonceList = new ArrayList<>();
+            List<String> nonceList = session.getAttribute("lti_nonce") != null ?
+                    (List) session.getAttribute("lti_nonce") :
+                    new ArrayList<>();
+            String nonce = parameters.get("nonce");
+            if (!nonceList.contains(nonce)) {
                 nonceList.add(nonce);
             }
             session.setAttribute("lti_nonce", nonceList);
@@ -192,11 +158,11 @@ public class OIDCController {
      * This generates a map with all the information that we need to send to the OIDC Authorization endpoint in the Platform.
      * In this case, we will put this in the model to be used by the thymeleaf template.
      */
-    private Map<String, String> generateAuthRequestPayload(PlatformDeployment platformDeployment, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
-
+    private Map<String, String> generateAuthRequestPayload(LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue, String oidcEndpoint) throws GeneralSecurityException, IOException {
         Map<String, String> authRequestMap = new HashMap<>();
-        authRequestMap.put(CLIENT_ID, platformDeployment.getClientId()); //As it came from the Platform (if it came... if not we should have it configured)
-        authRequestMap.put("login_hint", loginInitiationDTO.getLoginHint()); //As it came from the Platform
+        if (clientIdValue != null) {
+            authRequestMap.put(OIDC_CLIENT_ID, clientIdValue); //As it came from the Platform (if it came or was found in config)
+        }        authRequestMap.put("login_hint", loginInitiationDTO.getLoginHint()); //As it came from the Platform
         authRequestMap.put("lti_message_hint", loginInitiationDTO.getLtiMessageHint()); //As it came from the Platform
         String nonce = UUID.randomUUID().toString(); // We generate a nonce to allow this auth request to be used only one time.
         String nonceHash = Hashing.sha256()
@@ -204,16 +170,16 @@ public class OIDCController {
                 .toString();
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
-        authRequestMap.put("prompt", NONE);  //Always this value, as specified in the standard.
+        authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
         authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valids reditect uris.
-        authRequestMap.put("response_mode", FORM_POST); //Always this value, as specified in the standard.
-        authRequestMap.put("response_type", ID_TOKEN); //Always this value, as specified in the standard.
-        authRequestMap.put("scope", OPEN_ID);  //Always this value, as specified in the standard.
+        authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
+        authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
+        authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
         // The state is something that we can create and add anything we want on it.
         // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
-        String state = LtiOidcUtils.generateState(ltiDataService, platformDeployment, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
+        String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
         authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OIDC request.
-        authRequestMap.put("oidcEndpoint", platformDeployment.getOidcEndpoint());  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OIDC requests
+        authRequestMap.put("oidcEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OIDC requests
         authRequestMap.put("oidcEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
         return authRequestMap;
     }
@@ -225,7 +191,12 @@ public class OIDCController {
         StringBuilder getUrl = new StringBuilder();
 
         getUrl.append(model.get("oidcEndpoint"));
-        getUrl = addParameter(getUrl, "client_id", model.get(CLIENT_ID), true);
+        if (model.get(OIDC_CLIENT_ID) != null) {
+            getUrl = addParameter(getUrl, "client_id", model.get(OIDC_CLIENT_ID), true);
+            getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
+        } else {
+            getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), true);
+        }
         getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
         getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
         getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);

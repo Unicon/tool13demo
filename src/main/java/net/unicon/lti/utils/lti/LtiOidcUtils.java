@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.Map;
 
@@ -41,16 +43,15 @@ public class LtiOidcUtils {
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.
      */
-    public static String generateState(LTIDataService ltiDataService, PlatformDeployment platformDeployment, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException, IOException {
-
+    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException {
         Date date = new Date();
         Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String state = Jwts.builder()
                 .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
                 .setHeaderParam("typ", "JWT") // The type
                 .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
-                .setSubject(platformDeployment.getIss()) // We store here the platform issuer to check that matches with the issuer received later
-                .setAudience(platformDeployment.getClientId())  //We send here the clientId to check it later.
+                .setSubject(loginInitiationDTO.getIss()) // We store here the platform issuer to check that matches with the issuer received later
+                .setAudience(clientIdValue)  //We send here the clientId to check it later.
                 .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
