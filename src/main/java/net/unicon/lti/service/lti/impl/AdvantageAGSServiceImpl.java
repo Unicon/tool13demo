@@ -332,7 +332,19 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         }
     }
 
-    //POST SCORES
+    @Override
+    public ResponseEntity<Void> postScore(LTIToken lTITokenScores, String lineItemId, Score score) {
+        log.debug(TextConstants.TOKEN + lTITokenScores.getAccess_token());
+        RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
+
+        // Add the token and score to the request entity
+        HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
+
+        final String POST_SCORES = lineItemId + "/scores";
+        log.debug("POST_SCORES -  " + POST_SCORES);
+        ResponseEntity<Void> postScoreResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
+        return postScoreResponse;
+    }
 
     @Override
     public void cleanLineItem(LineItem lineItem){
