@@ -41,6 +41,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -50,12 +51,16 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+
+import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
 
 /**
  * LTI3 Request object holds all the details for a valid LTI3 request
@@ -719,27 +724,17 @@ public class LTI3Request {
      */
     public String checkNonce(Jws<Claims> jws) {
 
-        //We get all the nonces from the session, and compare.
-        List<String> ltiNonce = (List) httpServletRequest.getSession().getAttribute("lti_nonce");
-        List<String> ltiNonceNew = new ArrayList<>();
-        boolean found = false;
-        String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE, String.class);
-        if (nonceToCheck == null || ListUtils.isEmpty(ltiNonce)) {
+        // We get the nonce from the cookie and compare to the nonce from the id_token JWT.
+        Optional<Cookie> ltiNonceCookie = Arrays.stream(httpServletRequest.getCookies())
+                .filter(e -> LTI_NONCE_COOKIE_NAME.equals(e.getName())).findAny();
+        String jwtNonce = jws.getBody().get(LtiStrings.LTI_NONCE, String.class);
+        if (jwtNonce == null || ltiNonceCookie.isEmpty()) {
             return "Nonce = null in the JWT or in the session.";
         } else {
             // Really, we send the hash of the nonce to the platform.
-            for (String nonceStored : ltiNonce) {
-                String nonceHash = Hashing.sha256()
-                        .hashString(nonceStored, StandardCharsets.UTF_8)
-                        .toString();
-                if (nonceToCheck.equals(nonceHash)) {
-                    found = true;
-                } else { //If not found, we add it to another list... so we keep the unused nonces.
-                    ltiNonceNew.add(nonceStored);
-                }
-            }
-            if (found) {
-                httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
+            String nonceStored = ltiNonceCookie.get().getValue();
+            String nonceHash = Hashing.sha256().hashString(nonceStored, StandardCharsets.UTF_8).toString();
+            if (StringUtils.equals(jwtNonce, nonceHash)) {
                 return "true";
             } else {
                 return "Unknown or already used nonce.";
