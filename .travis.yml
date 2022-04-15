@@ -33,6 +33,20 @@ jobs:
           on:
             branch: staging-env
     - stage: "deploy to AWS"
+      name: "deploy to dev-exemplar"
+      deploy:
+        - provider: script
+          script: bash deploy/docker_beanstalk_deploy.sh dev-exemplar
+          on:
+            branch: dev-env
+    - stage: "deploy to AWS"
+      name: "deploy to staging-exemplar"
+      deploy:
+        - provider: script
+          script: bash deploy/docker_beanstalk_deploy.sh staging-exemplar
+          on:
+            branch: staging-env
+    - stage: "deploy to AWS"
       name: "deploy to production"
       if: tag =~ ^release/\d{4}-\d{2}-\d{2}
       deploy:
@@ -40,4 +54,3 @@ jobs:
           script: bash deploy/docker_beanstalk_deploy.sh prod
           on:
             all_branches: true
-
