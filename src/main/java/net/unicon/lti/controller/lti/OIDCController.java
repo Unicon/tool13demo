@@ -182,7 +182,6 @@ public class OIDCController {
         } else {
             getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), true);
         }
-        getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
         getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
         getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);
         getUrl = addParameter(getUrl, "prompt", model.get("prompt"), false);
