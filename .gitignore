@@ -27,7 +27,7 @@
 /.scannerwork/
 /sonar-project.properties
 
-application-local.properties
+application-local*.properties
 
 # Locally generated certificates
 *.key
