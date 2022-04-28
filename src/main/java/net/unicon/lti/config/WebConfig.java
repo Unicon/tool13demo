@@ -28,13 +28,23 @@ public class WebConfig implements WebMvcConfigurer {
                 "/img/**",
                 "/css/**",
                 "/js/**",
-                "/app/**")
+                "/app/**",
+                // All these static imports belong to the React UI
+                "/static/media/**",
+                "/static/js/**",
+                "/static/css/**"
+                )
                 .addResourceLocations(
                         "classpath:/META-INF/resources/webjars/",
                         "classpath:/static/img/",
                         "classpath:/static/css/",
                         "classpath:/static/js/",
-                        "classpath:/static/app/");
+                        "classpath:/static/app/",
+                        // All these static/static/ imports belong to the React UI
+                        "classpath:/static/static/media/",
+                        "classpath:/static/static/js/",
+                        "classpath:/static/static/css/"
+                        );
     }
 
 }

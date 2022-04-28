@@ -98,6 +98,16 @@ public class LTI3Controller {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
             }
 
+            // When the LTI message type is deep linking we must to display the React UI to select courses from waymaker. 
+            if (LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(lti3Request.getLtiMessageType())) {
+                if (ltiDataService.getDeepLinkingEnabled()) {
+                    // This redirects to the REACT UI which is a secondary set of templates.
+                    return TextConstants.REACT_UI_TEMPLATE;
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deep Linking Disabled");
+                }
+            }
+
             return "lti3Redirect";
 
         } catch (SignatureException ex) {

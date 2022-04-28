@@ -1,0 +1,63 @@
+.App {
+  background-color: #f3f2ee;
+  border-top: 0.1rem solid #c2bdba;
+  border-bottom: 0.1rem solid #c2bdba;
+}
+
+.header {
+  margin: 1rem;
+}
+
+.breadcrumb {
+    margin-left: 1rem;
+    margin-top: 1rem;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+    content: '>' !important;
+}
+
+.course-grid {
+  margin: 0.5rem !important;
+}
+
+.course-card {
+  border-radius: 1rem !important;
+}
+
+.course-card:hover {
+  border: 0.125rem solid #dddddd;
+  cursor: pointer;
+}
+
+.course-image {
+  border-radius: 1rem 1rem 0 0 !important;
+}
+
+.search-input {
+  font-family: FontAwesome;
+}
+
+.course-info {
+  border-radius: 1rem !important;
+  background-color: #ffffff;
+  padding: 2rem;
+  margin: 1rem;
+}
+
+.section-header {
+  border-bottom: 0.1rem solid #c2bdba;
+}
+
+.course-footer {
+  border-top: 0.1rem solid #c2bdba;
+  border-bottom: 0.1rem solid #c2bdba;
+  padding: 1rem;
+  padding-left: 2rem;
+  background-color: rgba(255, 255, 255, 0.61);
+  backdrop-filter: blur(5px);
+}
+
+.action-info {
+  font-style: italic;
+}

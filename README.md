@@ -59,6 +59,8 @@ It is recommended to use a properties file external to the jar to avoid to store
 2. This is the `.properties` file where we will edit values for local development as described below
 3. Ensure that the values in `application-local.properties` match the database name, user, and password that you used when creating the postgres database in the previous section.
 
+Alternatively, you can create an `application.properties` file in a `config` folder in the root of the project, and override any property for local development.
+
 ## 3: Adding PKCS8 RSA Keys to the .properties file
 
 1. cd to the directory that you want the keys to be located
@@ -241,3 +243,34 @@ If using dynamic registration, ensure that the `domain.url` in the `.properties`
 5. `git push --force --set-upstream origin dev-env`
 6. Wait 10-15 minutes for the deployment to complete.
 7. View the logs using `aws logs tail /aws/elasticbeanstalk/lti-service-dev-docker/var/log/eb-docker/containers/eb-current-app/stdouterr.log --follow --since 1h`
+
+## Getting Started with the Deep Linking UI (React)
+
+The Deep Linking UI was written in React to support deep linking messages in the LTI middleware, it allows the instructor to pick courses from Waymaker.
+
+It can be displayed in the LMS launching the Middleware from a deep link request or it can be run independently using NPM. 
+
+You can install NPM chosing your OS favorite distribution from [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
+
+### Available Scripts
+
+In the 'src/main/frontend' directory, you can run:
+
+#### `npm start`
+
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
+
+#### `npm test`
+
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### Deployment
+
+The project contains the `frontend-maven-plugin` plugin that downloads/installs Node and NPM locally, runs npm install, and then any combination of Bower, Grunt, Gulp, Jspm, Karma, or Webpack. It's supposed to work on Windows, OS X and Linux.
+
+After building and packing the entire React UI, it deploys it together with the Thymeleaf existing static files.
