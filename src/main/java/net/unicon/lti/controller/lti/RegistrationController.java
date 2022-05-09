@@ -14,7 +14,9 @@ package net.unicon.lti.controller.lti;
 
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.RegistrationException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
+import net.unicon.lti.model.lti.dto.ToolConfigurationACKDTO;
 import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
 import net.unicon.lti.model.lti.dto.ToolMessagesSupportedDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
@@ -164,13 +166,22 @@ public class RegistrationController {
     }
 
     private String registrationPOST(HttpServletRequest req, Model model, String token, PlatformRegistrationDTO platformRegistrationDTO, ToolRegistrationDTO toolRegistrationDTO) {
-        String answer = "Error during the registration";
+        ToolConfigurationACKDTO answer = new ToolConfigurationACKDTO();
         try {
             answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
-        } catch (ConnectionException e) {
-            e.printStackTrace();
+            //If we are here, then we received a succesful registration and we need ot create the database entry
+            registrationService.saveNewPlatformDeployment(answer, platformRegistrationDTO);
+        } catch (ConnectionException ex) {
+            ex.printStackTrace();
+            model.addAttribute("Error", ex.getMessage());
+            return "registrationError";
+        } catch (RegistrationException ex) {
+            ex.printStackTrace();
+            model.addAttribute("Error", ex.getMessage());
+            return "registrationError";
         }
-        model.addAttribute("registration_confirmation", answer);
+
+        model.addAttribute("registration_confirmation", answer.toString());
         try {
             model.addAttribute("issuer", java.net.URLDecoder.decode(platformRegistrationDTO.getIssuer(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {

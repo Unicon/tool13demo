@@ -1,7 +1,8 @@
-package net.unicon.lti.service.lti.test;
+package net.unicon.lti.service.lti;
 
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
+import net.unicon.lti.model.lti.dto.ToolConfigurationACKDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.service.lti.impl.RegistrationServiceImpl;
@@ -49,19 +50,22 @@ public class RegistrationServiceTest {
 
     @Test
     public void testCallDynamicRegistration() {
+        ToolConfigurationACKDTO toolConfigurationACKDTO = new ToolConfigurationACKDTO();
+        toolConfigurationACKDTO.setClient_id("test-success");
+        ResponseEntity<ToolConfigurationACKDTO> response = new ResponseEntity<>(toolConfigurationACKDTO, HttpStatus.OK);
         ToolRegistrationDTO toolRegistration = new ToolRegistrationDTO();
-        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class))).thenReturn(new ResponseEntity<>("test-success", HttpStatus.OK));
+        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(), eq(ToolConfigurationACKDTO.class))).thenReturn(response);
 
         try {
-            String answer = registrationService.callDynamicRegistration(null, toolRegistration, TEST_REGISTRATION_ENDPOINT);
+            ToolConfigurationACKDTO answer = registrationService.callDynamicRegistration(null, toolRegistration, TEST_REGISTRATION_ENDPOINT);
 
             verify(restTemplate).exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST),
                     argThat((HttpEntity entity) ->
                             entity.getHeaders().get(HttpHeaders.AUTHORIZATION) == null && entity.getBody() == toolRegistration
                     ),
-                    eq(String.class));
+                    eq(ToolConfigurationACKDTO.class));
             verify(exceptionMessageGenerator, never()).exceptionMessage(any(String.class), any(Exception.class));
-            assertEquals(answer, "test-success");
+            assertEquals(answer.getClient_id(), "test-success");
         } catch (ConnectionException e) {
             fail();
         }
@@ -70,21 +74,26 @@ public class RegistrationServiceTest {
     @Test
     public void testCallDynamicRegistrationWithToken() {
         String mockToken = "mock-token";
+        ToolConfigurationACKDTO toolConfigurationACKDTO = new ToolConfigurationACKDTO();
+        toolConfigurationACKDTO.setClient_id("test-success");
+        ResponseEntity<ToolConfigurationACKDTO> response = new ResponseEntity<>(toolConfigurationACKDTO, HttpStatus.OK);
+
         ToolRegistrationDTO toolRegistration = new ToolRegistrationDTO();
-        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class))).thenReturn(new ResponseEntity<>("test-success", HttpStatus.OK));
+        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(), eq(ToolConfigurationACKDTO.class))).thenReturn(response);
 
         try {
-            String answer = registrationService.callDynamicRegistration(mockToken, toolRegistration, TEST_REGISTRATION_ENDPOINT);
+            ToolConfigurationACKDTO answer = registrationService.callDynamicRegistration(mockToken, toolRegistration, TEST_REGISTRATION_ENDPOINT);
 
             verify(restTemplate).setUriTemplateHandler(any(UriTemplateHandler.class));
             verify(restTemplate).exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST),
                     argThat((HttpEntity entity) ->
                             StringUtils.equals(entity.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0), "Bearer " + mockToken) && entity.getBody() == toolRegistration
                     ),
-                    eq(String.class));
+                    eq(ToolConfigurationACKDTO.class));
             verify(exceptionMessageGenerator, never()).exceptionMessage(any(String.class), any(Exception.class));
-            assertEquals(answer, "test-success");
+            assertEquals(answer.getClient_id(), "test-success");
         } catch (ConnectionException e) {
+            e.printStackTrace();
             fail();
         }
     }
@@ -92,7 +101,11 @@ public class RegistrationServiceTest {
     @Test
     public void testCallDynamicRegistrationNot2xxSuccessful() throws ConnectionException {
         ToolRegistrationDTO toolRegistration = new ToolRegistrationDTO();
-        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class))).thenReturn(new ResponseEntity<>("test-failure", HttpStatus.INTERNAL_SERVER_ERROR));
+        ToolConfigurationACKDTO toolConfigurationACKDTO = new ToolConfigurationACKDTO();
+        toolConfigurationACKDTO.setClient_id("test-error");
+        ResponseEntity<ToolConfigurationACKDTO> response = new ResponseEntity<>(toolConfigurationACKDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(), eq(ToolConfigurationACKDTO.class))).thenReturn(response);
 
         assertThrows(ConnectionException.class, () -> {
             registrationService.callDynamicRegistration(null, toolRegistration, TEST_REGISTRATION_ENDPOINT);
@@ -102,7 +115,7 @@ public class RegistrationServiceTest {
                 argThat((HttpEntity entity) ->
                         entity.getHeaders().get(HttpHeaders.AUTHORIZATION) == null && entity.getBody() == toolRegistration
                 ),
-                eq(String.class));
+                eq(ToolConfigurationACKDTO.class));
         verify(exceptionMessageGenerator).exceptionMessage(any(String.class), any(Exception.class));
     }
 
