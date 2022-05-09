@@ -122,13 +122,16 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
+                log.debug("RETRIEVING TOKEN TO CREATE LINEITEM:");
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
+                log.debug("POST TO CREATE LINEITEM:");
                 advantageAGSServiceServiceImpl.cleanLineItem(lineItem);
                 LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItem(LTIToken, context, lineItem);
+                log.debug("GET ALL LINEITEMS:");
                 LineItems lineItemsResults = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
 
                 // 3. update the model
@@ -163,11 +166,13 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
+                log.debug("RETREIVING TOKEN TO GET SINGLE LINEITEM:");
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                 LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                 // 2. Call the service
+                log.debug("GET SINGLE LINEITEM:");
                 LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
 
                 // 3. update the model
@@ -277,14 +282,22 @@ public class AgsController {
 
                 //Call the ags service to post a lineitem
                 // 1. Get the token
+                log.debug("RETRIEVING TOKEN FOR FETCHING ALL LINEITEMS:");
                 LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                LTIToken scoresToken = advantageAGSServiceServiceImpl.getToken("scores", platformDeployment.get());
                 log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                log.debug("RETRIEVING TOKEN FOR FETCHING ALL RESULTS:");
+                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                log.debug("RETRIEVING TOKEN FOR POSTING SCORE:");
+                LTIToken scoresToken = advantageAGSServiceServiceImpl.getToken("scores", platformDeployment.get());
+                log.debug("Scores Bearer Token: {}", scoresToken.getAccess_token());
+
 
                 // 2. Call the service
+                log.debug("CALLING GET SINGLE LINEITEM:");
                 LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+                log.debug("CALLING POST SCORE:");
                 Results scoreResults = advantageAGSServiceServiceImpl.postScore(scoresToken, resultsToken, context, lineItemsResult.getId(), score);
+                log.debug("CALLING GET SINGLE LINEITEM:");
                 LineItem lineItemsResultNew = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
 
                 // 3. update the model
