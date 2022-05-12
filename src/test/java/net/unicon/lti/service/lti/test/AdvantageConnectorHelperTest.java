@@ -45,13 +45,6 @@ import static org.mockito.Mockito.when;
 
 public class AdvantageConnectorHelperTest {
 
-    private static final String MOODLE_BEARER_TOKEN = "{\n" +
-            "  \"access_token\" : \"2df6406b5149df41737ce252ea75feb8\",\n" +
-            "  \"token_type\" : \"Bearer\",\n" +
-            "  \"expires_in\" : 3600,\n" +
-            "  \"scope\" : \"https://purl.imsglobal.org/spec/lti-ags/scope/lineitem\"\n" +
-            "}";
-
     @InjectMocks
     AdvantageConnectorHelper advantageConnectorHelper = new AdvantageConnectorHelperImpl();
 
