@@ -38,8 +38,9 @@ Things you can do without the certificate:
 
 ## 1: Creating the Postgres database
 
-1. Install PostgresQL (version 13.4 as of today)
-2. Create a Postgres user and database for this project by entering the following in the Terminal:
+1. Install PostgresQL (version 13.4 as of today): `brew install postgres`
+2. Start the database: `brew services start postgres`
+3. Create a Postgres user and database for this project by entering the following in the Terminal:
 ```bash
 psql postgres
 CREATE ROLE lti13user WITH LOGIN PASSWORD 'yourpassword';
@@ -49,7 +50,6 @@ psql postgres -U lti13user
 CREATE DATABASE lti13middleware;
 GRANT ALL PRIVILEGES ON DATABASE lti13middleware TO lti13user;
 ```
-3. Ensure that the values in the `.properties` file match the database name, user, and password that you used in the previous step.
 
 ## 2: Create an application-local.properties
 
@@ -57,6 +57,7 @@ It is recommended to use a properties file external to the jar to avoid to store
 
 1. Copy the `application.properties` inside `src/main/resources` and name the copy `application-local.properties`
 2. This is the `.properties` file where we will edit values for local development as described below
+3. Ensure that the values in `application-local.properties` match the database name, user, and password that you used when creating the postgres database in the previous section.
 
 ## 3: Adding PKCS8 RSA Keys to the .properties file
 
@@ -72,7 +73,7 @@ It is recommended to use a properties file external to the jar to avoid to store
 ## 4: Setting Up SSL Cert for Local Development
 
 Note: As of 8/11/2021, for Mac, this works with Firefox but not Chrome.
-1. `cd ~/PATH/tool13demo/src/main/resources`
+1. from the middleware directory, cd into `src/main/resources`
 2. Generate ssl certificate in the resources directory: `keytool -genkeypair -alias keystoreAlias -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore keystore.p12 -validity 3650`
 3. Enter any values desired when prompted, but make sure you remember the password that you used.
 4. In the `.properties` file, ensure that each of these variables have the correct values filled in:
