@@ -63,7 +63,29 @@ public class AdvantageAGSServiceTest {
             ResponseEntity<Void> response = advantageAGSService.postScore(ltiToken, "https://lms.com/line_item/456", score);
             verify(advantageConnectorHelper).createRestTemplate();
             verify(advantageConnectorHelper).createTokenizedRequestEntity(ltiToken, score);
-            verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class));
+            verify(restTemplate).exchange(eq("https://lms.com/line_item/456/scores"), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class));
+            assertEquals(response, responseEntity);
+        } catch (ConnectionException e) {
+            fail("Exception should not be thrown.");
+        }
+    }
+
+    @Test
+    public void testPostScoreFromSQSWithMoodleURLFormat() {
+        try {
+            LTIToken ltiToken = new LTIToken();
+            ltiToken.setAccess_token("test-scores-token");
+            Score score = new Score();
+            when(advantageConnectorHelper.createRestTemplate()).thenReturn(restTemplate);
+            HttpEntity<Score> httpEntity = new HttpEntity<>(score);
+            when(advantageConnectorHelper.createTokenizedRequestEntity(ltiToken, score)).thenReturn(httpEntity);
+            ResponseEntity<Void> responseEntity = new ResponseEntity<>(HttpStatus.OK);
+            when(restTemplate.exchange(anyString(), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class))).thenReturn(responseEntity);
+
+            ResponseEntity<Void> response = advantageAGSService.postScore(ltiToken, "https://lms.com/mod/lti/services.php/3/lineitems/6/lineitem?type_id=17", score);
+            verify(advantageConnectorHelper).createRestTemplate();
+            verify(advantageConnectorHelper).createTokenizedRequestEntity(ltiToken, score);
+            verify(restTemplate).exchange(eq("https://lms.com/mod/lti/services.php/3/lineitems/6/lineitem/scores?type_id=17"), eq(HttpMethod.POST), eq(httpEntity), eq(Void.class));
             assertEquals(response, responseEntity);
         } catch (ConnectionException e) {
             fail("Exception should not be thrown.");

@@ -10,22 +10,31 @@ import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.service.lti.impl.AdvantageConnectorHelperImpl;
 import net.unicon.lti.utils.AGSScope;
 import net.unicon.lti.utils.TextConstants;
-import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,6 +56,9 @@ public class AdvantageConnectorHelperTest {
 
     @Mock
     ExceptionMessageGenerator exceptionMessageGenerator;
+
+    @Captor
+    ArgumentCaptor<MappingJackson2HttpMessageConverter> converterArgumentCaptor;
 
     @BeforeEach
     public void setUp() {
@@ -90,6 +102,34 @@ public class AdvantageConnectorHelperTest {
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
             assertEquals(ltiTokenResponse, ltiToken);
         } catch (Exception e) {
+            fail("Exception should not be thrown.");
+        }
+    }
+
+    @Test
+    public void testGetTokenForAGSScoresInMoodleFormat() {
+        try {
+            PlatformDeployment platformDeployment = new PlatformDeployment();
+            platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
+            when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
+            List<HttpMessageConverter<?>> messageConverters = Mockito.mock(ArrayList.class);
+            when(restTemplate.getMessageConverters()).thenReturn(messageConverters);
+            LTIToken ltiToken = new LTIToken();
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.setContentType(MediaType.TEXT_HTML);
+            ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, responseHeaders, HttpStatus.OK);
+            when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
+
+            LTIToken ltiTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
+
+            verify(ltijwtService).generateTokenRequestJWT(platformDeployment);
+            verify(messageConverters).add(converterArgumentCaptor.capture());
+            MappingJackson2HttpMessageConverter converter = converterArgumentCaptor.getValue();
+            assertTrue(converter.getSupportedMediaTypes().contains(MediaType.TEXT_HTML));
+            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
+            assertEquals(ltiTokenResponse, ltiToken);
+        } catch (Exception e) {
+            e.printStackTrace();
             fail("Exception should not be thrown.");
         }
     }

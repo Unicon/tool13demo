@@ -328,9 +328,17 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             // Add the token and score to the request entity
             HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
 
-            final String POST_SCORES = lineItemId + "/scores";
-            log.debug("POST_SCORES -  " + POST_SCORES);
-            ResponseEntity<Void> postScoreResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
+            String postScoresUrl;
+            int lineItemsUrlQIdx = lineItemId.indexOf("?");
+            if (lineItemsUrlQIdx > 0) { // if Moodle
+                String params = lineItemId.substring(lineItemsUrlQIdx);
+                postScoresUrl = lineItemId.substring(0, lineItemsUrlQIdx) + "/scores" + params;
+            } else {
+                postScoresUrl = lineItemId + "/scores";
+            }
+
+            log.debug("POST_SCORES -  " + postScoresUrl);
+            ResponseEntity<Void> postScoreResponse = restTemplate.exchange(postScoresUrl, HttpMethod.POST, request, Void.class);
             return postScoreResponse;
     }
 
