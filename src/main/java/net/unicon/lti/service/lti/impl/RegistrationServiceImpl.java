@@ -106,7 +106,10 @@ public class RegistrationServiceImpl implements RegistrationService {
             platformDeployment.setClientId(answer.getClient_id());
             platformDeployment.setIss(platformRegistrationDTO.getIssuer());
             platformDeployment.setJwksEndpoint(platformRegistrationDTO.getJwks_uri());
-            platformDeployment.setoAuth2TokenAud(platformRegistrationDTO.getToken_endpoint());
+            if (platformRegistrationDTO.getIssuer().endsWith("brightspace.com")) {
+                platformDeployment.setoAuth2TokenAud(platformRegistrationDTO.getToken_endpoint());
+                //If this fails we need to use : https://api.brightspace.com/auth/token
+            }
             platformDeployment.setoAuth2TokenUrl(platformRegistrationDTO.getToken_endpoint());
             platformDeployment.setOidcEndpoint(platformRegistrationDTO.getAuthorization_endpoint());
             platformDeploymentRepository.save(platformDeployment);

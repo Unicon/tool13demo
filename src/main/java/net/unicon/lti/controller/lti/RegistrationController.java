@@ -169,7 +169,7 @@ public class RegistrationController {
         ToolConfigurationACKDTO answer = new ToolConfigurationACKDTO();
         try {
             answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
-            //If we are here, then we received a succesful registration and we need ot create the database entry
+            //If we are here, then we received a succesful registration and we need to create the database entry
             registrationService.saveNewPlatformDeployment(answer, platformRegistrationDTO);
         } catch (ConnectionException ex) {
             ex.printStackTrace();
