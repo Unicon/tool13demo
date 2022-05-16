@@ -1,8 +1,12 @@
 package net.unicon.lti.controller.lti;
 
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
+import net.unicon.lti.model.lti.dto.ToolConfigurationACKDTO;
+import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
+import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +50,9 @@ public class RegistrationControllerTest {
     private RegistrationService registrationService;
 
     @Mock
+    private PlatformDeploymentRepository platformDeploymentRepository;
+
+    @Mock
     private RestTemplate restTemplate;
 
     @Mock
@@ -72,9 +79,17 @@ public class RegistrationControllerTest {
         platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
         ResponseEntity<PlatformRegistrationDTO> responseEntity = new ResponseEntity<>(platformRegistration, HttpStatus.OK);
         when(restTemplate.exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class))).thenReturn(responseEntity);
+        when(platformDeploymentRepository.save(any())).thenReturn(new PlatformDeployment());
+
+        ToolConfigurationACKDTO toolConfigurationACKDTO = new ToolConfigurationACKDTO();
+        toolConfigurationACKDTO.setClient_id("test-success");
+        ToolConfigurationDTO toolConfigurationDTO = new ToolConfigurationDTO();
+        toolConfigurationACKDTO.setToolConfiguration(toolConfigurationDTO);
+        ResponseEntity<ToolConfigurationACKDTO> response = new ResponseEntity<>(toolConfigurationACKDTO, HttpStatus.OK);
+        when(restTemplate.exchange(eq(TEST_REGISTRATION_ENDPOINT), eq(HttpMethod.POST), any(), eq(ToolConfigurationACKDTO.class))).thenReturn(response);
 
         try {
-            when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn("test-success");
+            when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn(toolConfigurationACKDTO);
 
             String registrationOutput = registrationController.registration(TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 

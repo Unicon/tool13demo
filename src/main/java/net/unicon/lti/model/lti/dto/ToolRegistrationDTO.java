@@ -159,4 +159,25 @@ public class ToolRegistrationDTO {
     public void setScope(String scope) {
         this.scope = scope;
     }
+
+    @Override
+    public String toString() {
+        return "ToolRegistrationDTO{" +
+                "application_type='" + application_type + '\'' +
+                ", grant_types=" + grant_types +
+                ", response_types=" + response_types +
+                ", redirect_uris=" + redirect_uris +
+                ", initiate_login_uri='" + initiate_login_uri + '\'' +
+                ", client_name='" + client_name + '\'' +
+                ", jwks_uri='" + jwks_uri + '\'' +
+                ", logo_uri='" + logo_uri + '\'' +
+                ", token_endpoint_auth_method='" + token_endpoint_auth_method + '\'' +
+                ", contacts=" + contacts +
+                ", client_uri='" + client_uri + '\'' +
+                ", tos_uri='" + tos_uri + '\'' +
+                ", policy_uri='" + policy_uri + '\'' +
+                ", toolConfiguration=" + toolConfiguration +
+                ", scope='" + scope + '\'' +
+                '}';
+    }
 }

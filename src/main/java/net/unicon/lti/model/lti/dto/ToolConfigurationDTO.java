@@ -96,4 +96,18 @@ public class ToolConfigurationDTO {
     public void setClaims(List<String> claims) {
         this.claims = claims;
     }
+
+    @Override
+    public String toString() {
+        return "ToolConfigurationDTO{" +
+                "domain='" + domain + '\'' +
+                ", secondary_domains=" + secondary_domains +
+                ", deployment_id='" + deployment_id + '\'' +
+                ", target_link_uri='" + target_link_uri + '\'' +
+                ", custom_parameters=" + custom_parameters +
+                ", description='" + description + '\'' +
+                ", messages=" + messages +
+                ", claims=" + claims +
+                '}';
+    }
 }

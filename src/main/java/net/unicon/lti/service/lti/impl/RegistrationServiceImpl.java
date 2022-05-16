@@ -15,8 +15,13 @@ package net.unicon.lti.service.lti.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.RegistrationException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
+import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
+import net.unicon.lti.model.lti.dto.ToolConfigurationACKDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
+import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +46,15 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Autowired
     private ExceptionMessageGenerator exceptionMessageGenerator;
 
+    @Autowired
+    PlatformDeploymentRepository platformDeploymentRepository;
+
     private RestTemplate restTemplate;
 
-    //Calling the membership service and getting a paginated result of users.
+    //Calling the registration service and getting a registration  result of users.
     @Override
-    public String callDynamicRegistration(String token, ToolRegistrationDTO toolRegistrationDTO, String endpoint) throws ConnectionException {
-        String answer;
+    public ToolConfigurationACKDTO callDynamicRegistration(String token, ToolRegistrationDTO toolRegistrationDTO, String endpoint) throws ConnectionException {
+        ToolConfigurationACKDTO answer;
         try {
             restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
             DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
@@ -70,13 +78,13 @@ public class RegistrationServiceImpl implements RegistrationService {
             }
 
             log.debug("Endpoint -  " + endpoint);
-            ResponseEntity<String> registrationRequest = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
+            ResponseEntity<ToolConfigurationACKDTO> registrationRequest = restTemplate.exchange(endpoint, HttpMethod.POST, request, ToolConfigurationACKDTO.class);
             HttpStatus status = registrationRequest.getStatusCode();
             if (status.is2xxSuccessful()) {
                 answer = registrationRequest.getBody();
-                log.debug(answer);
+                log.debug(answer.toString());
             } else {
-                log.error(registrationRequest.getBody());
+                log.error(registrationRequest.toString());
                 String exceptionMsg = "Can't get confirmation of the registration";
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);
@@ -88,6 +96,29 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
         return answer;
+    }
+
+    @Override
+    public void saveNewPlatformDeployment(ToolConfigurationACKDTO answer, PlatformRegistrationDTO platformRegistrationDTO) throws RegistrationException {
+        try {
+            PlatformDeployment platformDeployment = new PlatformDeployment();
+            platformDeployment.setDeploymentId(answer.getToolConfiguration().getDeployment_id());
+            platformDeployment.setClientId(answer.getClient_id());
+            platformDeployment.setIss(platformRegistrationDTO.getIssuer());
+            platformDeployment.setJwksEndpoint(platformRegistrationDTO.getJwks_uri());
+            if (platformRegistrationDTO.getIssuer().endsWith("brightspace.com")) {
+                platformDeployment.setoAuth2TokenAud(platformRegistrationDTO.getToken_endpoint());
+                //If this fails we need to use : https://api.brightspace.com/auth/token
+            }
+            platformDeployment.setoAuth2TokenUrl(platformRegistrationDTO.getToken_endpoint());
+            platformDeployment.setOidcEndpoint(platformRegistrationDTO.getAuthorization_endpoint());
+            platformDeploymentRepository.save(platformDeployment);
+        } catch (Exception e) {
+            StringBuilder exceptionMsg = new StringBuilder();
+            exceptionMsg.append("Problem during the registration. Not able to save the new configration");
+            log.error(exceptionMsg.toString(), e);
+            throw new RegistrationException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
+        }
     }
 
 
