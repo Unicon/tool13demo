@@ -85,13 +85,12 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken);
+            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, TextConstants.ALL_LINEITEMS_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String GET_LINEITEMS = context.getLineitems();
             log.debug("GET_LINEITEMS -  " + GET_LINEITEMS);
-            ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.
-                    exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
+            ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(lineItemsGetResponse.getBody())));
@@ -197,13 +196,21 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken);
+            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, TextConstants.LINEITEM_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
-            final String GET_LINEITEM = context.getLineitems() + "/" + id;
-            log.debug("GET_LINEITEMS -  " + GET_LINEITEM);
-            ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
-                    exchange(GET_LINEITEM, HttpMethod.GET, request, LineItem.class);
+            log.debug("Getting lineItem with id: {}", id);
+            String getLineItemUrl;
+            String lineItemsUrl = context.getLineitems();
+            int lineItemsUrlQIdx = lineItemsUrl.indexOf("?");
+            if (lineItemsUrlQIdx > 0) { // if Moodle
+                String params = lineItemsUrl.substring(lineItemsUrlQIdx);
+                getLineItemUrl = lineItemsUrl.substring(0, lineItemsUrlQIdx) + "/" + id + "/lineitem" + params;
+            } else {
+                getLineItemUrl = lineItemsUrl + "/" + id;
+            }
+            log.debug("GET_LINEITEM -  " + getLineItemUrl);
+            ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.exchange(getLineItemUrl, HttpMethod.GET, request, LineItem.class);
             HttpStatus status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 lineItem = lineItemsGetResponse.getBody();
@@ -263,13 +270,19 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTITokenResults);
+            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTITokenResults, TextConstants.RESULTS_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
-            final String GET_RESULTS = lineItemId + "/results";
-            log.debug("GET_RESULTS -  " + GET_RESULTS  + "/" + lineItemId + "/results");
-            ResponseEntity<Result[]> resultsGetResponse = restTemplate.
-                    exchange(GET_RESULTS, HttpMethod.GET, request, Result[].class);
+            String getResultsUrl;
+            int lineItemsUrlQIdx = lineItemId.indexOf("?");
+            if (lineItemsUrlQIdx > 0) { // if Moodle
+                String params = lineItemId.substring(lineItemsUrlQIdx);
+                getResultsUrl = lineItemId.substring(0, lineItemsUrlQIdx) + "/results" + params;
+            } else {
+                getResultsUrl = lineItemId + "/results";
+            }
+            log.debug("getResultsUrl -  " + getResultsUrl  + "/" + lineItemId + "/results");
+            ResponseEntity<Result[]> resultsGetResponse = restTemplate.exchange(getResultsUrl, HttpMethod.GET, request, Result[].class);
             HttpStatus status = resultsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 List<Result> resultList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(resultsGetResponse.getBody())));
@@ -308,15 +321,21 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            ObjectMapper Obj = new ObjectMapper();
-            String jsonStr = Obj.writeValueAsString(score);
-            HttpEntity<String> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, jsonStr);
+            HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
-            final String POST_SCORES = lineItemId + "/scores";
-            log.debug("POST_SCORES -  " + POST_SCORES);
-            ResponseEntity<Void> scoreGetResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
-            HttpStatus status = scoreGetResponse.getStatusCode();
+            String postScoresUrl;
+            int lineItemsUrlQIdx = lineItemId.indexOf("?");
+            if (lineItemsUrlQIdx > 0) { // if Moodle
+                String params = lineItemId.substring(lineItemsUrlQIdx);
+                postScoresUrl = lineItemId.substring(0, lineItemsUrlQIdx) + "/scores" + params;
+            } else {
+                postScoresUrl = lineItemId + "/scores";
+            }
+
+            log.debug("POST_SCORES -  " + postScoresUrl);
+            ResponseEntity<Void> postScoreResponse = restTemplate.exchange(postScoresUrl, HttpMethod.POST, request, Void.class);
+            HttpStatus status = postScoreResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 return getResults(lTITokenResults, context, lineItemId);
             } else {
@@ -340,9 +359,17 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
         // Add the token and score to the request entity
         HttpEntity<Score> request = advantageConnectorHelper.createTokenizedRequestEntity(lTITokenScores, score);
 
-        final String POST_SCORES = lineItemId + "/scores";
-        log.debug("POST_SCORES -  " + POST_SCORES);
-        ResponseEntity<Void> postScoreResponse = restTemplate.exchange(POST_SCORES, HttpMethod.POST, request, Void.class);
+        String postScoresUrl;
+        int lineItemsUrlQIdx = lineItemId.indexOf("?");
+        if (lineItemsUrlQIdx > 0) { // if Moodle
+            String params = lineItemId.substring(lineItemsUrlQIdx);
+            postScoresUrl = lineItemId.substring(0, lineItemsUrlQIdx) + "/scores" + params;
+        } else {
+            postScoresUrl = lineItemId + "/scores";
+        }
+
+        log.debug("POST_SCORES -  " + postScoresUrl);
+        ResponseEntity<Void> postScoreResponse = restTemplate.exchange(postScoresUrl, HttpMethod.POST, request, Void.class);
         return postScoreResponse;
     }
 
