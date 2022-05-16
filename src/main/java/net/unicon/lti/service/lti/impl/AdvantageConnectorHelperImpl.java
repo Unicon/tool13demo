@@ -35,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -44,7 +45,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_HTML;
 
 @Service
 public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
@@ -88,19 +93,21 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
 
     // We put the token in the Authorization as a simple Bearer one.
     @Override
-    public HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems) {
+    public HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, String type) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + LTIToken.getAccess_token());
-        return new HttpEntity<>(lineItems, headers);
+        if (type!=null) {
+            headers.add(HttpHeaders.ACCEPT, type);
+        }
+        return new HttpEntity<>(headers);
     }
 
     // We put the token in the Authorization as a simple Bearer one.
     @Override
-    public HttpEntity<String> createTokenizedRequestEntity(LTIToken LTIToken, String score) {
+    public HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, TextConstants.BEARER + LTIToken.getAccess_token());
-        headers.set(HttpHeaders.CONTENT_TYPE, "application/vnd.ims.lis.v1.score+json");
-        return new HttpEntity<>(score, headers);
+        return new HttpEntity<>(lineItems, headers);
     }
 
     // We put the token in the Authorization as a simple Bearer one.
@@ -155,6 +162,11 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
         ResponseEntity<LTIToken> reportPostResponse;
         restTemplate = restTemplate == null ? createRestTemplate() : restTemplate;
         try {
+            // Add response converter that supports Moodle's response type of text/html
+            MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+            converter.setSupportedMediaTypes(Arrays.asList(TEXT_HTML));
+            restTemplate.getMessageConverters().add(converter);
+
             reportPostResponse = restTemplate.postForEntity(POST_TOKEN_URL, request, LTIToken.class);
         } catch (Exception ex) {
             log.error("ERROR GETTING THE TOKEN", ex);

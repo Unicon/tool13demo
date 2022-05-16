@@ -23,11 +23,10 @@ public interface AdvantageConnectorHelper {
     // We put the token in the Authorization as a simple Bearer one.
     HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, LineItem lineItem, String type);
 
-    // We put the token in the Authorization as a simple Bearer one.
-    HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems);
+    HttpEntity<LineItem> createTokenizedRequestEntity(LTIToken LTIToken, String type);
 
     // We put the token in the Authorization as a simple Bearer one.
-    HttpEntity<String> createTokenizedRequestEntity(LTIToken LTIToken, String score);
+    HttpEntity<LineItems> createTokenizedRequestEntity(LTIToken LTIToken, LineItems lineItems);
 
     // We put the token in the Authorization as a simple Bearer one.
     HttpEntity<Score> createTokenizedRequestEntity(LTIToken LTIToken, Score score);

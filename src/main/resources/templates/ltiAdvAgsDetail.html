@@ -18,7 +18,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
       xml:lang="en">
 <head>
-    <title>LTI 3 </title>
+    <title>LTI 1.3 AGS Scores Demo</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
@@ -35,7 +35,7 @@
 
 <div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
     <h4>Post a score </h4>
-    <form action="#" method="post" th:action="@{/ags/score/{did}(did=${#strings.arraySplit(lineitems[0].id,'/')[#arrays.length(#strings.arraySplit(lineitems[0].id, '/')) - 1]})}" th:object="${score}">
+    <form action="#" method="post" th:with="idLocator=${#strings.contains(lineitems[0].id, '?') ? 2 : 1}" th:action="@{/ags/score/{did}(did=${#strings.arraySplit(lineitems[0].id,'/')[#arrays.length(#strings.arraySplit(lineitems[0].id, '/')) - idLocator]})}" th:object="${score}">
         <table>
             <tr>
                 <td>userId: </td><td><input type="text" id="userId" name="userId" /></td>

@@ -18,7 +18,7 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
       xml:lang="en">
 <head>
-    <title>LTI 3 </title>
+    <title>LTI 1.3 AGS Demo</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
@@ -129,9 +129,8 @@
         </thead>
         <tbody>
         <tr th:each="lineitem,rowStat : ${lineitems}">
-            <td><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - 1]})}">Delete</a></td>
-            <td><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - 1]})}">Detail</a></td>
-            <td th:text="${rowStat.count}">1</td>
+            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]})}">Delete</a></td>
+            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]})}">Detail</a></td>            <td th:text="${rowStat.count}">1</td>
             <td th:text="${lineitem.id}"></td>
             <td th:text="${lineitem.scoreMaximum}"></td>
             <td th:text="${lineitem.label}"></td>
