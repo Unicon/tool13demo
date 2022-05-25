@@ -122,7 +122,7 @@ public class OIDCController {
 
         String userAgent = req.getHeader("User-Agent");
         String regExForSafari = String.format("(Version)/(\\d+)\\.(\\d+)(?:\\.(\\d+))?.*Safari/");
-        if (userAgent.contains(regExForSafari){
+        if (userAgent.contains(regExForSafari)) {
             return "lti3safarierror";
         }
         System.out.println(userAgent);
