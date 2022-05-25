@@ -23,8 +23,10 @@ import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.Cookie;
@@ -106,6 +108,9 @@ public class OIDCController {
                 deploymentIdValue = platformDeployment.getDeploymentId();
             }
         }
+
+        String userAgent = req.getHeader("User-Agent");
+        System.out.println(userAgent);
 
         try {
             // We are going to create the OIDC request,
