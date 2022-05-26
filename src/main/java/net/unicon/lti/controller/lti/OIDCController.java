@@ -121,13 +121,12 @@ public class OIDCController {
         }
 
         String userAgent = req.getHeader("User-Agent");
-        String regExForSafari = String.format("(Version)/(\\d+)\\.(\\d+)(?:\\.(\\d+))?.*Safari/");
-        if (userAgent.contains(regExForSafari)) {
+        System.out.println(userAgent);
+        if (userAgent.contains("Safari")) {
             return "lti3safarierror";
         }
-        System.out.println(userAgent);
         // (Version)/(\d+)\.(\d+)(?:\.(\d+))?.*Safari/ <-- regex for safari
-        
+
         try {
             // We are going to create the OIDC request,
             Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue,
