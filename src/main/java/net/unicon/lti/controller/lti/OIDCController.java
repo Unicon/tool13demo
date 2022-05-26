@@ -122,10 +122,9 @@ public class OIDCController {
 
         String userAgent = req.getHeader("User-Agent");
         System.out.println(userAgent);
-        if (userAgent.contains("Safari")) {
-            return "lti3safarierror";
-        }
-        // (Version)/(\d+)\.(\d+)(?:\.(\d+))?.*Safari/ <-- regex for safari
+        // if (userAgent.contains("Safari")) {
+        //     return "lti3safarierror";
+        // }
 
         try {
             // We are going to create the OIDC request,
