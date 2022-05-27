@@ -24,10 +24,6 @@ body {
   
 .error-container {
   position: absolute;
-  @media (min-width: 760px){
-    left: 295px;
-    top: 130px;
-  }
   display: flex;
   flex-direction: column;
   align-items: center;

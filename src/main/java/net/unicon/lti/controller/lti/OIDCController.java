@@ -93,7 +93,7 @@ public class OIDCController {
             platformDeploymentList = platformDeploymentRepository.findByIss(loginInitiationDTO.getIss());
         }
         // We deal with some possible errors
-        if (platformDeploymentList.isEmpty()) { //If we don't have configuration
+        if (platformDeploymentList.isEmpty()) {  //If we don't have configuration
             model.addAttribute(TextConstants.ERROR, "Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
                     " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
             return TextConstants.LTI3ERROR;
