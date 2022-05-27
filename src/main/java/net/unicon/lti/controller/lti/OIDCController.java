@@ -120,9 +120,9 @@ public class OIDCController {
             }
         }
 
+        //This checks the user-agent on the request and will render an error page for Safari users
         String userAgent = req.getHeader("User-Agent");
-        System.out.println(userAgent);
-        if (userAgent.contains("Safari")) {
+        if (userAgent != null && userAgent.contains("Safari") && !userAgent.contains("Chrome")) {
             return "lti3safarierror";
         }
 
