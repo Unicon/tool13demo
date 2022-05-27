@@ -93,7 +93,7 @@ public class OIDCController {
             platformDeploymentList = platformDeploymentRepository.findByIss(loginInitiationDTO.getIss());
         }
         // We deal with some possible errors
-        if (platformDeploymentList.isEmpty()) { // If we don't have configuration
+        if (platformDeploymentList.isEmpty()) { //If we don't have configuration
             model.addAttribute(TextConstants.ERROR, "Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
                     " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
             return TextConstants.LTI3ERROR;
@@ -118,7 +118,7 @@ public class OIDCController {
         try {
             // We are going to create the OIDC request,
             Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
-            // We add that information so the thymeleaf template can display it (and prepare the links) 
+            // We add that information so the thymeleaf template can display it (and prepare the links)
             //model.addAllAttributes(parameters);
             // These 3 are to display what we received from the platform.
             if (ltiDataService.getDemoMode()) {
@@ -168,8 +168,8 @@ public class OIDCController {
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
         authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
-                // The state is something that we can create and add anything we want on it.
-                // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
+        // The state is something that we can create and add anything we want on it.
+        // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
         String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
         authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OICD request.
         authRequestMap.put("oicdEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
