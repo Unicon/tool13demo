@@ -94,7 +94,6 @@ public class LTI3Controller {
 
                 model.addAttribute("target", target);
                 model.addAttribute("id_token", ltiData);
-                model.addAttribute("safariError");
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
             }

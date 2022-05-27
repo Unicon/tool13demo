@@ -123,7 +123,7 @@ public class OIDCController {
         String userAgent = req.getHeader("User-Agent");
         System.out.println(userAgent);
         if (userAgent.contains("Safari")) {
-            return "safariError";
+            return "lti3safarierror";
         }
 
         try {
