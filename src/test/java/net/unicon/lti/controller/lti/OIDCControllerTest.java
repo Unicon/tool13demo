@@ -71,6 +71,7 @@ public class OIDCControllerTest {
     private static final String SAMPLE_OIDC_ENDPOINT = "https://platform-lms.com/oidc";
     private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti-tool.com%2Flti3%2F";
 
+
     @InjectMocks
     private OIDCController oidcController = new OIDCController();
 
@@ -126,10 +127,9 @@ public class OIDCControllerTest {
             kpg.initialize(1024);
             kp = kpg.generateKeyPair();
             Base64.Encoder encoder = Base64.getEncoder();
-            String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded())
-                    + "\n-----END PRIVATE KEY-----\n";
+            String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";
             when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKey);
-        } catch (NoSuchAlgorithmException e) {
+        } catch(NoSuchAlgorithmException e) {
             fail();
         }
     }
@@ -142,18 +142,14 @@ public class OIDCControllerTest {
         when(req.getParameter(OIDC_TARGET_LINK_URI)).thenReturn(SAMPLE_TARGET_URI);
         when(req.getParameter(OIDC_LTI_MESSAGE_HINT)).thenReturn(SAMPLE_LTI_MESSAGE_HINT);
         when(req.getParameter(OIDC_LOGIN_HINT)).thenReturn(SAMPLE_LOGIN_HINT);
-        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class),
-                any(String.class)))
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class)))
                 .thenReturn(onePlatformDeployment);
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -171,18 +167,14 @@ public class OIDCControllerTest {
         when(req.getParameter(OIDC_TARGET_LINK_URI)).thenReturn(SAMPLE_TARGET_URI);
         when(req.getParameter(OIDC_LTI_MESSAGE_HINT)).thenReturn(SAMPLE_LTI_MESSAGE_HINT);
         when(req.getParameter(OIDC_LOGIN_HINT)).thenReturn(SAMPLE_LOGIN_HINT);
-        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class),
-                any(String.class)))
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class)))
                 .thenReturn(multiplePlatformDeployments);
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -205,11 +197,9 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -232,11 +222,9 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -259,12 +247,9 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -288,12 +273,9 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
@@ -317,10 +299,8 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
@@ -345,10 +325,8 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS),
-                eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
         Mockito.verify(ltiDataService).getLocalUrl();
@@ -371,8 +349,7 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(null), eq(null),
-                eq(null));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(eq(null), eq(null), eq(null));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(null), eq(null));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(null), eq(null));
         Mockito.verify(platformDeploymentRepository).findByIss(eq(null));
@@ -394,11 +371,9 @@ public class OIDCControllerTest {
 
         String response = oidcController.loginInitiations(req, res, model);
 
-        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(null), eq(SAMPLE_CLIENT_ID),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(null), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(null), eq(SAMPLE_CLIENT_ID));
-        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(null),
-                eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(null), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(null));
         Mockito.verify(res, never()).addCookie(any(Cookie.class));
         Mockito.verify(ltiDataService, never()).getLocalUrl();
@@ -408,10 +383,8 @@ public class OIDCControllerTest {
     }
 
     private void validateOAuthResponse(String response, String clientId, String deploymentId, String iss) {
-        UriComponents responseUri = UriComponentsBuilder.fromUriString(response.substring("redirect:".length()))
-                .build();
-        assertEquals(SAMPLE_OIDC_ENDPOINT,
-                responseUri.getScheme() + "://" + responseUri.getHost() + responseUri.getPath());
+        UriComponents responseUri = UriComponentsBuilder.fromUriString(response.substring("redirect:".length())).build();
+        assertEquals(SAMPLE_OIDC_ENDPOINT, responseUri.getScheme() + "://" + responseUri.getHost() + responseUri.getPath());
         MultiValueMap<String, String> parameters = responseUri.getQueryParams();
 
         if (clientId != null) {
@@ -427,8 +400,7 @@ public class OIDCControllerTest {
         assertEquals(OIDC_ID_TOKEN, parameters.get("response_type").get(0));
         assertEquals(OIDC_OPEN_ID, parameters.get("scope").get(0));
         assertTrue(parameters.get("nonce").get(0).length() >= 36);
-        Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic())
-                .parseClaimsJws(parameters.get("state").get(0));
+        Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(parameters.get("state").get(0));
         assertNotNull(finalClaims);
         assertEquals(TextConstants.DEFAULT_KID, finalClaims.getHeader().get("kid"));
         assertEquals("JWT", finalClaims.getHeader().get("typ"));
