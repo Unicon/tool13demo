@@ -95,7 +95,7 @@ public class OIDCController {
         // We deal with some possible errors
         if (platformDeploymentList.isEmpty()) { // If we don't have configuration
             model.addAttribute(TextConstants.ERROR, "Not found any existing tool deployment with iss: " + loginInitiationDTO.getIss() +
-                            " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
+                    " clientId: " + clientIdValue + " deploymentId: " + deploymentIdValue);
             return TextConstants.LTI3ERROR;
         }
         PlatformDeployment platformDeployment = platformDeploymentList.get(0);
@@ -119,7 +119,7 @@ public class OIDCController {
             // We are going to create the OIDC request,
             Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
             // We add that information so the thymeleaf template can display it (and prepare the links) 
-            //model.addAllAttributes(parameters); 
+            //model.addAllAttributes(parameters);
             // These 3 are to display what we received from the platform.
             if (ltiDataService.getDemoMode()) {
                 model.addAllAttributes(parameters);
@@ -128,7 +128,7 @@ public class OIDCController {
                 model.addAttribute("deployment_id_received", deploymentIdValue);
             }
 
-            // This can be implemented in different ways. In this case, we are storing the state and nonce in 
+            // This can be implemented in different ways. In this case, we are storing the state and nonce in
             // cookies, so we can compare later if they are valid.
             res.addCookie(generateLtiOidcCookie(LTI_STATE_COOKIE_NAME, parameters.get("state")));
             res.addCookie(generateLtiOidcCookie(LTI_NONCE_COOKIE_NAME, parameters.get("nonce")));
@@ -161,19 +161,19 @@ public class OIDCController {
         String nonceHash = Hashing.sha256()
                 .hashString(nonce, StandardCharsets.UTF_8)
                 .toString();
-                authRequestMap.put("nonce", nonce);  //The nonce
-                authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
-                authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
-                authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
-                authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
-                authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
-                authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
+        authRequestMap.put("nonce", nonce);  //The nonce
+        authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
+        authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
+        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
+        authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
+        authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
+        authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
                 // The state is something that we can create and add anything we want on it.
                 // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
         String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
         authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OICD request.
-        authRequestMap.put("oicdEndpoint", oidcEndpoint); //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
-        authRequestMap.put("oicdEndpointComplete", generateCompleteUrl(authRequestMap)); //This generates the URL to use in case we decide to use the GET method
+        authRequestMap.put("oicdEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
+        authRequestMap.put("oicdEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
         return authRequestMap;
     }
 
