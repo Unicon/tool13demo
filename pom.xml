@@ -17,6 +17,10 @@
 
     <properties>
         <java.version>16</java.version>
+        <!-- React frontend build-->
+        <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
+        <node.version>v14.19.1</node.version>
+        <npm.version>6.14.16</npm.version>
     </properties>
 
     <dependencies>
@@ -277,6 +281,7 @@
                         <exclude>mvnw*</exclude>
                         <exclude>**/js/jquery/**</exclude>
                         <exclude>**/SameSiteCookieValve.java</exclude>
+                        <exclude>**/frontend/**</exclude>
                     </excludes>
                     <mapping>
                         <tag>DYNASCRIPT_STYLE</tag>
@@ -287,6 +292,66 @@
                     <execution>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>${frontend-maven-plugin.version}</version>
+                <configuration>
+                    <workingDirectory>src/main/frontend</workingDirectory>
+                    <installDirectory>target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                    <id>install node and npm</id>
+                    <goals>
+                        <goal>install-node-and-npm</goal>
+                    </goals>
+                    <configuration>
+                        <nodeVersion>${node.version}</nodeVersion>
+                        <npmVersion>${npm.version}</npmVersion>
+                    </configuration>
+                </execution>
+                <execution>
+                    <id>npm install</id>
+                    <goals>
+                        <goal>npm</goal>
+                    </goals>
+                    <configuration>
+                        <arguments>install</arguments>
+                    </configuration>
+                </execution>
+                <execution>
+                    <id>npm run build</id>
+                    <goals>
+                        <goal>npm</goal>
+                    </goals>
+                    <configuration>
+                        <arguments>run build</arguments>
+                    </configuration>
+                 </execution>
+             </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <copy todir="${project.build.directory}/classes/static">
+                                    <fileset dir="${project.basedir}/src/main/frontend/build/static" />
+                                </copy>
+                                <copy todir="${project.build.directory}/classes/static">
+                                    <fileset dir="${project.basedir}/src/main/frontend/build" />
+                                </copy>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>

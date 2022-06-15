@@ -15,9 +15,6 @@ package net.unicon.lti.utils;
 
 public class TextConstants {
 
-
-
-
     private TextConstants() {
         throw new IllegalStateException("Utility class");
     }
@@ -42,6 +39,6 @@ public class TextConstants {
     public static final String LINEITEM_TYPE = "application/vnd.ims.lis.v2.lineitem+json";
     public static final String ALL_LINEITEMS_TYPE = "application/vnd.ims.lis.v2.lineitemcontainer+json";
     public static final String RESULTS_TYPE = "application/vnd.ims.lis.v2.resultcontainer+json";
-
+    public static final String REACT_UI_TEMPLATE = "index";
 
 }

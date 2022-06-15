@@ -5,6 +5,8 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
+import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -207,5 +209,47 @@ public class LTI3ControllerTest {
         Mockito.verify(ltijwtService).validateState(VALID_STATE);
         Mockito.verify(ltiDataService).getDemoMode();
         assertEquals(finalResponse, "lti3Redirect");
+    }
+
+    @Test
+    public void testLTI3DeepLinkingRequest() {
+        try {
+            when(claims.get("clientId")).thenReturn("client-id-1");
+            when(claims.get("ltiDeploymentId")).thenReturn("deployment-id-1");
+            when(lti3Request.getAud()).thenReturn("client-id-1");
+            when(lti3Request.getLtiDeploymentId()).thenReturn("deployment-id-1");
+            when(ltiDataService.getDemoMode()).thenReturn(false);
+            when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/test");
+
+            // Set the message type to Deep Linking
+            when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
+            // Enable the Deep Linking feature
+            when(ltiDataService.getDeepLinkingEnabled()).thenReturn(true);
+
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(1024);
+            KeyPair kp = kpg.generateKeyPair();
+            Base64.Encoder encoder = Base64.getEncoder();
+            String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";
+            when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKey);
+            when(lti3Request.getClaims()).thenReturn(claims);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute("target"), "https://tool.com/test");
+            String finalIdToken = (String) model.getAttribute("id_token");
+            assertNotEquals(finalIdToken, ID_TOKEN);
+
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+
+            assertEquals(response, TextConstants.REACT_UI_TEMPLATE);
+
+        } catch (NoSuchAlgorithmException e) {
+            fail("Exception should not be thrown.");
+        }
     }
 }
