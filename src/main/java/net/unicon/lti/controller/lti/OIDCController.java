@@ -23,8 +23,10 @@ import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.Cookie;
@@ -107,6 +109,12 @@ public class OIDCController {
             }
         }
 
+        //This checks the user-agent on the request and will render an error page for Safari users
+        String userAgent = req.getHeader("User-Agent");
+        if (userAgent != null && userAgent.contains("Safari") && !userAgent.contains("Chrome")) {
+            return "lti3safarierror";
+        }
+
         try {
             // We are going to create the OIDC request,
             Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
@@ -182,7 +190,6 @@ public class OIDCController {
         } else {
             getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), true);
         }
-        getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), false);
         getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
         getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);
         getUrl = addParameter(getUrl, "prompt", model.get("prompt"), false);
