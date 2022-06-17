@@ -1,20 +1,19 @@
-import CourseCard from './CourseCard';
-import Col from 'react-bootstrap/Col';
 import Alert from 'react-bootstrap/Alert';
+import Col from 'react-bootstrap/Col';
+import CourseCard from './CourseCard';
 
 function CourseGrid(props) {
 
-  let itemArray = [];
+  let courseArray = [];
   if (props.courses) {
-    itemArray = props.courses.slice();
+    courseArray = props.courses.slice();
   }
-
-  // Display an alert when there's no courses.
-  if (!itemArray.length) {
+  // Display an alert when there are no courses.
+  if (!courseArray.length) {
     return <Alert>There are no courses to show.</Alert>;
   } else {
     // Provide one CourseCard per course found in the request.
-    const content = props.courses.map ( (course, index)  => {
+    const content = courseArray.map ( (course, index)  => {
               return (<Col key={course.root_outcome_guid}>
                         <CourseCard course={course}/>
                       </Col>)

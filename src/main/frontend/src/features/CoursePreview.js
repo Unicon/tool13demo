@@ -2,13 +2,12 @@
 import { useDispatch } from 'react-redux';
 // Store imports
 import { changeSelectedCourse } from '../app/appSlice';
-
-import courseImage from '../media/dna.webp'
+import { parseCourseCoverImage } from '../util/Utils.js';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import CourseSection from './CourseSection';
+import CourseTOC from './CourseTOC';
 import Header from './Header';
 import Image from 'react-bootstrap/Image';
 import Row from 'react-bootstrap/Row';
@@ -21,9 +20,8 @@ function CoursePreview(props) {
     dispatch(changeSelectedCourse(null));
   }
 
-  const sectionContent = props.course.table_of_contents.map((section, index) => {
-    return <CourseSection key={index} section={section}/>;
-  });
+  // Some courses may not have a valid cover image, use a default instead
+  const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url);
 
   return (
     <>
@@ -37,7 +35,7 @@ function CoursePreview(props) {
       <div className="course-info">
         <Row>
           <Col sm={2}>
-            <Image rounded fluid src={courseImage} title={props.course.book_title} />
+            <Image rounded fluid src={courseCoverUrl} title={props.course.book_title} />
           </Col>
           <Col sm={10}>
             {(props.course.book_title || props.course.description) ?
@@ -48,7 +46,7 @@ function CoursePreview(props) {
           </Col>
         </Row>
         <div className="mt-1">
-          {sectionContent.length ? sectionContent : <Alert>This course does not have any information section.</Alert>}
+          <CourseTOC topics={props.course.table_of_contents} />
         </div>
       </div>
       <div className="fixed-bottom course-footer d-flex flex-row">
