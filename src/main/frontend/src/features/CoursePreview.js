@@ -21,7 +21,7 @@ function CoursePreview(props) {
     dispatch(changeSelectedCourse(null));
   }
 
-  const sectionContent = props.course.sections.map((section, index) => {
+  const sectionContent = props.course.table_of_contents.map((section, index) => {
     return <CourseSection key={index} section={section}/>;
   });
 
@@ -37,11 +37,11 @@ function CoursePreview(props) {
       <div className="course-info">
         <Row>
           <Col sm={2}>
-            <Image rounded fluid src={courseImage} title={props.course.name} />
+            <Image rounded fluid src={courseImage} title={props.course.book_title} />
           </Col>
           <Col sm={10}>
-            {(props.course.name || props.course.description) ?
-              <Header header={props.course.name} subheader={props.course.description} />
+            {(props.course.book_title || props.course.description) ?
+              <Header header={props.course.book_title} subheader={props.course.description} />
             :
               <Alert>This course does not have a title nor description.</Alert>
             }

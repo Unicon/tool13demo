@@ -15,7 +15,7 @@ function CourseGrid(props) {
   } else {
     // Provide one CourseCard per course found in the request.
     const content = props.courses.map ( (course, index)  => {
-              return (<Col key={course.id}>
+              return (<Col key={course.root_outcome_guid}>
                         <CourseCard course={course}/>
                       </Col>)
               });
