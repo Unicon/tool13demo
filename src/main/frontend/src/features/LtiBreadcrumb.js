@@ -18,7 +18,7 @@ function LtiBreadcrumb(props) {
     <Breadcrumb role="navigation">
       <Breadcrumb.Item onClick={(e) => resetSelectedCourse()}>Waymaker</Breadcrumb.Item>
       <Breadcrumb.Item active={!selectedCourse} onClick={(e) => resetSelectedCourse()}>Add Course</Breadcrumb.Item>
-      {selectedCourse && <Breadcrumb.Item active>{selectedCourse.name}</Breadcrumb.Item>}
+      {selectedCourse && <Breadcrumb.Item active>{selectedCourse.book_title}</Breadcrumb.Item>}
     </Breadcrumb>
   );
 

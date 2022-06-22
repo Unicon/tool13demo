@@ -8,7 +8,7 @@ function CourseSection (props) {
       </div>
       <div>
         <ul>
-          {props.section.items.map((item, index) => {
+          {props.section.sub_topics.map((item, index) => {
             return <li key={index}>{item}</li>
           })}
         </ul>

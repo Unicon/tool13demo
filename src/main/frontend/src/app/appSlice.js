@@ -24,7 +24,7 @@ export const appSlice = createSlice({
       state.searchInputText = searchInputText;
       // This filters courses depending on the text input value.
       state.courseArray = COURSE_ARRAY.slice().filter((course) => {
-        return searchInputText === '' || (course.name && course.name.toLowerCase().includes(searchInputText.toLowerCase()))
+        return searchInputText === '' || (course.book_title && course.book_title.toLowerCase().includes(searchInputText.toLowerCase()))
       });
     },
     changeCategoryInput: (state, action) => {
