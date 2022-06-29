@@ -22,9 +22,12 @@ const ltiLaunchData = JSON.parse(roolElement.getAttribute('lti-launch-data'));
 // Use the backend attributes, it's recommended to store them in the Redux store.
 const idToken = ltiLaunchData.id_token;
 const target = ltiLaunchData.target;
+const state = ltiLaunchData.state;
 // Just for debugging purposes.
 console.log(`The idToken is ${idToken}`);
 console.log(`The target is ${target}`);
+console.log(`The state is ${state}`);
+
 
 root.render(
   <React.StrictMode>

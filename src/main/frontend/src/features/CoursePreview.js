@@ -21,6 +21,29 @@ function CoursePreview(props) {
     dispatch(changeSelectedCourse(null));
   }
 
+  const addCourseToLMS = () => {
+      const ltiLaunchData = JSON.parse(document.getElementById('root').getAttribute('lti-launch-data'));
+      const idToken = ltiLaunchData.id_token;
+      const target = ltiLaunchData.target;
+      const state = ltiLaunchData.state;
+      const contextAPIUrl = target.replace("/lti3", "/context");
+
+      // TODO: Handle error cases of blank/null values
+
+      const bookPairingData = {
+        "id_token": idToken,
+        "root_outcome_guid": props.course.id
+      }
+
+      fetch(contextAPIUrl, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(bookPairingData)
+      });
+
+      alert(`This LMS course is paired to the Lumen book ${props.course.name} in the middleware DB. That's All Folks!!`);
+  }
+
   const sectionContent = props.course.sections.map((section, index) => {
     return <CourseSection key={index} section={section}/>;
   });
@@ -55,7 +78,7 @@ function CoursePreview(props) {
           <p className="text-secondary mb-0 mt-2 action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
           <div className="ms-auto mx-3 d-flex d-row">
             <Button variant="secondary" onClick={(e) => resetSelectedCourse()}>Cancel</Button>
-            <Button variant="primary" className="ms-1" onClick={(e) => alert(`That's All Folks!!`)}>Add Course</Button>
+            <Button variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>Add Course</Button>
           </div>
       </div>
   </>
