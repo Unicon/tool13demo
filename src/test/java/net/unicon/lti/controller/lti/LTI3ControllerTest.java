@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
