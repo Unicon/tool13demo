@@ -63,7 +63,7 @@ case "$1" in
 		export AWS_ACCOUNT_NUMBER=523740042085
         export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID_PROD:-$AWS_ACCESS_KEY_ID}
 		export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY_PROD:-$AWS_SECRET_ACCESS_KEY}
-		export BEANSTALK_ENV=lti-lti-service-prod-docker
+		export BEANSTALK_ENV=lti-service-prod-docker
 		export BEANSTALK_APPLICATION=lti-service
 		export S3_BUCKET_NAME=lumen-beanstalk-lti-service-dockerrun-prod
 	;;
