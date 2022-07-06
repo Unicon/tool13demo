@@ -12,24 +12,18 @@
  */
 package net.unicon.lti.service.harmony;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * This manages all the interactions with Harmony
@@ -37,14 +31,13 @@ import net.unicon.lti.model.harmony.HarmonyPageResponse;
 @Service
 @Slf4j
 public class HarmonyService {
-
-    private final ObjectMapper jsonObjectMapper = new ObjectMapper().enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-
     @Value("${harmony.courses.api}")
     private String harmonyCoursesApiUrl;
 
     @Value("${harmony.courses.jwt}")
     private String harmonyJWT;
+
+    RestTemplate restTemplate;
 
     public HarmonyPageResponse fetchHarmonyCourses() {
 
@@ -53,30 +46,23 @@ public class HarmonyService {
             return null;
         }
 
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            // Build the URL
-            URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
-            // Build the GET object
-            HttpGet httpGet = new HttpGet(builder.build());
-            httpGet.addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + harmonyJWT);
-            httpGet.addHeader(HttpHeaders.CACHE_CONTROL, "no-cache");
-            httpGet.addHeader(HttpHeaders.CONNECTION, "keep-alive");
-            httpGet.addHeader(HttpHeaders.ACCEPT_ENCODING, "gzip, deflate, br");
-            // Some requests need a special mimeType in the ACCEPT header.
-            httpGet.addHeader(HttpHeaders.ACCEPT, "*/*");
-            // Perform the request
-            try (CloseableHttpResponse apiResponse = httpClient.execute(httpGet)) {
-                if (HttpStatus.SC_OK == apiResponse.getStatusLine().getStatusCode()) {
-                    HttpEntity entity = apiResponse.getEntity();
-                    return jsonObjectMapper.readValue(entity.getContent(), new TypeReference<HarmonyPageResponse>(){});
-                }
+        try {
+            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(harmonyJWT);
+            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+            ResponseEntity<HarmonyPageResponse> response = restTemplate.exchange(harmonyCoursesApiUrl, HttpMethod.GET, entity, HarmonyPageResponse.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return response.getBody();
+            } else {
+                log.error("Harmony Courses API returned {}", response.getStatusCode());
+                log.error(String.valueOf(response.getBody()));
+                return null;
             }
-        } catch(Exception ex) {
-            log.error("Error fetching courses from the Harmony Courses API: {} ", ex.getMessage());
+        } catch(Exception e) {
+            log.error(e.getMessage());
+            return null;
         }
-
-        return null;
-
     }
 
 }
