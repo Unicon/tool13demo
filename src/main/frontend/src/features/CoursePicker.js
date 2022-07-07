@@ -1,10 +1,12 @@
 // Redux imports
 import { useSelector } from 'react-redux';
-import { selectCourseArray, selectLoading } from '../app/appSlice';
+import { selectCourseArray, selectErrorFetchingCourses, selectLoading } from '../app/appSlice';
 
 // Components import
+import Alert from 'react-bootstrap/Alert';
 import Col from 'react-bootstrap/Col';
 import CourseGrid from './CourseGrid';
+import CoursePaginator from './CoursePaginator';
 import Header from './Header';
 import Row from 'react-bootstrap/Row';
 import SearchInput from './controls/SearchInput';
@@ -15,6 +17,7 @@ function CoursePicker (props) {
   // useSelector gets the value present in the store, this value may change at a component level.
   const courseArray = useSelector(selectCourseArray);
   const isLoading = useSelector(selectLoading);
+  const isErrorFetchingCourses = useSelector(selectErrorFetchingCourses);
 
   // Display a spinner when courses are loading...
   const loadingCoursesText = 'Loading courses...';
@@ -25,6 +28,10 @@ function CoursePicker (props) {
 
   if (!isLoading) {
     courseGrid = <CourseGrid courses={courseArray} />;
+  }
+
+  if (isErrorFetchingCourses) {
+    courseGrid = <Alert variant="danger">There was an error fetching courses, please try again later.</Alert>;
   }
 
   return (
@@ -43,6 +50,11 @@ function CoursePicker (props) {
       <Row sm={3} xs={2} xxs={1} className="g-3 course-grid">
         {courseGrid}
       </Row>
+      <div className="paginator d-flex justify-content-center">
+        <Row>
+          <CoursePaginator />
+        </Row>
+      </div>
     </>
   );
 
