@@ -1,7 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// Static data
-import { STATIC_COURSE_ARRAY } from './staticData';
+// This defines the initial state of the store
+const initialState = {
+  searchInputText: '',
+  selectedCategoriesArray: [],
+  selectedCourse: null
+};
 
 // This defines the store slice
 export const appSlice = createSlice({
@@ -47,10 +51,13 @@ export const selectIdToken = (state) => state.id_token;
 export const selectLoading = (state) => state.loading;
 
 // This function fetches the courses from the backend, it should be invoked when loading the application.
-export const fetchCourses = () => (dispatch) => {
+export const fetchCourses = (state) => (dispatch) => {
   // We must display an spinner when loading courses from the backend
   dispatch(setLoading(true));
-  fetch('/harmony/courses')
+  fetch('/harmony/courses', {
+    method: 'GET',
+    headers: {'lti-id-token': state.id_token}
+  })
   .then(response => {
     if (!response.ok) {
       throw new Error(`Problem fetching courses (status: ${response.status})`);
@@ -63,9 +70,9 @@ export const fetchCourses = () => (dispatch) => {
     dispatch(updateMetadata(json.metadata));
   }).catch(reason => {
     // For local development, if the data is empty we can use static data.
-    dispatch(setCourseArray(STATIC_COURSE_ARRAY.records));
+    dispatch(setCourseArray(state.courseArray.records));
     // Load the pagination information for the first page.
-    dispatch(updateMetadata(STATIC_COURSE_ARRAY.metadata));
+    dispatch(updateMetadata(state.courseArray.metadata));
     console.error(reason);
   }).finally(() => {
     // Remove the spinner once the request has been resolved.

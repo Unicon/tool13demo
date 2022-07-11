@@ -43,7 +43,7 @@ const store = configureStore({
 });
 
 // Once the store is configured, load the courses from the backend.
-store.dispatch(fetchCourses());
+store.dispatch(fetchCourses(initialState));
 
 root.render(
   <React.StrictMode>

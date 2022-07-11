@@ -13,27 +13,18 @@
 
 package net.unicon.lti.controller.harmony;
 
+import lombok.extern.slf4j.Slf4j;
+import net.unicon.lti.model.harmony.HarmonyPageResponse;
+import net.unicon.lti.service.harmony.HarmonyService;
+import net.unicon.lti.service.lti.LTIDataService;
+import net.unicon.lti.utils.lti.LTI3Request;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.extern.slf4j.Slf4j;
-import net.unicon.lti.model.PlatformDeployment;
-import net.unicon.lti.model.harmony.HarmonyCourse;
-import net.unicon.lti.model.harmony.HarmonyPageResponse;
-import net.unicon.lti.repository.PlatformDeploymentRepository;
-import net.unicon.lti.service.harmony.HarmonyService;
-import net.unicon.lti.utils.LtiStrings;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping(value = "/harmony", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -45,26 +36,24 @@ public class HarmonyRestController {
     HarmonyService harmonyService;
 
     @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    LTIDataService ltiDataService;
+
+    LTI3Request lti3Request;
 
     @RequestMapping(value = "/courses")
-    public ResponseEntity<HarmonyPageResponse> fetchHarmonyCourses(HttpServletRequest req, Principal principal) {
-
-        //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            log.debug("The request contains the deploymentId {}", deployment);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                log.debug("The deploymentId is present in the repository, fetching courses....");
-                // We convert the JSON response to a Java object, and send the JSON value again to the frontend.
-                return ResponseEntity.ok(harmonyService.fetchHarmonyCourses());
-            }
+    public ResponseEntity<HarmonyPageResponse> listHarmonyCourses(@RequestHeader(value="lti-id-token") String ltiIdToken) {
+        //To keep this endpoint secured, we will validate the id_token
+        try {
+            // validates JWT signature, ensures existing platformDeployment, validates 1.3 format of JWT, validates nonce
+            lti3Request = new LTI3Request(ltiDataService, true, null, ltiIdToken);
+            log.debug("The id_token is valid, fetching courses....");
+            // We convert the JSON response to a Java object, and send the JSON value again to the frontend.
+            return ResponseEntity.ok(harmonyService.fetchHarmonyCourses());
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            log.debug("No permissions to fetch courses from Harmony");
+            return ResponseEntity.status(403).build();
         }
-        log.debug("No permissions to fetch courses from Harmony");
-        return ResponseEntity.status(403).build();
     }
 
 }
