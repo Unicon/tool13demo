@@ -25,7 +25,7 @@ function CourseGrid(props) {
   }
 
   // Display an info alert when there are no courses.
-  if (!courseArray || Object.keys(courseArray).length === 0 || courseArray.length === 0) {
+  if (!Array.isArray(courseArray) || !courseArray.length) {
     return <div className="header">
              <InfoAlert message="There are no courses to show"/>
            </div>;
