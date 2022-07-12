@@ -34,6 +34,7 @@ const initialState = {
   context: ltiLaunchData.context,
   id_token: ltiLaunchData.id_token,
   loading: true,
+  errorFetchingCourses: false
 };
 
 // Creates the store and preloads the initial state of the store.
@@ -43,7 +44,7 @@ const store = configureStore({
 });
 
 // Once the store is configured, load the courses from the backend.
-store.dispatch(fetchCourses(initialState));
+store.dispatch(fetchCourses(1));
 
 root.render(
   <React.StrictMode>

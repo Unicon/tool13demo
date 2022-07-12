@@ -1,12 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-// This defines the initial state of the store
-const initialState = {
-  searchInputText: '',
-  selectedCategoriesArray: [],
-  selectedCourse: null
-};
-
 // This defines the store slice
 export const appSlice = createSlice({
   // Name of the slice
@@ -34,29 +27,39 @@ export const appSlice = createSlice({
     changeSelectedCourse: (state, action) => {
       state.selectedCourse = action.payload;
     },
+    setErrorFetchingCourses: (state, action) => {
+      state.errorFetchingCourses = action.payload;
+    },
   },
 });
 
 // Defines the actions that can be dispatched using dispatch and defines what happens with the state.
-export const { changeSearchInput, changeSelectedCourse, setLoading, setCourseArray, updateMetadata } = appSlice.actions;
+export const { changeSearchInput, changeSelectedCourse, setErrorFetchingCourses, setLoading, setCourseArray, updateMetadata } = appSlice.actions;
 // Connects variables to the state, when you want the state values in a component use this.
 export const selectSearchInputText = (state) => state.searchInputText;
 export const selectSelectedCourse = (state) => state.selectedCourse;
 export const selectCourseArray = (state) => state.filteredCourseArray;
+export const selectMetadata = (state) => state.metadata;
 export const selectIss = (state) => state.iss;
 export const selectContext = (state) => state.context;
 export const selectClientId = (state) => state.clientId;
 export const selectDeploymentId = (state) => state.deploymentId;
 export const selectIdToken = (state) => state.id_token;
 export const selectLoading = (state) => state.loading;
+export const selectErrorFetchingCourses = (state) => state.errorFetchingCourses;
 
 // This function fetches the courses from the backend, it should be invoked when loading the application.
-export const fetchCourses = (state) => (dispatch) => {
+export const fetchCourses = (page) => (dispatch, getState) => {
+  // Get the id_token from the state, thunks already have access to getState as the second argument.
+  const idToken = getState().id_token;
+  // If no specific page is requested, request the first one.
+  const requestedPage = page ? page : 1;
   // We must display an spinner when loading courses from the backend
   dispatch(setLoading(true));
-  fetch('/harmony/courses', {
+  dispatch(setErrorFetchingCourses(false));
+  fetch(`/harmony/courses?page=${requestedPage}`, {
     method: 'GET',
-    headers: {'lti-id-token': state.id_token}
+    headers: {'lti-id-token': idToken}
   })
   .then(response => {
     if (!response.ok) {
@@ -69,10 +72,8 @@ export const fetchCourses = (state) => (dispatch) => {
     // Load the pagination information for the first page.
     dispatch(updateMetadata(json.metadata));
   }).catch(reason => {
-    // For local development, if the data is empty we can use static data.
-    dispatch(setCourseArray(state.courseArray.records));
-    // Load the pagination information for the first page.
-    dispatch(updateMetadata(state.courseArray.metadata));
+    // When there's an error fetching courses we must notify the components.
+    dispatch(setErrorFetchingCourses(true));
     console.error(reason);
   }).finally(() => {
     // Remove the spinner once the request has been resolved.
