@@ -24,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -41,14 +42,14 @@ public class HarmonyRestController {
     LTI3Request lti3Request;
 
     @RequestMapping(value = "/courses")
-    public ResponseEntity<HarmonyPageResponse> listHarmonyCourses(@RequestHeader(value="lti-id-token") String ltiIdToken) {
+    public ResponseEntity<HarmonyPageResponse> listHarmonyCourses(@RequestHeader(value="lti-id-token") String ltiIdToken, @RequestParam int page) {
         //To keep this endpoint secured, we will validate the id_token
         try {
             // validates JWT signature, ensures existing platformDeployment, validates 1.3 format of JWT, validates nonce
             lti3Request = new LTI3Request(ltiDataService, true, null, ltiIdToken);
             log.debug("The id_token is valid, fetching courses....");
             // We convert the JSON response to a Java object, and send the JSON value again to the frontend.
-            return ResponseEntity.ok(harmonyService.fetchHarmonyCourses());
+            return ResponseEntity.ok(harmonyService.fetchHarmonyCourses(page));
         } catch (Exception e) {
             log.debug(e.getMessage());
             log.debug("No permissions to fetch courses from Harmony");
