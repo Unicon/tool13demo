@@ -2,13 +2,12 @@
 import { useDispatch } from 'react-redux';
 // Store imports
 import { changeSelectedCourse } from '../app/appSlice';
-
-import courseImage from '../media/dna.webp'
+import { parseCourseCoverImage } from '../util/Utils.js';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import CourseSection from './CourseSection';
+import CourseTOC from './CourseTOC';
 import Header from './Header';
 import Image from 'react-bootstrap/Image';
 import Row from 'react-bootstrap/Row';
@@ -21,6 +20,8 @@ function CoursePreview(props) {
     dispatch(changeSelectedCourse(null));
   }
 
+  // Some courses may not have a valid cover image, use a default instead
+  const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url);
   const addCourseToLMS = () => {
       const ltiLaunchData = JSON.parse(document.getElementById('root').getAttribute('lti-launch-data'));
       const idToken = ltiLaunchData.id_token;
@@ -60,18 +61,18 @@ function CoursePreview(props) {
       <div className="course-info">
         <Row>
           <Col sm={2}>
-            <Image rounded fluid src={courseImage} title={props.course.name} />
+            <Image rounded fluid src={courseCoverUrl} title={props.course.book_title} />
           </Col>
           <Col sm={10}>
-            {(props.course.name || props.course.description) ?
-              <Header header={props.course.name} subheader={props.course.description} />
+            {(props.course.book_title || props.course.description) ?
+              <Header header={props.course.book_title} subheader={props.course.description} />
             :
               <Alert>This course does not have a title nor description.</Alert>
             }
           </Col>
         </Row>
         <div className="mt-1">
-          {sectionContent.length ? sectionContent : <Alert>This course does not have any information section.</Alert>}
+          <CourseTOC topics={props.course.table_of_contents} />
         </div>
       </div>
       <div className="fixed-bottom course-footer d-flex flex-row">

@@ -1,4 +1,3 @@
-import React from 'react';
 // Redux imports
 import { useSelector } from 'react-redux';
 // Store imports

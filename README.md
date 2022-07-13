@@ -228,6 +228,15 @@ lti13.grade-passback-queue=<queue name>
 }
 ```
 
+## Setup Harmony Courses Endpoint
+
+When there's a deep linking request the LTI tool displays a Harmony course selector to the instructor, the list of courses comes from a Harmony endpoint.
+In order to fetch some courses you'll need credentials to access the endpoint, please complete these properties in the `.properties`
+```
+harmony.courses.api=https://harmony.endpoint.url
+harmony.courses.jwt=a.cool.jwt
+```
+
 ## Dynamic Registration
 
 If using dynamic registration, ensure that the `domain.url` in the `.properties` file is set to the appropriate version of Waymaker. ie:

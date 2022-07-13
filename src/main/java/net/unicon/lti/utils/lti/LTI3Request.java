@@ -419,11 +419,13 @@ public class LTI3Request {
             isCorrect = checkCorrectDeepLinkingRequest();
             correct = isCorrect.equals("true");
             // NOTE: This is just to hardcode some demo information.
-            try {
-                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0),
-                        this, ltiDataService.getLocalUrl());
-            } catch (GeneralSecurityException | IOException | NullPointerException ex) {
-                log.error("Error creating the DeepLinking Response", ex);
+            if (ltiDataService.getDemoMode()) {
+                try {
+                    deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0),
+                            this, ltiDataService.getLocalUrl());
+                } catch (GeneralSecurityException | IOException | NullPointerException ex) {
+                    log.error("Error creating the DeepLinking Response", ex);
+                }
             }
 
         }
