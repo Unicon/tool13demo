@@ -39,7 +39,7 @@
 }
 
 .search-input {
-  font-family: FontAwesome;
+  text-overflow: ellipsis;
 }
 
 .course-info {
