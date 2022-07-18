@@ -1,9 +1,9 @@
+import InfoAlert from './alerts/InfoAlert';
 import Row from 'react-bootstrap/Row';
-import Alert from 'react-bootstrap/Alert';
 
 function CourseTopic (props) {
 
-  let courseSectionSubtopics = <Alert>This course topic does not have contents.</Alert>;
+  let courseSectionSubtopics = <InfoAlert message="This course topic does not have contents"/>;
   if (props.topic.sub_topics && props.topic.sub_topics.length > 0) {
     courseSectionSubtopics = (<ul>
           {props.topic.sub_topics.map((item, index) => {
@@ -15,7 +15,7 @@ function CourseTopic (props) {
   return (
     <Row>
       <div className="section-header">
-        <h2>{props.topic.name ? props.topic.name : <Alert>This course topic does not have a name.</Alert>}</h2>
+        <h2>{props.topic.name ? props.topic.name : <InfoAlert message="This course topic does not have a name."/>}</h2>
       </div>
       <div>
           {courseSectionSubtopics}

@@ -4,12 +4,12 @@ import { useDispatch } from 'react-redux';
 import { changeSelectedCourse } from '../app/appSlice';
 import { parseCourseCoverImage } from '../util/Utils.js';
 
-import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import CourseTOC from './CourseTOC';
 import Header from './Header';
 import Image from 'react-bootstrap/Image';
+import InfoAlert from './alerts/InfoAlert';
 import Row from 'react-bootstrap/Row';
 
 function CoursePreview(props) {
@@ -77,7 +77,7 @@ function CoursePreview(props) {
             {(props.course.book_title || props.course.description) ?
               <Header header={props.course.book_title} subheader={props.course.description} />
             :
-              <Alert>This course does not have a title nor description.</Alert>
+              <InfoAlert message="This course does not have a title nor description."/>
             }
           </Col>
         </Row>
