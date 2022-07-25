@@ -33,21 +33,31 @@ function CoursePreview(props) {
 
       const bookPairingData = {
         "id_token": idToken,
-        "root_outcome_guid": props.course.id
+        "root_outcome_guid": props.course.root_outcome_guid
       }
 
-      fetch(contextAPIUrl, {
+      fetch(contextAPIUrl + "?state=" + state, {
         method: 'PUT',
-        headers: {'Content-Type':'application/json'},
+        headers: {
+            'Content-Type':'application/json'
+        },
         body: JSON.stringify(bookPairingData)
+      }).then((response,reject)=> {
+        if (response.ok) return response.json();
+        return Promise.reject(`Http error status: ${response.status}, response: ${response.body}`)
+      }).then (response => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = response.deep_link_return_url;
+        document.body.appendChild(form);
+        const formField = document.createElement('input');
+        formField.type = 'hidden';
+        formField.name = 'JWT';
+        formField.value = response.JWT;
+        form.appendChild(formField);
+        form.submit();
       });
-
-      alert(`This LMS course is paired to the Lumen book ${props.course.name} in the middleware DB. That's All Folks!!`);
   }
-
-  const sectionContent = props.course.sections.map((section, index) => {
-    return <CourseSection key={index} section={section}/>;
-  });
 
   return (
     <>
