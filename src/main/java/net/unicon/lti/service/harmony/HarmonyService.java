@@ -125,7 +125,6 @@ public class HarmonyService {
                 return null;
             }
         } catch (Exception e) {
-            System.out.println("Exception thrown");
             log.error("Error requesting deep links with guid {} and pi_guid {}", rootOutcomeGuid, piGuid);
             log.error(e.getMessage());
             return null;
