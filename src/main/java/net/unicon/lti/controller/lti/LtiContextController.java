@@ -68,7 +68,7 @@ public class LtiContextController {
             // Update context to have rootOutcomeGuid value
             if (ltiContext != null) {
                 // Retrieve and validate links from Harmony
-                List<HarmonyContentItemDTO> harmonyContentItems = harmonyService.fetchDeepLinkingContentItems(rootOutcomeGuid, lti3Request.getLtiToolPlatformGuid());
+                List<HarmonyContentItemDTO> harmonyContentItems = harmonyService.fetchDeepLinkingContentItems(rootOutcomeGuid, lti3Request.getLtiToolPlatformGuid(), idToken);
 
                 // Generate Deep Link Response JWT
                 if (harmonyContentItems != null && !harmonyContentItems.isEmpty()) {

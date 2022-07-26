@@ -12,9 +12,10 @@
  */
 package net.unicon.lti.service.harmony;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.unicon.lti.model.harmony.HarmonyPageResponse;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
+import net.unicon.lti.model.harmony.HarmonyPageResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -85,19 +88,24 @@ public class HarmonyService {
         }
     }
 
-    public List<HarmonyContentItemDTO> fetchDeepLinkingContentItems(String rootOutcomeGuid, String piGuid) {
+    public List<HarmonyContentItemDTO> fetchDeepLinkingContentItems(String rootOutcomeGuid, String piGuid, String idToken) {
         if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
-            log.warn("The Harmony API has not been configured, deep links will not be fetched.");
+            log.error("The Harmony API has not been configured, deep links will not be fetched.");
             return null;
         }
 
         if (rootOutcomeGuid == null || rootOutcomeGuid.isEmpty()) {
-            log.warn("Cannot fetch deep links without guid (root_outcome_guid)");
+            log.error("Cannot fetch deep links without guid (root_outcome_guid)");
             return null;
         }
 
         if (piGuid == null || piGuid.isEmpty()) {
-            log.warn("Cannot fetch deep links without pi_guid (tool_platform.guid from id_token)");
+            log.error("Cannot fetch deep links without pi_guid (tool_platform.guid from id_token)");
+            return null;
+        }
+
+        if (idToken == null || idToken.isEmpty()) {
+            log.error("Cannot fetch deep links without id_token");
             return null;
         }
 
@@ -110,11 +118,14 @@ public class HarmonyService {
             URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl + DEEP_LINKS_PATH);
             builder.addParameter("guid", rootOutcomeGuid);
             builder.addParameter("pi_guid", piGuid);
+            builder.addParameter("course_paired", "false"); // temporarily hardcoding until DL3-48
             requestUrl = builder.build().toString();
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(harmonyJWT);
-            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+            Map<String, String> body = Collections.singletonMap("id_token", idToken);
+            HttpEntity<String> entity = new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers);
+
             ResponseEntity<HarmonyContentItemDTO[]> response = restTemplate.exchange(requestUrl, HttpMethod.GET, entity, HarmonyContentItemDTO[].class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.debug("Got a successful response from the Harmony Deep Links API for guid {} and pi_guid {}:\n {}", rootOutcomeGuid, piGuid, Arrays.toString(response.getBody()));

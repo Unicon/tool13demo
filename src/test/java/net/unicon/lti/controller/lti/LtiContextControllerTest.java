@@ -123,7 +123,7 @@ public class LtiContextControllerTest {
                 .thenReturn(List.of(platformDeployment));
         when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContextEntity);
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
-        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID))).thenReturn(new ArrayList<>());
+        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(new ArrayList<>());
 
         ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
 
@@ -142,7 +142,7 @@ public class LtiContextControllerTest {
                 .thenReturn(List.of(platformDeployment));
         when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContextEntity);
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
-        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID))).thenReturn(null);
+        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(null);
 
         ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
 
@@ -162,7 +162,7 @@ public class LtiContextControllerTest {
         when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContextEntity);
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
         List<HarmonyContentItemDTO> contentItems = generateDeepLinkingContentItemsList();
-        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID))).thenReturn(contentItems);
+        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(contentItems);
         deepLinkUtilsMockedStatic.when(() -> DeepLinkUtils.generateDeepLinkingResponseJWT(eq(ltiDataService), eq(lti3Request), anyList())).thenThrow(GeneralSecurityException.class);
 
         ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
@@ -183,7 +183,7 @@ public class LtiContextControllerTest {
         when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContextEntity);
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
         List<HarmonyContentItemDTO> contentItems = generateDeepLinkingContentItemsList();
-        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID))).thenReturn(contentItems);
+        when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(contentItems);
         deepLinkUtilsMockedStatic.when(() -> DeepLinkUtils.generateDeepLinkingResponseJWT(eq(ltiDataService), eq(lti3Request), anyList())).thenReturn("deep-linking-response-jwt");
         when(lti3Request.getDeepLinkReturnUrl()).thenReturn("https://lms.com/deep-link-return");
 
