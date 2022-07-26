@@ -139,6 +139,7 @@ public class LTI3Request {
     List<String> ltiContextType;
 
     Map<String, Object> ltiToolPlatform;
+    String ltiToolPlatformGuid;
     String ltiToolPlatformName;
     String ltiToolPlatformContactEmail;
     String ltiToolPlatformDesc;
@@ -421,7 +422,7 @@ public class LTI3Request {
             // NOTE: This is just to hardcode some demo information.
             if (ltiDataService.getDemoMode()) {
                 try {
-                    deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0),
+                    deepLinkJwts = DeepLinkUtils.generateDeepLinkDemoJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0),
                             this, ltiDataService.getLocalUrl());
                 } catch (GeneralSecurityException | IOException | NullPointerException ex) {
                     log.error("Error creating the DeepLinking Response", ex);
@@ -477,6 +478,7 @@ public class LTI3Request {
 
 
         ltiToolPlatform = getMapFromLTIRequest(jws, LtiStrings.LTI_PLATFORM);
+        ltiToolPlatformGuid = getStringFromLTIRequestMap(ltiToolPlatform, LtiStrings.LTI_PLATFORM_GUID);
         ltiToolPlatformName = getStringFromLTIRequestMap(ltiToolPlatform, LtiStrings.LTI_PLATFORM_NAME);
         ltiToolPlatformContactEmail = getStringFromLTIRequestMap(ltiToolPlatform, LtiStrings.LTI_PLATFORM_CONTACT_EMAIL);
         ltiToolPlatformDesc = getStringFromLTIRequestMap(ltiToolPlatform, LtiStrings.LTI_PLATFORM_DESC);
