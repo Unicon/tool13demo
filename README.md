@@ -233,8 +233,8 @@ lti13.grade-passback-queue=<queue name>
 When there's a deep linking request the LTI tool displays a Harmony course selector to the instructor, the list of courses comes from a Harmony endpoint.
 In order to fetch some courses you'll need credentials to access the endpoint, please complete these properties in the `.properties`
 ```
-harmony.courses.api=https://harmony.endpoint.url
-harmony.courses.jwt=a.cool.jwt
+harmony.courses.api=http://localhost:3000/service_api/course_catalog
+harmony.courses.jwt=eyJhbGciOiJIUzUxMiJ9.eyJzY29wZXMiOlsiZnVsbF9zZXJ2aWNlX2FwaV9hY2Nlc3MiLCJtYW5hZ2VfYWNjb3VudHNfYW5kX2F1dGhfY3JlZGVudGlhbHMiLCJydW5fcmVwb3J0cyIsInZpZXdfYWN0aXZhdGlvbl9sb2dzIl0sIm5hbWUiOiJtYXR0aGV3IiwiaWF0IjoxNjU5MTI4NTM2LCJhdWQiOiJ2YWxreXJpZV9zZXJ2aWNlcyJ9.v-cjw6CaHPbTsz8xcwXCm9yyGlTd53oW572val1V7vo3y8Sje8LF-_NURo3r-L8CLF6r05cPo2q8EVau3D5R2Q
 ```
 
 ## Dynamic Registration
