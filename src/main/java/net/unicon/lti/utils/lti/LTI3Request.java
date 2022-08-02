@@ -36,6 +36,7 @@ import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.impl.LTIDataServiceImpl;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -261,8 +262,12 @@ public class LTI3Request {
                     try {
                         JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
                         JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
+                        if (jwk == null) {
+                            log.debug("LMS JWK does not match. Trying middleware JWK.");
+                            return OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
+                        }
                         return ((AsymmetricJWK) jwk).toPublicKey();
-                    } catch (JOSEException | ParseException | IOException ex) {
+                    } catch (JOSEException | ParseException | IOException | GeneralSecurityException ex) {
                         log.error("Error getting the iss public key", ex);
                         return null;
                     }
@@ -300,6 +305,41 @@ public class LTI3Request {
             log.info("-------------------------------------------------------------------------------------------------------");
         }
 
+        validateIdToken(jws);
+
+        //Here we will populate the LTI3Request object
+        processRequestParameters(request, jws);
+
+        // We update the database in case we have new values. (New users, new resources...etc)
+        // Load data from DB related with this request and update it if needed with the new values.
+        if (update) {
+            updateLTIDataInDB(jws, linkId);
+        }
+    }
+
+    /**
+     * @param ltiDataService   the service used for accessing LTI data
+     * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
+     * @param jwt id_token string
+     */
+    public LTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt) throws DataServiceException {
+        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
+        this.ltiDataService = ltiDataService;
+        this.jws = validateAndRetrieveJWTClaims(ltiDataService, jwt);
+
+        validateIdToken(jws);
+
+        //Here we will populate the LTI3Request object
+        processRequestParameters(jws);
+
+        // We update the database in case we have new values. (New users, new resources...etc)
+        // Load data from DB related with this request and update it if needed with the new values.
+        if (update) {
+            updateLTIDataInDB(jws, linkId);
+        }
+    }
+
+    private void validateIdToken(Jws<Claims> jws) {
         // Validate deployment
         String iss = jws.getBody().getIssuer();
         String clientId = jws.getBody().getAudience();
@@ -319,21 +359,15 @@ public class LTI3Request {
         if (!checkNonce.equals("true")) {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
-        //Here we will populate the LTI3Request object
-        String processRequestParameters = processRequestParameters(request, jws);
-        if (!processRequestParameters.equals("true")) {
-            throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
-        }
-        // We update the database in case we have new values. (New users, new resources...etc)
-        // Load data from DB related with this request and update it if needed with the new values.
+    }
+
+    private void updateLTIDataInDB(Jws<Claims> jws, String linkId) throws DataServiceException {
         PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(this.iss, this.aud, ltiDeploymentId).get(0);
         ltiDataService.loadLTIDataFromDB(this, linkId);
-        if (update) {
-            if (isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
-                ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
-            } else {
-                ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
-            }
+        if (isLTI3Request(jws).equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+            ltiDataService.upsertLTIDataInDB(this, platformDeployment, linkId);
+        } else {
+            ltiDataService.upsertLTIDataInDB(this, platformDeployment, null);
         }
     }
 
@@ -343,9 +377,7 @@ public class LTI3Request {
      * @param request an http servlet request
      * @return true if this is a complete and correct LTI request (includes key, context, link, user) OR false otherwise
      */
-
-    public String processRequestParameters(HttpServletRequest request, Jws<Claims> jws) {
-
+    public void processRequestParameters(HttpServletRequest request, Jws<Claims> jws) throws DataServiceException {
         if (request != null && this.httpServletRequest != request) {
             this.httpServletRequest = request;
         }
@@ -354,6 +386,56 @@ public class LTI3Request {
         //First we get all the possible values, and we set null in the ones empty.
         // Later we will review those values to check if the request is valid or not.
 
+        processRequestParameters(jws);
+
+        // A sample that shows how we can store some of this in the session
+        HttpSession session = this.httpServletRequest.getSession();
+        session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
+        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
+        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
+        try {
+            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0).getKeyId());
+        } catch (Exception e) {
+            log.error("No deployment found");
+        }
+
+        // Surely we need a more elaborated code here based in the huge amount of roles available.
+        // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
+
+        session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, getNormalizedRoleName());
+    }
+
+    private void validateLTIClaims() {
+        String isComplete;
+        String isCorrect;
+        if (ltiMessageType.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
+            isComplete = checkCompleteLTIRequest();
+            complete = isComplete.equals("true");
+            isCorrect = checkCorrectLTIRequest();
+            correct = isCorrect.equals("true");
+        } else {  //DEEP Linking
+            isComplete = checkCompleteDeepLinkingRequest();
+            complete = isComplete.equals("true");
+            isCorrect = checkCorrectDeepLinkingRequest();
+            correct = isCorrect.equals("true");
+            // NOTE: This is just to hardcode some demo information.
+            if (ltiDataService.getDemoMode()) {
+                try {
+                    deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0),
+                            this, ltiDataService.getLocalUrl());
+                } catch (GeneralSecurityException | IOException | NullPointerException ex) {
+                    log.error("Error creating the DeepLinking Response", ex);
+                }
+            }
+
+        }
+
+        if (!(complete && correct)) {
+            throw new IllegalStateException("Request is not complete and correct: \n" + isComplete + isCorrect);
+        }
+    }
+
+    public void processRequestParameters(Jws<Claims> jws) {
         claims = jws.getBody();
 
         //LTI3 CORE
@@ -454,56 +536,8 @@ public class LTI3Request {
         deepLinkText = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_TEXT);
         deepLinkData = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_DATA);
 
-
-        // A sample that shows how we can store some of this in the session
-        HttpSession session = this.httpServletRequest.getSession();
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
-        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
-        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
-        try {
-            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0).getKeyId());
-        } catch (Exception e) {
-            log.error("No deployment found");
-        }
-
-        // Surely we need a more elaborated code here based in the huge amount of roles available.
-        // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
-
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, getNormalizedRoleName());
-
         // And now we will check that all the mandatory fields are there and are correct
-        String isComplete;
-        String isCorrect;
-        if (ltiMessageType.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)) {
-            isComplete = checkCompleteLTIRequest();
-            complete = isComplete.equals("true");
-            isCorrect = checkCorrectLTIRequest();
-            correct = isCorrect.equals("true");
-        } else {  //DEEP Linking
-            isComplete = checkCompleteDeepLinkingRequest();
-            complete = isComplete.equals("true");
-            isCorrect = checkCorrectDeepLinkingRequest();
-            correct = isCorrect.equals("true");
-            // NOTE: This is just to hardcode some demo information.
-            try {
-                deepLinkJwts = DeepLinkUtils.generateDeepLinkJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByDeploymentId(ltiDeploymentId).get(0),
-                        this, ltiDataService.getLocalUrl());
-            } catch (GeneralSecurityException | IOException | NullPointerException ex) {
-                log.error("Error creating the DeepLinking Response", ex);
-            }
-
-        }
-        // This is an ugly way to display the error... can be improved.
-        if (complete && correct) {
-            return "true";
-        } else {
-            if (complete) {
-                isComplete = "";
-            } else if (correct) {
-                isCorrect = "";
-            }
-            return isComplete + isCorrect;
-        }
+        validateLTIClaims();
     }
 
     private String getNormalizedRoleName() {
@@ -723,6 +757,13 @@ public class LTI3Request {
      * @return true if this is a valid LTI request
      */
     public String checkNonce(Jws<Claims> jws) {
+        if (httpServletRequest == null) {
+            ServletRequestAttributes sra = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (sra == null) {
+                throw new IllegalStateException("No ServletRequestAttributes can be found, cannot validate the request.");
+            }
+            httpServletRequest = sra.getRequest();
+        }
 
         // We get the nonce from the cookie and compare to the nonce from the id_token JWT.
         Optional<Cookie> ltiNonceCookie = Arrays.stream(httpServletRequest.getCookies())

@@ -14,7 +14,9 @@ package net.unicon.lti.service.harmony;
 
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +41,7 @@ public class HarmonyService {
 
     RestTemplate restTemplate;
 
-    public HarmonyPageResponse fetchHarmonyCourses() {
+    public HarmonyPageResponse fetchHarmonyCourses(int page) {
 
         if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
             log.warn("The Harmony Courses API has not been configured, courses will not be fetched.");
@@ -47,11 +49,23 @@ public class HarmonyService {
         }
 
         try {
+
             restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+
+            // Build the URL
+            String requestUrl = harmonyCoursesApiUrl;
+            // Only append the page parameter when it's needed.
+            if (page != 1) {
+                URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
+                // Add the page parameter since this API is paginated.
+                builder.setParameter("page", String.valueOf(page));
+                requestUrl = builder.build().toString();
+            }
+
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(harmonyJWT);
             HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-            ResponseEntity<HarmonyPageResponse> response = restTemplate.exchange(harmonyCoursesApiUrl, HttpMethod.GET, entity, HarmonyPageResponse.class);
+            ResponseEntity<HarmonyPageResponse> response = restTemplate.exchange(requestUrl, HttpMethod.GET, entity, HarmonyPageResponse.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
             } else {
