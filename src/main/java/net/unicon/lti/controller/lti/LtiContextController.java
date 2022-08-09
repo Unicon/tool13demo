@@ -44,8 +44,6 @@ public class LtiContextController {
     @Autowired
     HarmonyService harmonyService;
 
-    LTI3Request lti3Request;
-
     @PutMapping
     ResponseEntity<Object> prepareDeepLinkingResponseForLMSContext(@RequestBody Map<String, String> pairBookBody) {
         try {
@@ -56,7 +54,7 @@ public class LtiContextController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
             }
             // validate id_token, including proving existence of single platformDeployment, generate id_token object
-            lti3Request = lti3Request == null ? new LTI3Request(ltiDataService, true, null, idToken) : lti3Request;
+            LTI3Request lti3Request = LTI3Request.makeLTI3Request(ltiDataService, true, null, idToken);
 
             // Retrieve LMS config from db to be used to find the right context
             List<PlatformDeployment> platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId());

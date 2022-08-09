@@ -860,6 +860,10 @@ public class LTI3Request implements ApplicationContextAware {
         return roleNum;
     }
 
+    public static LTI3Request makeLTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt) throws DataServiceException {
+        return new LTI3Request(ltiDataService, update, linkId, jwt);
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;

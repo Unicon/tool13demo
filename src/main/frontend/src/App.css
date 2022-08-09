@@ -39,7 +39,7 @@
 }
 
 .search-input {
-  font-family: FontAwesome;
+  text-overflow: ellipsis;
 }
 
 .course-info {
@@ -64,4 +64,24 @@
 
 .action-info {
   font-style: italic;
+}
+
+.error-icon {
+    color: #f95b5b;
+}
+
+.info-icon {
+    color: #5367ea;
+}
+
+.alert-primary {
+  background-color: #eef0fd !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+}
+
+.alert-danger {
+  background-color: #ffdede !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
 }

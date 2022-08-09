@@ -65,17 +65,21 @@ public class LtiContextControllerTest {
     @Mock
     LTI3Request lti3Request;
 
+    private MockedStatic<LTI3Request> lti3RequestMockedStatic;
+
     private MockedStatic<DeepLinkUtils> deepLinkUtilsMockedStatic;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         deepLinkUtilsMockedStatic = Mockito.mockStatic(DeepLinkUtils.class);
+        lti3RequestMockedStatic = Mockito.mockStatic(LTI3Request.class);
     }
 
     @AfterEach
     public void close() {
         deepLinkUtilsMockedStatic.close();
+        lti3RequestMockedStatic.close();
     }
 
     @Test
@@ -107,6 +111,7 @@ public class LtiContextControllerTest {
     @Test
     public void testPrepareDeepLinkingResponseForLMSContextWithoutLtiContext() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
+        lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
         when(lti3Request.getIss()).thenReturn(SAMPLE_ISSUER);
         when(lti3Request.getAud()).thenReturn(SAMPLE_CLIENT_ID);
@@ -127,6 +132,7 @@ public class LtiContextControllerTest {
     @Test
     public void testPrepareDeepLinkingResponseForLMSContextWithoutDeepLinkingContentItemsFromHarmony() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
+        lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
         when(lti3Request.getIss()).thenReturn(SAMPLE_ISSUER);
         when(lti3Request.getAud()).thenReturn(SAMPLE_CLIENT_ID);
@@ -149,6 +155,7 @@ public class LtiContextControllerTest {
     @Test
     public void testPrepareDeepLinkingResponseForLMSContextWithNullDeepLinkingContentItemsFromHarmony() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
+        lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
         when(lti3Request.getIss()).thenReturn(SAMPLE_ISSUER);
         when(lti3Request.getAud()).thenReturn(SAMPLE_CLIENT_ID);
@@ -171,6 +178,7 @@ public class LtiContextControllerTest {
     @Test
     public void testPrepareDeepLinkingResponseForLMSContextDeepLinkingResponseGenerationThrowsException() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
+        lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
         when(lti3Request.getIss()).thenReturn(SAMPLE_ISSUER);
         when(lti3Request.getAud()).thenReturn(SAMPLE_CLIENT_ID);
@@ -195,6 +203,7 @@ public class LtiContextControllerTest {
     @Test
     public void testPrepareDeepLinkingResponseForLMSContext() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
+        lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
         when(lti3Request.getIss()).thenReturn(SAMPLE_ISSUER);
         when(lti3Request.getAud()).thenReturn(SAMPLE_CLIENT_ID);
