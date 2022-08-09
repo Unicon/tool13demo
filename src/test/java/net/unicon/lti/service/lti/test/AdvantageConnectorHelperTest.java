@@ -4,7 +4,7 @@ import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.ags.Score;
-import net.unicon.lti.model.oauth2.LTIToken;
+import net.unicon.lti.model.oauth2.LTIAdvantageToken;
 import net.unicon.lti.service.lti.AdvantageConnectorHelper;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.service.lti.impl.AdvantageConnectorHelperImpl;
@@ -67,10 +67,10 @@ public class AdvantageConnectorHelperTest {
 
     @Test
     public void testCreateTokenizedRequestEntityForScores() {
-        LTIToken ltiToken = new LTIToken();
-        ltiToken.setAccess_token("test-token");
+        LTIAdvantageToken ltiAdvantageToken = new LTIAdvantageToken();
+        ltiAdvantageToken.setAccess_token("test-token");
         Score score = new Score();
-        HttpEntity<Score> httpEntity = advantageConnectorHelper.createTokenizedRequestEntity(ltiToken, score);
+        HttpEntity<Score> httpEntity = advantageConnectorHelper.createTokenizedRequestEntity(ltiAdvantageToken, score);
 
         assertEquals(httpEntity.getBody(), score);
         assertEquals(httpEntity.getHeaders().get(HttpHeaders.AUTHORIZATION).get(0), TextConstants.BEARER + "test-token");
@@ -92,15 +92,15 @@ public class AdvantageConnectorHelperTest {
             PlatformDeployment platformDeployment = new PlatformDeployment();
             platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
             when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
-            LTIToken ltiToken = new LTIToken();
-            ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.OK);
-            when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
+            LTIAdvantageToken ltiAdvantageToken = new LTIAdvantageToken();
+            ResponseEntity<LTIAdvantageToken> responseEntity = new ResponseEntity<>(ltiAdvantageToken, HttpStatus.OK);
+            when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class))).thenReturn(responseEntity);
 
-            LTIToken ltiTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
+            LTIAdvantageToken ltiAdvantageTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
 
             verify(ltijwtService).generateTokenRequestJWT(platformDeployment);
-            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
-            assertEquals(ltiTokenResponse, ltiToken);
+            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class));
+            assertEquals(ltiAdvantageTokenResponse, ltiAdvantageToken);
         } catch (Exception e) {
             fail("Exception should not be thrown.");
         }
@@ -114,20 +114,20 @@ public class AdvantageConnectorHelperTest {
             when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
             List<HttpMessageConverter<?>> messageConverters = Mockito.mock(ArrayList.class);
             when(restTemplate.getMessageConverters()).thenReturn(messageConverters);
-            LTIToken ltiToken = new LTIToken();
+            LTIAdvantageToken ltiAdvantageToken = new LTIAdvantageToken();
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.setContentType(MediaType.TEXT_HTML);
-            ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, responseHeaders, HttpStatus.OK);
-            when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
+            ResponseEntity<LTIAdvantageToken> responseEntity = new ResponseEntity<>(ltiAdvantageToken, responseHeaders, HttpStatus.OK);
+            when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class))).thenReturn(responseEntity);
 
-            LTIToken ltiTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
+            LTIAdvantageToken ltiAdvantageTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
 
             verify(ltijwtService).generateTokenRequestJWT(platformDeployment);
             verify(messageConverters).add(converterArgumentCaptor.capture());
             MappingJackson2HttpMessageConverter converter = converterArgumentCaptor.getValue();
             assertTrue(converter.getSupportedMediaTypes().contains(MediaType.TEXT_HTML));
-            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
-            assertEquals(ltiTokenResponse, ltiToken);
+            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class));
+            assertEquals(ltiAdvantageTokenResponse, ltiAdvantageToken);
         } catch (Exception e) {
             e.printStackTrace();
             fail("Exception should not be thrown.");
@@ -141,15 +141,15 @@ public class AdvantageConnectorHelperTest {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
                 platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
                 when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
-                LTIToken ltiToken = new LTIToken();
-                ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.BAD_REQUEST);
-                when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
+                LTIAdvantageToken ltiAdvantageToken = new LTIAdvantageToken();
+                ResponseEntity<LTIAdvantageToken> responseEntity = new ResponseEntity<>(ltiAdvantageToken, HttpStatus.BAD_REQUEST);
+                when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class))).thenReturn(responseEntity);
 
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
 
             verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
-            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
+            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class));
             assertEquals(exception.getMessage(), "Can't get the token: " + HttpStatus.BAD_REQUEST.getReasonPhrase());
         } catch (GeneralSecurityException | IOException e) {
             fail("Should not throw exception");
@@ -163,13 +163,13 @@ public class AdvantageConnectorHelperTest {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
                 platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
                 when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
-                when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(null);
+                when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class))).thenReturn(null);
 
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
 
             verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
-            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
+            verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class));
             assertEquals(exception.getMessage(), "Problem getting the token");
         } catch (GeneralSecurityException | IOException e) {
             fail("Should not throw exception");
@@ -187,7 +187,7 @@ public class AdvantageConnectorHelperTest {
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
             verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
-            verify(restTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
+            verify(restTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LTIAdvantageToken.class));
             verify(exceptionMessageGenerator).exceptionMessage(eq("Can't get the token. Exception"), any(GeneralSecurityException.class));
         } catch (GeneralSecurityException | IOException e) {
             fail("Should not throw exception.");

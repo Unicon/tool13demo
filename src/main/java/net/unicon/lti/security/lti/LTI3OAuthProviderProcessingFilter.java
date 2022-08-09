@@ -146,12 +146,12 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
 
             this.resetAuthenticationAfterRequest();
         } catch (ExpiredJwtException eje) {
-            log.info("Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
+            log.error("Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            log.debug("Exception " + eje.getMessage(), eje);
+            log.error("Exception " + eje.getMessage(), eje);
         } catch (SignatureException ex) {
-            log.info("Invalid JWT signature: {0}", ex.getMessage());
-            log.debug("Exception " + ex.getMessage(), ex);
+            log.error("Invalid JWT signature: {0}", ex.getMessage());
+            log.error("Exception " + ex.getMessage(), ex);
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         } catch (DataServiceException e) {
             log.error("Error in the Data Service", e);

@@ -9,7 +9,7 @@ import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.ags.Score;
-import net.unicon.lti.model.oauth2.LTIToken;
+import net.unicon.lti.model.oauth2.LTIAdvantageToken;
 import net.unicon.lti.model.sqs.SQSLineItem;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -90,7 +90,7 @@ public class SQSMessageReceiver {
 
             if (!platformDeployment.isEmpty()) {
                 // 1. Get the auth token for the scores endpoint
-                LTIToken scoresToken = advantageAGSServiceImpl.getToken(AGSScope.AGS_SCORES_SCOPE, platformDeployment.get(0));
+                LTIAdvantageToken scoresToken = advantageAGSServiceImpl.getToken(AGSScope.AGS_SCORES_SCOPE, platformDeployment.get(0));
 
                 // 2. Post score
                 if (scoresToken != null && !StringUtils.isEmpty(scoresToken.getAccess_token())) {

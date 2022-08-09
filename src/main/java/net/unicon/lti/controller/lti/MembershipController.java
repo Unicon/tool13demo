@@ -18,7 +18,7 @@ import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.membership.CourseUsers;
-import net.unicon.lti.model.oauth2.LTIToken;
+import net.unicon.lti.model.oauth2.LTIAdvantageToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.AdvantageMembershipService;
@@ -73,10 +73,10 @@ public class MembershipController {
 
                 //Call the membership service to get the users on the context
                 // 1. Get the token
-                LTIToken LTIToken = advantageMembershipService.getToken(platformDeployment.get());
+                LTIAdvantageToken LTIAdvantageToken = advantageMembershipService.getToken(platformDeployment.get());
 
                 // 2. Call the service
-                CourseUsers courseUsers = advantageMembershipService.callMembershipService(LTIToken, context);
+                CourseUsers courseUsers = advantageMembershipService.callMembershipService(LTIAdvantageToken, context);
 
                 // 3. update the model
                 model.addAttribute("results", courseUsers.getCourseUserList());

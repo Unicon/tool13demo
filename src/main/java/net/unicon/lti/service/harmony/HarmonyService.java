@@ -12,8 +12,11 @@
  */
 package net.unicon.lti.service.harmony;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.unicon.lti.exceptions.DataServiceException;
+import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +33,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,6 +45,7 @@ import java.util.Objects;
 @Slf4j
 public class HarmonyService {
     private static final String DEEP_LINKS_PATH = "/lti_deep_links";
+    private static final String LINEITEMS_PATH = "/lineitems";
 
     @Value("${harmony.courses.api}")
     private String harmonyCoursesApiUrl;
@@ -140,6 +145,27 @@ public class HarmonyService {
             log.error(e.getMessage());
             return null;
         }
+    }
+
+    public ResponseEntity<String> postLineitemsToHarmony(LineItems lineItems, String idToken) throws JsonProcessingException, DataServiceException {
+        if (lineItems == null || lineItems.getLineItemList() == null || lineItems.getLineItemList().isEmpty()) {
+            throw new DataServiceException("No lineitems to send to Harmony");
+        }
+        if (idToken == null || idToken.isEmpty()) {
+            throw new DataServiceException("Must include an id_token when posting lineitems to harmony.");
+        }
+
+        restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(harmonyJWT);
+        Map<String, Object> body = new HashMap<>();
+        body.put("id_token", idToken);
+        body.put("lineitems", lineItems.getLineItemList());
+        HttpEntity<String> entity = new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers);
+
+        log.debug("Posting lineitems to {}", harmonyCoursesApiUrl + LINEITEMS_PATH);
+        return restTemplate.exchange(harmonyCoursesApiUrl + LINEITEMS_PATH, HttpMethod.POST, entity, String.class);
     }
 
 }
