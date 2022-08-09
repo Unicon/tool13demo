@@ -1,3 +1,5 @@
+// React imports
+import React, { useState } from 'react';
 // Redux imports
 import { useDispatch } from 'react-redux';
 // Store imports
@@ -6,13 +8,19 @@ import { parseCourseCoverImage } from '../util/Utils.js';
 
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
+import Collapse  from 'react-bootstrap/Collapse';
 import CourseTOC from './CourseTOC';
+import ErrorAlert from './alerts/ErrorAlert';
 import Header from './Header';
 import Image from 'react-bootstrap/Image';
 import InfoAlert from './alerts/InfoAlert';
 import Row from 'react-bootstrap/Row';
 
 function CoursePreview(props) {
+
+  // In case there's an error adding the links, display an error message.
+  const [errorAddingLinks, setErrorAddingLinks] = useState(false);
+  const errorMessage = 'Oops, the Lumen content was not successfully added. Please try again or contact Lumen Support.';
 
   const dispatch = useDispatch();
 
@@ -56,11 +64,18 @@ function CoursePreview(props) {
         formField.value = response.JWT;
         form.appendChild(formField);
         form.submit();
+      }).catch(reason => {
+        setErrorAddingLinks(true);
       });
   }
 
   return (
     <>
+      <Collapse in={errorAddingLinks}>
+        <div className="floating-alert">
+          <ErrorAlert dismissible="dismissible" onClose={() => setErrorAddingLinks(false)} message={errorMessage}/>
+        </div>
+      </Collapse>
       <div className="header">
         <Row>
           <Col>

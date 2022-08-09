@@ -140,10 +140,19 @@ li:not(:last-child) {
   background-color: #eef0fd !important;
   border: none !important;
   border-radius: 0.5rem !important;
+  color: #202325 !important;
 }
 
 .alert-danger {
   background-color: #ffdede !important;
   border: none !important;
   border-radius: 0.5rem !important;
+  color: #202325 !important;
+}
+
+.floating-alert {
+  position: fixed;
+  width: 100%;
+  padding: 1rem;
+  padding-right: 2.5rem;
 }
