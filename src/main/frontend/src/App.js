@@ -9,6 +9,8 @@ import CoursePicker from './features/CoursePicker';
 import LtiBreadcrumb from './features/LtiBreadcrumb';
 // Stylesheet imports
 import './App.css';
+import "@fontsource/lato";
+import "@fontsource/public-sans";
 
 function App() {
 

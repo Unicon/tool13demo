@@ -39,7 +39,7 @@ function CourseGrid(props) {
             });
 
   // Display 3 CourseCards in small screens, 2 in extra small and only 1 in super small.
-  return  <Row sm={3} xs={2} xxs={1} className="g-3 course-grid">
+  return  <Row sm={3} xs={2} xxs={1} className="g-5 course-grid">
             {content}
           </Row>;
 

@@ -28,7 +28,7 @@ function CoursePicker (props) {
       <div className="header">
         <Row>
           <Col sm={8}>
-            <Header header="Add a Course" subheader="Select the course you would like to add" />
+            <Header header="Add a Course" subheader="Select the course you would like to add." />
           </Col>
           <Col sm={4}>
             <SearchInput />

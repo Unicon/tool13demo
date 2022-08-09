@@ -64,16 +64,16 @@ function CoursePreview(props) {
       <div className="header">
         <Row>
           <Col>
-            <Header header="Preview Your Selected Course" subheader="A high-level review of course concepts and structure" />
+            <Header header="Preview Your Selected Course" subheader="A high-level review of course concepts and structure." />
           </Col>
         </Row>
       </div>
       <div className="course-info">
         <Row>
-          <Col sm={2}>
+          <Col sm={1}>
             <Image rounded fluid src={courseCoverUrl} title={props.course.book_title} />
           </Col>
-          <Col sm={10}>
+          <Col sm={11}>
             {(props.course.book_title || props.course.description) ?
               <Header header={props.course.book_title} subheader={props.course.description} />
             :
@@ -81,12 +81,10 @@ function CoursePreview(props) {
             }
           </Col>
         </Row>
-        <div className="mt-1">
-          <CourseTOC topics={props.course.table_of_contents} />
-        </div>
+        <CourseTOC topics={props.course.table_of_contents} />
       </div>
       <div className="fixed-bottom course-footer d-flex flex-row">
-          <p className="text-secondary mb-0 mt-2 action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
+          <p className="action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
           <div className="ms-auto mx-3 d-flex d-row">
             <Button variant="secondary" onClick={(e) => resetSelectedCourse()}>Cancel</Button>
             <Button variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>Add Course</Button>

@@ -261,6 +261,8 @@ It can be displayed in the LMS launching the Middleware from a deep link request
 
 You can install NPM chosing your OS favorite distribution from [here](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm).
 
+We recommend installing the same Node.JS and NPM versions described in the pom.xml to be consistent with the build process.
+
 ### Available Scripts
 
 In the 'src/main/frontend' directory, you can run:
