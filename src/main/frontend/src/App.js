@@ -15,6 +15,8 @@ import "@fontsource/public-sans";
 function App() {
 
   const selectedCourse = useSelector(selectSelectedCourse);
+  // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
+  window.scrollTo(0, 0);
 
   return (
     <>
