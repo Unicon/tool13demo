@@ -2,8 +2,8 @@ function Header (props) {
 
   return (
     <>
-      <h1>{props.header}</h1>
-      <p className="text-dark">{props.subheader}</p>
+      <p className="header-title">{props.header}</p>
+      <p className="header-subheader">{props.subheader}</p>
     </>
   );
 

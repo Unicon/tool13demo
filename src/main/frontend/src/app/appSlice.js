@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { DUMMY_DATA } from '../util/dummyData';
 
 // This defines the store slice
 export const appSlice = createSlice({
@@ -75,6 +76,12 @@ export const fetchCourses = (page) => (dispatch, getState) => {
     // When there's an error fetching courses we must notify the components.
     dispatch(setErrorFetchingCourses(true));
     console.error(reason);
+    // This is useful for local development purposes, load some dummy data instead of the error message.
+    if (window.location.href.includes('localhost')) {
+      dispatch(setCourseArray(DUMMY_DATA.records));
+      dispatch(updateMetadata(DUMMY_DATA.metadata));
+      dispatch(setErrorFetchingCourses(false));
+    }
   }).finally(() => {
     // Remove the spinner once the request has been resolved.
     dispatch(setLoading(false));

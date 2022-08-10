@@ -12,6 +12,7 @@
         <!--/* These values are bound to Thymeleaf variables, they are set in the backend controller and filled in the client side in the render. */-->
         const ltiLaunchData = {
           id_token: '[[${id_token}]]',
+          state: '[[${state}]]',
           target: '[[${target}]]',
           deploymentId: '[[${deploymentId}]]',
           clientId: '[[${clientId}]]',
