@@ -1,15 +1,19 @@
 package net.unicon.lti.service.harmony;
 
+import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
 import net.unicon.lti.model.harmony.HarmonyCourse;
 import net.unicon.lti.model.harmony.HarmonyMetadata;
 import net.unicon.lti.model.harmony.HarmonyMetadataLinks;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
-import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
+import net.unicon.lti.utils.RestUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -47,9 +51,18 @@ public class HarmonyServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    private MockedStatic<RestUtils> restUtilsMockedStatic;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        restUtilsMockedStatic = Mockito.mockStatic(RestUtils.class);
+        restUtilsMockedStatic.when(RestUtils::createRestTemplate).thenReturn(restTemplate);
+    }
+
+    @AfterEach
+    public void close() {
+        restUtilsMockedStatic.close();
     }
 
     @Test
