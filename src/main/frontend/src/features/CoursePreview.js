@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Store imports
-import { changeSelectedCourse, toggleAllModules, selectIdToken, selectRootOutcomeGuid, selectState, selectTarget } from '../app/appSlice';
+import { changeSelectedCourse, toggleAllModules, selectIdToken, selectRootOutcomeGuid, selectSelectedModules, selectState, selectTarget } from '../app/appSlice';
 import { parseCourseCoverImage } from '../util/Utils.js';
 
 // Component imports
@@ -27,6 +27,7 @@ function CoursePreview(props) {
   const target = useSelector(selectTarget);
   const state = useSelector(selectState);
   const rootOutcomeGuid = useSelector(selectRootOutcomeGuid);
+  const selectedModules = useSelector(selectSelectedModules);
 
   // Some courses may not have a valid cover image, use a default instead
   const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url, true);
@@ -59,11 +60,23 @@ function CoursePreview(props) {
 
       const contextAPIUrl = target.replace("/lti3", "/context");
 
+      // Append the selected moduleIds to the PUT request body.
+      // Do not append moduleIds when all the modules have been selected.
+      // When all the modules have been selected just send null as module_ids.
+      let moduleIdList = null;
+      if (Array.isArray(props.course.table_of_contents) && props.course.table_of_contents.length !== selectedModules.length) {
+        // Filter the selected items by index, then get the module_ids.
+        moduleIdList = props.course.table_of_contents
+          .filter( (item, index) => selectedModules.includes(index))
+          .map( (module) => module.module_id );
+      }
+
       // TODO: Handle error cases of blank/null values
 
       const bookPairingData = {
         "id_token": idToken,
-        "root_outcome_guid": props.course.root_outcome_guid
+        "root_outcome_guid": props.course.root_outcome_guid,
+        "module_ids": moduleIdList
       }
 
       fetch(contextAPIUrl + "?state=" + state, {
