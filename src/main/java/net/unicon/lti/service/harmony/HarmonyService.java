@@ -19,15 +19,15 @@ import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
+import net.unicon.lti.utils.RestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -53,8 +53,6 @@ public class HarmonyService {
     @Value("${harmony.courses.jwt}")
     private String harmonyJWT;
 
-    RestTemplate restTemplate;
-
     public HarmonyPageResponse fetchHarmonyCourses(int page) {
 
         if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
@@ -64,7 +62,7 @@ public class HarmonyService {
 
         try {
 
-            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            RestTemplate restTemplate = RestUtils.createRestTemplate();
 
             // Build the URL
             String requestUrl = harmonyCoursesApiUrl;
@@ -115,7 +113,7 @@ public class HarmonyService {
         }
 
         try {
-            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            RestTemplate restTemplate = RestUtils.createRestTemplate();
 
             // Build the URL
             String requestUrl = harmonyCoursesApiUrl;
@@ -155,9 +153,10 @@ public class HarmonyService {
             throw new DataServiceException("Must include an id_token when posting lineitems to harmony.");
         }
 
-        restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+        RestTemplate restTemplate = RestUtils.createRestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(harmonyJWT);
         Map<String, Object> body = new HashMap<>();
         body.put("id_token", idToken);

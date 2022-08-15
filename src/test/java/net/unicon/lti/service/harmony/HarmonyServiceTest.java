@@ -9,16 +9,21 @@ import net.unicon.lti.model.harmony.HarmonyCourse;
 import net.unicon.lti.model.harmony.HarmonyMetadata;
 import net.unicon.lti.model.harmony.HarmonyMetadataLinks;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
+import net.unicon.lti.utils.RestUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.http.MockHttpInputMessage;
@@ -55,11 +60,20 @@ public class HarmonyServiceTest {
     @Mock
     private RestTemplate restTemplate;
 
+    private MockedStatic<RestUtils> restUtilsMockedStatic;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
+        restUtilsMockedStatic = Mockito.mockStatic(RestUtils.class);
+        restUtilsMockedStatic.when(RestUtils::createRestTemplate).thenReturn(restTemplate);
+    }
+
+    @AfterEach
+    public void close() {
+        restUtilsMockedStatic.close();
     }
 
     @Test
@@ -396,6 +410,7 @@ public class HarmonyServiceTest {
             verify(restTemplate).exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), eq(String.class));
             HttpEntity<String> entity = httpEntityArgumentCaptor.getValue();
             assertEquals("Bearer " + MOCK_HARMONY_JWT, Objects.requireNonNull(entity.getHeaders().get("Authorization")).get(0));
+            assertEquals(MediaType.APPLICATION_JSON, entity.getHeaders().getContentType());
             assertEquals("{\"lineitems\":[{\"id\":\"https://lms.com/course/lineitem/1\",\"scoreMaximum\":\"100\",\"label\":\"Quiz 1\"}],\"id_token\":\"sample-id-token\"}", entity.getBody());
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals("test-harmony-response", response.getBody());

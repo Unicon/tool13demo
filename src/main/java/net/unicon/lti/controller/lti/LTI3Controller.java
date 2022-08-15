@@ -104,6 +104,9 @@ public class LTI3Controller {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
             }
 
+            // Convert id_token to be signed by middleware so that Harmony can validate it
+            String middlewareIdToken = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
+
             // Sync lineitems and update db if needed
             boolean isLtiResourceLink = StringUtils.equals(lti3Request.getLtiMessageType(), LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
             PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId()).get(0);
@@ -119,7 +122,7 @@ public class LTI3Controller {
 
                 // sync lineitems to harmony
                 log.debug("Attempting to send lineitems to Harmony...");
-                ResponseEntity<String> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, req.getParameter("id_token"));
+                ResponseEntity<String> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
 
                 // if no exceptions were thrown, set lineitems synced to true for the context
                 if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
@@ -139,10 +142,9 @@ public class LTI3Controller {
             if (!ltiDataService.getDemoMode()) {
                 String target = lti3Request.getLtiTargetLinkUrl();
                 log.debug("Target Link URL: {}", target);
-                String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
 
                 model.addAttribute("target", target);
-                model.addAttribute("id_token", ltiData);
+                model.addAttribute("id_token", middlewareIdToken);
                 model.addAttribute("state", state);
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
