@@ -59,6 +59,8 @@
 
 .course-card-image {
   border-radius: 1rem 1rem 0 0 !important;
+  height: 120px;
+  object-fit: cover;
 }
 
 .course-card-title {
