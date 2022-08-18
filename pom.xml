@@ -19,8 +19,8 @@
         <java.version>16</java.version>
         <!-- React frontend build-->
         <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
-        <node.version>v14.19.1</node.version>
-        <npm.version>6.14.16</npm.version>
+        <node.version>v16.17.0</node.version>
+        <npm.version>8.15.0</npm.version>
     </properties>
 
     <dependencies>
