@@ -2,10 +2,32 @@
   background-color: #f3f2ee;
   border-top: 0.1rem solid #c2bdba;
   border-bottom: 0.1rem solid #c2bdba;
+  font-family: 'Public Sans';
+}
+
+.breadcrumb-item {
+  font-family: 'Lato';
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .header {
   margin: 1rem;
+}
+
+.header-title {
+  font-weight: 600;
+  font-size: 26px;
+  line-height: 120%;
+  color: #202325;
+}
+
+.header-subheader {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 22px;
+  color: #636566;
 }
 
 .paginator {
@@ -22,7 +44,8 @@
 }
 
 .course-grid {
-  margin: 0.5rem !important;
+  margin-left: -7px !important;
+  margin-right: -7px !important;
 }
 
 .course-card {
@@ -34,8 +57,25 @@
   cursor: pointer;
 }
 
-.course-image {
+.course-card-image {
   border-radius: 1rem 1rem 0 0 !important;
+}
+
+.course-card-title {
+  font-style: normal;
+  font-weight: 600 !important;
+  font-size: 20px !important;
+  line-height: 130% !important;
+  color: #000000;
+  margin-bottom: 20px !important;
+}
+
+.course-card-subtitle {
+  font-style: normal;
+  font-weight: 400 !important;
+  font-size: 16px !important;
+  line-height: 140% !important;
+  color: #636566;
 }
 
 .search-input {
@@ -50,7 +90,23 @@
 }
 
 .section-header {
-  border-bottom: 0.1rem solid #c2bdba;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 130%;
+  color: #202325;
+}
+
+.section-header-separator {
+  border: 2px solid #EAE8E3;
+  margin-top: 20px !important;
+  margin-bottom: 20px;
+  margin-left: 14px;
+  width: 99% !important;
+}
+
+li:not(:last-child) {
+  margin-bottom: 10px;
 }
 
 .course-footer {
@@ -64,6 +120,12 @@
 
 .action-info {
   font-style: italic;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 140%;
+  color: #636566;
+  margin-bottom: 0;
+  margin-top: 0.5rem;
 }
 
 .error-icon {
@@ -78,10 +140,19 @@
   background-color: #eef0fd !important;
   border: none !important;
   border-radius: 0.5rem !important;
+  color: #202325 !important;
 }
 
 .alert-danger {
   background-color: #ffdede !important;
   border: none !important;
   border-radius: 0.5rem !important;
+  color: #202325 !important;
+}
+
+.floating-alert {
+  position: fixed;
+  width: 100%;
+  padding: 1rem;
+  padding-right: 2.5rem;
 }

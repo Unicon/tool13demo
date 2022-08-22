@@ -13,10 +13,11 @@ function CourseTopic (props) {
   }
 
   return (
-    <Row>
+    <Row className="mt-4">
       <div className="section-header">
-        <h2>{props.topic.name ? props.topic.name : <InfoAlert message="This course topic does not have a name."/>}</h2>
+        {props.topic.name ? props.topic.name : <InfoAlert message="This course topic does not have a name."/>}
       </div>
+      <span className="section-header-separator"></span>
       <div>
           {courseSectionSubtopics}
       </div>

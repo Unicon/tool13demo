@@ -23,7 +23,9 @@ import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.LtiLinkEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.ags.LineItems;
+import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
+import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.harmony.HarmonyService;
 import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
@@ -67,6 +69,12 @@ public class LTI3Controller {
 
     @Autowired
     LtiLinkRepository ltiLinkRepository;
+
+    @Autowired
+    LtiContextRepository ltiContextRepository;
+
+    @Autowired
+    PlatformDeploymentRepository platformDeploymentRepository;
 
     @Autowired
     LTIDataService ltiDataService;
@@ -159,6 +167,10 @@ public class LTI3Controller {
                     model.addAttribute("clientId", clientIdFromState);
                     model.addAttribute("iss", lti3Request.getIss());
                     model.addAttribute("context", lti3Request.getLtiContextId());
+                    model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
+                    log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
+                            lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());
+
                     // This redirects to the REACT UI which is a secondary set of templates.
                     return TextConstants.REACT_UI_TEMPLATE;
                 } else {
