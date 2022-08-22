@@ -12,11 +12,11 @@
  */
 package net.unicon.lti.config;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
     private CorsConfiguration corsConfig = new DefaultCorsConfiguration();

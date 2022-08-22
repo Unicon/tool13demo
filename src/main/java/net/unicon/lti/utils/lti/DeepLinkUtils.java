@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.lti.dto.DeepLinkingContentItemDTO;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
@@ -39,10 +40,30 @@ public class DeepLinkUtils {
         throw new IllegalStateException("Utility class");
     }
 
-    /**
-     *
-     */
-    public static Map<String, List<String>> generateDeepLinkJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request, String localUrl) throws GeneralSecurityException, IOException {
+    public static String generateDeepLinkingResponseJWT(LTIDataService ltiDataService, LTI3Request lti3Request, List<DeepLinkingContentItemDTO> contentItems) throws GeneralSecurityException {
+        Date now = new Date();
+        Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+
+        return Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP, LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(lti3Request.getAud())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(now, 3600)) //a java.util.Date
+                .setIssuedAt(now)
+                .claim(LtiStrings.LTI_NONCE, lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP, lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID, lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION, LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA, lti3Request.getDeepLinkData())
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, contentItems)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
+    }
+
+    public static Map<String, List<String>> generateDeepLinkDemoJWT(LTIDataService ltiDataService, PlatformDeployment platformDeployment, LTI3Request lti3Request, String localUrl) throws GeneralSecurityException, IOException {
 
         Map<String, List<String>> deepLinkJwtMap = new TreeMap<>();
         Date date = new Date();

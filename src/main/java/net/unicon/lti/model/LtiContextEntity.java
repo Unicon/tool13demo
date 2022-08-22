@@ -36,21 +36,33 @@ public class LtiContextEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "context_id", nullable = false)
     private long contextId;
+
+    // LMS LTI Course/Context ID
     @Basic
     @Column(name = "context_key", nullable = false, length = 4096)
     private String contextKey;
+
+    // Lumen Book ID
+    @Basic
+    @Column(name = "root_outcome_guid")
+    private String rootOutcomeGuid;
+
     @Basic
     @Column(name = "title", length = 4096)
     private String title;
+
     @Basic
     @Column(name = "context_memberships_url", length = 4096)
     private String context_memberships_url;
+
     @Basic
     @Column(name = "lineitems", length = 4096)
     private String lineitems;
+
     @Lob
     @Column(name = "json")
     private String json;
+
     @Lob
     @Column(name = "settings")
     private String settings;
@@ -101,6 +113,14 @@ public class LtiContextEntity extends BaseEntity {
 
     public void setContextKey(String contextKey) {
         this.contextKey = contextKey;
+    }
+
+    public String getRootOutcomeGuid() {
+        return rootOutcomeGuid;
+    }
+
+    public void setRootOutcomeGuid(String rootOutcomeGuid) {
+        this.rootOutcomeGuid = rootOutcomeGuid;
     }
 
     public String getTitle() {
