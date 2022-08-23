@@ -45,7 +45,7 @@ public class LtiContextController {
     HarmonyService harmonyService;
 
     @PutMapping
-    ResponseEntity<Object> pairBookToLMSContext(@RequestBody Map<String, String> pairBookBody) {
+    ResponseEntity<Object> prepareDeepLinkingResponseForLMSContext(@RequestBody Map<String, String> pairBookBody) {
         try {
             String rootOutcomeGuid = pairBookBody.get("root_outcome_guid");
             String idToken = pairBookBody.get("id_token");
@@ -79,8 +79,9 @@ public class LtiContextController {
                     if (!StringUtils.isAnyBlank(deepLinkingResponseJwt, lti3Request.getDeepLinkReturnUrl())) {
                         // Pair book to lti context before submitting deep linking response
                         ltiContext.setRootOutcomeGuid(rootOutcomeGuid);
+                        ltiContext.setLineitemsSynced(false);
                         ltiContextRepository.save(ltiContext);
-                        log.debug("Paired lti context {} for iss {} client_id {} and deployment_id {} with root_outcome_guid {}",
+                        log.debug("Set lineitems_synced to false and paired lti context {} for iss {} client_id {} and deployment_id {} with root_outcome_guid {}",
                                 ltiContext.getContextId(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), rootOutcomeGuid);
 
                         // Send deep_link_return_url and JWT to front end

@@ -194,6 +194,31 @@ public class DeepLinkUtils {
         jwt3bList.add(listMapToJson(multipleDeepLinkOnlyLti));
         deepLinkJwtMap.put("Link 5 content: TWO Standard LTI Core Links (ltiResourceLinks)", jwt3bList);
 
+        //JWT 4b: More than one link but only ltiresourceLinks
+        List<Map<String, Object>> numberLtiDeepLinks = createNumberOfLtiDeepLinks(localUrl, 150);
+        String jwt4b = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP, LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //This is our own identifier, to know that we are the issuer.
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE, lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP, lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID, lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION, LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA, lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, numberLtiDeepLinks)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
+
+        List<String> jwt4bList = new ArrayList<>();
+        jwt4bList.add(jwt4b);
+        jwt4bList.add("{'Not going to display': '150 links of json'}");
+        deepLinkJwtMap.put("Link 6 content: 150 Standard LTI Core Links (ltiResourceLinks) with lineitems", jwt4bList);
+
         return deepLinkJwtMap;
 
     }
@@ -245,6 +270,16 @@ public class DeepLinkUtils {
         deepLink.put("label", "LTI 1234 Quiz");
         deepLink.put("resourceId", "1234");
         deepLink.put("tag", "myquiztest");
+        return deepLink;
+    }
+
+    static Map<String, Object> lineItem(int num) {
+        Map<String, Object> deepLink = new HashMap<>();
+
+        deepLink.put("scoreMaximum", 100);
+        deepLink.put("label", "LTI " + (num + 1) + " Quiz");
+        deepLink.put("resourceId", (num + 1));
+        deepLink.put("tag", "myquiztest" + (num + 1));
         return deepLink;
     }
 
@@ -311,6 +346,32 @@ public class DeepLinkUtils {
         ltiResourceLink.put(LtiStrings.DEEP_LINK_TITLE, "Another deep link");
         ltiResourceLink.put(LtiStrings.DEEP_LINK_URL, localUrl + "/lti3?link=4567");
         deepLinks.add(ltiResourceLink);
+        return deepLinks;
+    }
+
+    static List<Map<String, Object>> createNumberOfLtiDeepLinks(String localUrl, int numLinks) {
+        List<Map<String, Object>> deepLinks = new ArrayList<>();
+        for (int i = 0; i < numLinks; i++) {
+            Map<String, Object> ltiResourceLink = new HashMap<>();
+            ltiResourceLink.put(LtiStrings.DEEP_LINK_TYPE, LtiStrings.DEEP_LINK_LTIRESOURCELINK);
+            ltiResourceLink.put(LtiStrings.DEEP_LINK_TITLE, "Link " + (i + 1));
+            ltiResourceLink.put(LtiStrings.DEEP_LINK_URL, localUrl + "/lti3?link=" + (i + 1));
+            ltiResourceLink.put("lineItem", lineItem(i));
+            Map<String, String> availableDates = new HashMap<>();
+            Map<String, String> submissionDates = new HashMap<>();
+            Map<String, String> custom = new HashMap<>();
+
+            availableDates.put("startDateTime", "2018-03-07T20:00:03Z");
+            availableDates.put("endDateTime", "2022-03-07T20:00:03Z");
+            submissionDates.put("startDateTime", "2019-03-07T20:00:03Z");
+            submissionDates.put("endDateTime", "2021-08-07T20:00:03Z");
+            custom.put("dueDate", "$Resource.submission.endDateTime");
+            custom.put("controlValue", "This is whatever I want to write here");
+            ltiResourceLink.put("available", availableDates);
+            ltiResourceLink.put("submission", submissionDates);
+            ltiResourceLink.put("custom", custom);
+            deepLinks.add(ltiResourceLink);
+        }
         return deepLinks;
     }
 

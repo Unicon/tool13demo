@@ -59,6 +59,10 @@ public class LtiContextEntity extends BaseEntity {
     @Column(name = "lineitems", length = 4096)
     private String lineitems;
 
+    @Basic
+    @Column(name = "lineitems_synced")
+    private Boolean lineitemsSynced;
+
     @Lob
     @Column(name = "json")
     private String json;
@@ -129,6 +133,14 @@ public class LtiContextEntity extends BaseEntity {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Boolean getLineitemsSynced() {
+        return lineitemsSynced;
+    }
+
+    public void setLineitemsSynced(Boolean lineitemsSynced) {
+        this.lineitemsSynced = lineitemsSynced;
     }
 
     public String getJson() {

@@ -1,5 +1,9 @@
 package net.unicon.lti.service.harmony;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import net.unicon.lti.exceptions.DataServiceException;
+import net.unicon.lti.model.ags.LineItem;
+import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
 import net.unicon.lti.model.harmony.HarmonyCourse;
 import net.unicon.lti.model.harmony.HarmonyMetadata;
@@ -7,6 +11,7 @@ import net.unicon.lti.model.harmony.HarmonyMetadataLinks;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
 import net.unicon.lti.utils.RestUtils;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -18,6 +23,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.http.MockHttpInputMessage;
@@ -32,12 +38,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarmonyServiceTest {
     private final String MOCK_SERVER_URL = "http://localhost:1080";
+    private final String MOCK_SERVER_LINEITEMS_URL = MOCK_SERVER_URL + "/lineitems";
     private final String MOCK_HARMONY_JWT = "mock-harmony-jwt";
     private final String HARMONY_JWT = "harmonyJWT";
     private final String HARMONY_COURSES_API_URL = "harmonyCoursesApiUrl";
@@ -56,6 +65,8 @@ public class HarmonyServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
+        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         restUtilsMockedStatic = Mockito.mockStatic(RestUtils.class);
         restUtilsMockedStatic.when(RestUtils::createRestTemplate).thenReturn(restTemplate);
     }
@@ -82,13 +93,11 @@ public class HarmonyServiceTest {
     @Test
     public void testNullUrl() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchHarmonyCourses(1));
     }
 
     @Test
     public void testNullToken() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "nonnull");
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
         assertNull(harmonyService.fetchHarmonyCourses(1));
     }
@@ -96,13 +105,11 @@ public class HarmonyServiceTest {
     @Test
     public void testEmptyUrl() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchHarmonyCourses(1));
     }
 
     @Test
     public void testEmptyToken() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "nonnull");
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
         assertNull(harmonyService.fetchHarmonyCourses(1));
     }
@@ -110,7 +117,6 @@ public class HarmonyServiceTest {
     @Test
     public void testNotValidURL() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "notvalid");
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         when(restTemplate.exchange(eq("notvalid"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
         assertNull(harmonyService.fetchHarmonyCourses(1));
@@ -118,9 +124,6 @@ public class HarmonyServiceTest {
 
     @Test
     public void testForbiddenRequest() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
@@ -129,9 +132,6 @@ public class HarmonyServiceTest {
 
     @Test
     public void testBadRequest() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
@@ -140,18 +140,12 @@ public class HarmonyServiceTest {
 
     @Test
     public void testWrongResponse() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
         assertNull(harmonyService.fetchHarmonyCourses(1));
     }
 
     @Test
     public void testGoodResponse() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         HarmonyCourse harmonyCourse = new HarmonyCourse();
         harmonyCourse.setRoot_outcome_guid("root");
         harmonyCourse.setBook_title("Root");
@@ -185,9 +179,6 @@ public class HarmonyServiceTest {
 
     @Test
     public void testRequestedPage() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(new HarmonyPageResponse(), HttpStatus.OK);
         // Ensure that the service requests the right page
         // When requesting the default it returns null.
@@ -223,13 +214,11 @@ public class HarmonyServiceTest {
     @Test
     public void testNullUrlForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testNullTokenForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_HARMONY_JWT);
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
@@ -237,49 +226,38 @@ public class HarmonyServiceTest {
     @Test
     public void testEmptyUrlForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testEmptyTokenForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "nonnull");
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testEmptyRootOutcomeGuidForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems("", SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testNullRootOutcomeGuidForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems(null, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testEmptyPiGuidForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, "", SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testNullPiGuidForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, null, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testNotValidURLForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "notvalid");
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         when(restTemplate.exchange(eq("notvalid"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
@@ -287,25 +265,16 @@ public class HarmonyServiceTest {
 
     @Test
     public void testBlankIdTokenForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, ""));
     }
 
     @Test
     public void testNullIdTokenForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, null));
     }
 
     @Test
     public void testForbiddenRequestForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
@@ -314,9 +283,6 @@ public class HarmonyServiceTest {
 
     @Test
     public void testBadRequestForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
@@ -325,18 +291,12 @@ public class HarmonyServiceTest {
 
     @Test
     public void testWrongResponseForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
     }
 
     @Test
     public void testGoodResponseForFetchDeepLinkingContentItems() {
-        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
-        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
-
         HarmonyContentItemDTO deepLinkingContentItemDTO1 = new HarmonyContentItemDTO();
         deepLinkingContentItemDTO1.setTitle("Reading 1");
         deepLinkingContentItemDTO1.setUrl("https://tool.com/reading1");
@@ -365,6 +325,99 @@ public class HarmonyServiceTest {
         assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO1));
         assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO2));
 
+    }
+
+    @Test
+    public void testPostLineitemsToHarmonyWithNullLineitems() {
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(null, SAMPLE_ID_TOKEN);
+                }
+        );
+
+        assertEquals("No lineitems to send to Harmony", exception.getMessage());
+    }
+
+    @Test
+    public void testPostLineitemsToHarmonyWithEmptyLineitemsList() {
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(new LineItems(), SAMPLE_ID_TOKEN);
+                }
+        );
+
+        assertEquals("No lineitems to send to Harmony", exception.getMessage());
+    }
+
+    @Test
+    public void testPostLineitemsToHarmonyWithNullLineitemsList() {
+        LineItems lineItems = new LineItems();
+        lineItems.setLineItemList(null);
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(lineItems, SAMPLE_ID_TOKEN);
+                }
+        );
+
+        assertEquals("No lineitems to send to Harmony", exception.getMessage());
+    }
+
+    @Test
+    public void testPostLineitemsToHarmonyWithNullIdToken() {
+        LineItems lineItems = new LineItems();
+        lineItems.setLineItemList(List.of(new LineItem()));
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(lineItems, null);
+                }
+        );
+
+        assertEquals("Must include an id_token when posting lineitems to harmony.", exception.getMessage());
+    }
+
+    @Test
+    public void testPostLineitemsToHarmonyWithEmptyIdToken() {
+        LineItems lineItems = new LineItems();
+        lineItems.setLineItemList(List.of(new LineItem()));
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(lineItems, "");
+                }
+        );
+
+        assertEquals("Must include an id_token when posting lineitems to harmony.", exception.getMessage());
+    }
+
+    @Test
+    public void testPostLineitemsToHarmony() {
+        try {
+            LineItems lineItems = new LineItems();
+            LineItem lineItem = new LineItem();
+            lineItem.setId("https://lms.com/course/lineitem/1");
+            lineItem.setScoreMaximum("100");
+            lineItem.setLabel("Quiz 1");
+            lineItems.setLineItemList(List.of(lineItem));
+            ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+            when(restTemplate.exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), any(), eq(String.class))).thenReturn(new ResponseEntity<>("test-harmony-response", HttpStatus.OK));
+
+            ResponseEntity<String> response = harmonyService.postLineitemsToHarmony(lineItems, SAMPLE_ID_TOKEN);
+
+            verify(restTemplate).exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), eq(String.class));
+            HttpEntity<String> entity = httpEntityArgumentCaptor.getValue();
+            assertEquals("Bearer " + MOCK_HARMONY_JWT, Objects.requireNonNull(entity.getHeaders().get("Authorization")).get(0));
+            assertEquals(MediaType.APPLICATION_JSON, entity.getHeaders().getContentType());
+            assertEquals("{\"lineitems\":[{\"id\":\"https://lms.com/course/lineitem/1\",\"scoreMaximum\":\"100\",\"label\":\"Quiz 1\"}],\"id_token\":\"sample-id-token\"}", entity.getBody());
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("test-harmony-response", response.getBody());
+
+        } catch (DataServiceException | JsonProcessingException e) {
+            fail("Exception should not be thrown.");
+        }
     }
 
 }
