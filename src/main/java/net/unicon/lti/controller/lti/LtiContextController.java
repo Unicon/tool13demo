@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
+import net.unicon.lti.model.harmony.HarmonyFetchDeepLinksBody;
 import net.unicon.lti.model.lti.dto.DeepLinkingContentItemDTO;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Controller
@@ -45,16 +45,19 @@ public class LtiContextController {
     HarmonyService harmonyService;
 
     @PutMapping
-    ResponseEntity<Object> prepareDeepLinkingResponseForLMSContext(@RequestBody Map<String, String> pairBookBody) {
+    ResponseEntity<Object> prepareDeepLinkingResponse(@RequestBody HarmonyFetchDeepLinksBody harmonyFetchDeepLinksBody) {
         try {
-            String rootOutcomeGuid = pairBookBody.get("root_outcome_guid");
-            String idToken = pairBookBody.get("id_token");
-            if (StringUtils.isAnyBlank(rootOutcomeGuid, idToken)) {
-                log.error("Root outcome guid was {} and id_token was {}", rootOutcomeGuid, idToken);
+            if (StringUtils.isEmpty(harmonyFetchDeepLinksBody.getRootOutcomeGuid())) {
+                log.error("Root outcome guid cannot be null when preparing deep linking response");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
             }
+            if (StringUtils.isEmpty(harmonyFetchDeepLinksBody.getIdToken())) {
+                log.error("id_token cannot be null when preparing deep linking response");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
+            }
+
             // validate id_token, including proving existence of single platformDeployment, generate id_token object
-            LTI3Request lti3Request = LTI3Request.makeLTI3Request(ltiDataService, true, null, idToken);
+            LTI3Request lti3Request = LTI3Request.makeLTI3Request(ltiDataService, true, null, harmonyFetchDeepLinksBody.getIdToken());
 
             // Retrieve LMS config from db to be used to find the right context
             List<PlatformDeployment> platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId());
@@ -65,8 +68,11 @@ public class LtiContextController {
 
             // Update context to have rootOutcomeGuid value
             if (ltiContext != null) {
+                // Check if course already paired
+                boolean coursePaired = StringUtils.isNotBlank(ltiContext.getRootOutcomeGuid());
+
                 // Retrieve and validate links from Harmony
-                List<HarmonyContentItemDTO> harmonyContentItems = harmonyService.fetchDeepLinkingContentItems(rootOutcomeGuid, lti3Request.getLtiToolPlatformGuid(), idToken);
+                List<HarmonyContentItemDTO> harmonyContentItems = harmonyService.fetchDeepLinkingContentItems(harmonyFetchDeepLinksBody.getRootOutcomeGuid(), harmonyFetchDeepLinksBody.getIdToken(), coursePaired, harmonyFetchDeepLinksBody.getModuleIds());
 
                 // Generate Deep Link Response JWT
                 if (harmonyContentItems != null && !harmonyContentItems.isEmpty()) {
@@ -78,11 +84,11 @@ public class LtiContextController {
 
                     if (!StringUtils.isAnyBlank(deepLinkingResponseJwt, lti3Request.getDeepLinkReturnUrl())) {
                         // Pair book to lti context before submitting deep linking response
-                        ltiContext.setRootOutcomeGuid(rootOutcomeGuid);
+                        ltiContext.setRootOutcomeGuid(harmonyFetchDeepLinksBody.getRootOutcomeGuid());
                         ltiContext.setLineitemsSynced(false);
                         ltiContextRepository.save(ltiContext);
                         log.debug("Set lineitems_synced to false and paired lti context {} for iss {} client_id {} and deployment_id {} with root_outcome_guid {}",
-                                ltiContext.getContextId(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), rootOutcomeGuid);
+                                ltiContext.getContextId(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), harmonyFetchDeepLinksBody.getRootOutcomeGuid());
 
                         // Send deep_link_return_url and JWT to front end
                         HashMap<String, String> response = new HashMap<>();
