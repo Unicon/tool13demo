@@ -26,8 +26,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LtiContextControllerTest {
@@ -80,27 +83,33 @@ public class LtiContextControllerTest {
     }
 
     @Test
-    public void testPairBookWithoutRootOutcomeGuid() {
+    public void testPrepareDeepLinkingResponseForLMSContextWithoutRootOutcomeGuid() {
         Map<String, String> pairBookBody = Map.of(ID_TOKEN, SAMPLE_DL_ID_TOKEN);
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid request", response.getBody());
     }
 
     @Test
-    public void testPairBookWithoutIdToken() {
+    public void testPrepareDeepLinkingResponseForLMSContextWithoutIdToken() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID);
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("Invalid request", response.getBody());
     }
 
     @Test
-    public void testPairBookWithoutLtiContext() {
+    public void testPrepareDeepLinkingResponseForLMSContextWithoutLtiContext() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
         lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
@@ -111,14 +120,17 @@ public class LtiContextControllerTest {
                 .thenReturn(List.of(platformDeployment));
         when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_CONTEXT_ID), eq(platformDeployment))).thenReturn(null);
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
         assertEquals("Could not find LMS course context", response.getBody());
     }
 
     @Test
-    public void testPairBookWithoutDeepLinkingContentItemsFromHarmony() {
+    public void testPrepareDeepLinkingResponseForLMSContextWithoutDeepLinkingContentItemsFromHarmony() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
         lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
@@ -131,14 +143,17 @@ public class LtiContextControllerTest {
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
         when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(new ArrayList<>());
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
         assertEquals("Error communicating with Harmony", response.getBody());
     }
 
     @Test
-    public void testPairBookWithNullDeepLinkingContentItemsFromHarmony() {
+    public void testPrepareDeepLinkingResponseForLMSContextWithNullDeepLinkingContentItemsFromHarmony() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
         lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
@@ -151,14 +166,17 @@ public class LtiContextControllerTest {
         when(lti3Request.getLtiToolPlatformGuid()).thenReturn(SAMPLE_LTI_TOOL_PLATFORM_GUID);
         when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(null);
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
         assertEquals("Error communicating with Harmony", response.getBody());
     }
 
     @Test
-    public void testPairBookDeepLinkingResponseGenerationThrowsException() {
+    public void testPrepareDeepLinkingResponseForLMSContextDeepLinkingResponseGenerationThrowsException() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
         lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
@@ -173,14 +191,17 @@ public class LtiContextControllerTest {
         when(harmonyService.fetchDeepLinkingContentItems(eq(SAMPLE_ROOT_OUTCOME_GUID), eq(SAMPLE_LTI_TOOL_PLATFORM_GUID), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(contentItems);
         deepLinkUtilsMockedStatic.when(() -> DeepLinkUtils.generateDeepLinkingResponseJWT(eq(ltiDataService), eq(lti3Request), anyList())).thenThrow(GeneralSecurityException.class);
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertNull(ltiContextEntity.getRootOutcomeGuid());
+        assertNull(ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository, never()).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, response.getStatusCode());
         assertEquals("Exception thrown", response.getBody());
     }
 
     @Test
-    public void testPairBook() {
+    public void testPrepareDeepLinkingResponseForLMSContext() {
         Map<String, String> pairBookBody = Map.of(ROOT_OUTCOME_GUID, SAMPLE_ROOT_OUTCOME_GUID, ID_TOKEN, SAMPLE_DL_ID_TOKEN);
         lti3RequestMockedStatic.when(() -> LTI3Request.makeLTI3Request(eq(ltiDataService), eq(true), eq(null), eq(SAMPLE_DL_ID_TOKEN))).thenReturn(lti3Request);
         when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_CONTEXT_ID);
@@ -196,8 +217,11 @@ public class LtiContextControllerTest {
         deepLinkUtilsMockedStatic.when(() -> DeepLinkUtils.generateDeepLinkingResponseJWT(eq(ltiDataService), eq(lti3Request), anyList())).thenReturn("deep-linking-response-jwt");
         when(lti3Request.getDeepLinkReturnUrl()).thenReturn("https://lms.com/deep-link-return");
 
-        ResponseEntity<Object> response = ltiContextController.pairBookToLMSContext(pairBookBody);
+        ResponseEntity<Object> response = ltiContextController.prepareDeepLinkingResponseForLMSContext(pairBookBody);
 
+        assertEquals(SAMPLE_ROOT_OUTCOME_GUID, ltiContextEntity.getRootOutcomeGuid());
+        assertEquals(false, ltiContextEntity.getLineitemsSynced());
+        verify(ltiContextRepository).save(eq(ltiContextEntity));
         assertEquals(HttpStatus.OK, response.getStatusCode());
         Map<String, String> responseBody = (Map) response.getBody();
         assertEquals("deep-linking-response-jwt", responseBody.get("JWT"));

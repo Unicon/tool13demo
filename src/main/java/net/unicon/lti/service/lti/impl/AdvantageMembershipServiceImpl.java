@@ -18,7 +18,7 @@ import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.membership.CourseUser;
 import net.unicon.lti.model.membership.CourseUsers;
-import net.unicon.lti.model.oauth2.LTIToken;
+import net.unicon.lti.model.oauth2.LTIAdvantageToken;
 import net.unicon.lti.service.lti.AdvantageConnectorHelper;
 import net.unicon.lti.service.lti.AdvantageMembershipService;
 import net.unicon.lti.utils.TextConstants;
@@ -53,20 +53,20 @@ public class AdvantageMembershipServiceImpl implements AdvantageMembershipServic
 
     //Asking for a token with the right scope.
     @Override
-    public LTIToken getToken(PlatformDeployment platformDeployment) throws ConnectionException {
+    public LTIAdvantageToken getToken(PlatformDeployment platformDeployment) throws ConnectionException {
         String scope = "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly";
         return advantageConnectorHelper.getToken(platformDeployment, scope);
     }
 
     //Calling the membership service and getting a paginated result of users.
     @Override
-    public CourseUsers callMembershipService(LTIToken LTIToken, LtiContextEntity context) throws ConnectionException {
+    public CourseUsers callMembershipService(LTIAdvantageToken LTIAdvantageToken, LtiContextEntity context) throws ConnectionException {
         CourseUsers courseUsers;
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
+        log.debug(TextConstants.TOKEN + LTIAdvantageToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken);
+            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIAdvantageToken);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String GET_MEMBERSHIP = context.getContext_memberships_url();

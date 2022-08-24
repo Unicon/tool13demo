@@ -12,20 +12,20 @@
  */
 package net.unicon.lti.model.oauth2;
 
-public class LTIToken {
+public class LTIAdvantageToken {
     private String access_token;
     private String token_type;
     private int expires_in;
     private String scope;
 
-    public LTIToken(String access_token, String token_type, int expires_in, String scope) {
+    public LTIAdvantageToken(String access_token, String token_type, int expires_in, String scope) {
         this.access_token = access_token;
         this.token_type = token_type;
         this.expires_in = expires_in;
         this.scope = scope;
     }
 
-    public LTIToken() {
+    public LTIAdvantageToken() {
     }
 
     public String getAccess_token() {
