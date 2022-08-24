@@ -89,6 +89,10 @@
   margin: 1rem;
 }
 
+.course-preview-info {
+  margin-bottom: 50px;
+}
+
 .section-header {
   font-style: normal;
   font-weight: 600;
@@ -155,4 +159,17 @@ li:not(:last-child) {
   width: 100%;
   padding: 1rem;
   padding-right: 2.5rem;
+}
+
+.select-all {
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  border: 0.125rem solid #eae8e3;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 140%;
+  color: #202325;
+  max-width: 135px;
+  padding: 10px;
 }

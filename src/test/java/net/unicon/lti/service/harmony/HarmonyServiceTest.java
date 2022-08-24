@@ -6,6 +6,7 @@ import net.unicon.lti.model.ags.LineItem;
 import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
 import net.unicon.lti.model.harmony.HarmonyCourse;
+import net.unicon.lti.model.harmony.HarmonyFetchDeepLinksBody;
 import net.unicon.lti.model.harmony.HarmonyMetadata;
 import net.unicon.lti.model.harmony.HarmonyMetadataLinks;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
@@ -51,7 +52,6 @@ public class HarmonyServiceTest {
     private final String HARMONY_JWT = "harmonyJWT";
     private final String HARMONY_COURSES_API_URL = "harmonyCoursesApiUrl";
     private final String SAMPLE_ROOT_OUTCOME_GUID = "root";
-    private final String SAMPLE_PI_GUID = "sample-pi-guid";
     private final String SAMPLE_ID_TOKEN = "sample-id-token";
 
     @InjectMocks
@@ -201,58 +201,48 @@ public class HarmonyServiceTest {
     public void testNullCredentialsForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testEmptyCredentialsForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testNullUrlForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testNullTokenForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testEmptyUrlForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testEmptyTokenForFetchDeepLinkingContentItems() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testEmptyRootOutcomeGuidForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems("", SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems("", SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testNullRootOutcomeGuidForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems(null, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
-    }
-
-    @Test
-    public void testEmptyPiGuidForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, "", SAMPLE_ID_TOKEN));
-    }
-
-    @Test
-    public void testNullPiGuidForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, null, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(null, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
@@ -260,17 +250,17 @@ public class HarmonyServiceTest {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "notvalid");
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         when(restTemplate.exchange(eq("notvalid"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testBlankIdTokenForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, ""));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, "", false, null));
     }
 
     @Test
     public void testNullIdTokenForFetchDeepLinkingContentItems() {
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, null));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, null, false,null));
     }
 
     @Test
@@ -278,7 +268,7 @@ public class HarmonyServiceTest {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
@@ -286,13 +276,13 @@ public class HarmonyServiceTest {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testWrongResponseForFetchDeepLinkingContentItems() {
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
-        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN));
+        assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
@@ -311,16 +301,54 @@ public class HarmonyServiceTest {
         HarmonyContentItemDTO[] deepLinkingContentItems = new HarmonyContentItemDTO[]{deepLinkingContentItemDTO1, deepLinkingContentItemDTO2};
 
         ResponseEntity<HarmonyContentItemDTO[]> responseEntity = new ResponseEntity<>(deepLinkingContentItems, HttpStatus.OK);
-        String deepLinkingUrl = MOCK_SERVER_URL + "/lti_deep_links?guid=" + SAMPLE_ROOT_OUTCOME_GUID + "&pi_guid=" + SAMPLE_PI_GUID + "&course_paired=false";
-        ArgumentCaptor<HttpEntity<String>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        String deepLinkingUrl = MOCK_SERVER_URL + "/lti_deep_links?guid=" + SAMPLE_ROOT_OUTCOME_GUID + "&course_paired=false";
+        HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, SAMPLE_ID_TOKEN, null);
+        ArgumentCaptor<HttpEntity<HarmonyFetchDeepLinksBody>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
 
-        List<HarmonyContentItemDTO> deepLinkingContentItemsList = harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_PI_GUID, SAMPLE_ID_TOKEN);
+        List<HarmonyContentItemDTO> deepLinkingContentItemsList = harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null);
 
         assertNotNull(deepLinkingContentItemsList);
-        HttpEntity<String> httpEntity = httpEntityCaptor.getValue();
+        HttpEntity<HarmonyFetchDeepLinksBody> httpEntity = httpEntityCaptor.getValue();
         assertEquals("Bearer " + MOCK_HARMONY_JWT, Objects.requireNonNull(httpEntity.getHeaders().get("Authorization")).get(0));
-        assertEquals("{\"id_token\":\"sample-id-token\"}", httpEntity.getBody());
+        assertEquals(body, httpEntity.getBody());
+        assertEquals(2, deepLinkingContentItemsList.size());
+        assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO1));
+        assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO2));
+
+    }
+
+    @Test
+    public void testGoodResponseForFetchDeepLinkingContentItemsForReturningUser() {
+        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, MOCK_SERVER_URL);
+        ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, MOCK_HARMONY_JWT);
+
+        HarmonyContentItemDTO deepLinkingContentItemDTO1 = new HarmonyContentItemDTO();
+        deepLinkingContentItemDTO1.setTitle("Reading 1");
+        deepLinkingContentItemDTO1.setUrl("https://tool.com/reading1");
+        HarmonyContentItemDTO deepLinkingContentItemDTO2 = new HarmonyContentItemDTO();
+        deepLinkingContentItemDTO2.setTitle("Quiz 1");
+        deepLinkingContentItemDTO2.setUrl("https://tool.com/quiz1");
+        deepLinkingContentItemDTO2.setScoreMaximum(100f);
+        deepLinkingContentItemDTO2.setLabel("Quiz 1 Label");
+        deepLinkingContentItemDTO2.setResourceId("q1");
+        deepLinkingContentItemDTO2.setTag("quiz");
+
+        HarmonyContentItemDTO[] deepLinkingContentItems = new HarmonyContentItemDTO[]{deepLinkingContentItemDTO1, deepLinkingContentItemDTO2};
+
+        ResponseEntity<HarmonyContentItemDTO[]> responseEntity = new ResponseEntity<>(deepLinkingContentItems, HttpStatus.OK);
+        String deepLinkingUrl = MOCK_SERVER_URL + "/lti_deep_links?guid=" + SAMPLE_ROOT_OUTCOME_GUID + "&course_paired=true";
+        HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, SAMPLE_ID_TOKEN, List.of("module-id-1", "module-id-2", "module-id-3"));
+        ArgumentCaptor<HttpEntity<HarmonyFetchDeepLinksBody>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), any(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
+
+        List<HarmonyContentItemDTO> deepLinkingContentItemsList = harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, true, List.of("module-id-1", "module-id-2", "module-id-3"));
+
+        verify(restTemplate).exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class));
+        assertNotNull(deepLinkingContentItemsList);
+        HttpEntity<HarmonyFetchDeepLinksBody> httpEntity = httpEntityCaptor.getValue();
+        assertEquals("Bearer " + MOCK_HARMONY_JWT, Objects.requireNonNull(httpEntity.getHeaders().get("Authorization")).get(0));
+        assertEquals(body, httpEntity.getBody());
         assertEquals(2, deepLinkingContentItemsList.size());
         assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO1));
         assertTrue(deepLinkingContentItemsList.contains(deepLinkingContentItemDTO2));
