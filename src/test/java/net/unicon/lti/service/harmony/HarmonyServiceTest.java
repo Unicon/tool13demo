@@ -80,38 +80,38 @@ public class HarmonyServiceTest {
     public void testNullCredentials() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testEmptyCredentials() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testNullUrl() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, null);
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testNullToken() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, null);
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testEmptyUrl() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testEmptyToken() {
         ReflectionTestUtils.setField(harmonyService, HARMONY_JWT, "");
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class HarmonyServiceTest {
         ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "notvalid");
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         when(restTemplate.exchange(eq("notvalid"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class HarmonyServiceTest {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
@@ -135,13 +135,13 @@ public class HarmonyServiceTest {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
     public void testWrongResponse() {
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
-        assertNull(harmonyService.fetchHarmonyCourses(1));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
     }
 
     @Test
@@ -164,7 +164,7 @@ public class HarmonyServiceTest {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(harmonyPageResponse, HttpStatus.OK);
         when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
-        HarmonyPageResponse serviceResponse = harmonyService.fetchHarmonyCourses(1);
+        HarmonyPageResponse serviceResponse = harmonyService.fetchHarmonyCourses(1, null);
         assertNotNull(serviceResponse);
         assertEquals(serviceResponse.getRecords().size(), 1);
         assertEquals(serviceResponse.getRecords().get(0).getRoot_outcome_guid(), "root");
@@ -190,11 +190,44 @@ public class HarmonyServiceTest {
         when(restTemplate.exchange(eq(MOCK_SERVER_URL + "?page=4"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
         // These pages do not include the response
-        assertNull(harmonyService.fetchHarmonyCourses(1));
-        assertNull(harmonyService.fetchHarmonyCourses(3));
+        assertNull(harmonyService.fetchHarmonyCourses(1, null));
+        assertNull(harmonyService.fetchHarmonyCourses(3, null));
         // These pages include the response
-        assertNotNull(harmonyService.fetchHarmonyCourses(2));
-        assertNotNull(harmonyService.fetchHarmonyCourses(4));
+        assertNotNull(harmonyService.fetchHarmonyCourses(2, null));
+        assertNotNull(harmonyService.fetchHarmonyCourses(4, null));
+    }
+
+    @Test
+    public void testFetchCourseByRootOutcomeGuid() {
+        HarmonyCourse harmonyCourse = new HarmonyCourse();
+        harmonyCourse.setRoot_outcome_guid("root");
+        harmonyCourse.setBook_title("Root");
+        HarmonyMetadata harmonyMetadata = new HarmonyMetadata();
+        harmonyMetadata.setPage("1");
+        harmonyMetadata.setPer_page("10");
+        harmonyMetadata.setPage_count(1);
+        harmonyMetadata.setTotal_count(1);
+        HarmonyMetadataLinks harmonyMetadataLinks = new HarmonyMetadataLinks();
+        harmonyMetadataLinks.setFirst("/service_api/course_catalog?page=1");
+        harmonyMetadataLinks.setLast("/service_api/course_catalog?page=1");
+        harmonyMetadata.setLinks(harmonyMetadataLinks);
+        HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
+        harmonyPageResponse.setRecords(List.of(harmonyCourse));
+        harmonyPageResponse.setMetadata(harmonyMetadata);
+        ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(harmonyPageResponse, HttpStatus.OK);
+        when(restTemplate.exchange(eq(MOCK_SERVER_URL + "?root_outcome_guid=root"), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
+
+        HarmonyPageResponse serviceResponse = harmonyService.fetchHarmonyCourses(1, "root");
+        assertNotNull(serviceResponse);
+        assertEquals(serviceResponse.getRecords().size(), 1);
+        assertEquals(serviceResponse.getRecords().get(0).getRoot_outcome_guid(), "root");
+        assertEquals(serviceResponse.getRecords().get(0).getBook_title(), "Root");
+        assertEquals(serviceResponse.getMetadata().getPage(), "1");
+        assertEquals(serviceResponse.getMetadata().getPage_count(), 1);
+        assertEquals(serviceResponse.getMetadata().getTotal_count(), 1);
+        assertEquals(serviceResponse.getMetadata().getPer_page(), "10");
+        assertNotNull(serviceResponse.getMetadata().getLinks().getFirst());
+        assertNotNull(serviceResponse.getMetadata().getLinks().getFirst());
     }
 
     @Test

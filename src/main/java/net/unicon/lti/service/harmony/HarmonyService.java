@@ -53,7 +53,7 @@ public class HarmonyService {
     @Value("${harmony.courses.jwt}")
     private String harmonyJWT;
 
-    public HarmonyPageResponse fetchHarmonyCourses(int page) {
+    public HarmonyPageResponse fetchHarmonyCourses(Integer page, String rootOutcomeGuid) {
 
         if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
             log.warn("The Harmony Courses API has not been configured, courses will not be fetched.");
@@ -65,15 +65,15 @@ public class HarmonyService {
             RestTemplate restTemplate = RestUtils.createRestTemplate();
 
             // Build the URL
-            String requestUrl = harmonyCoursesApiUrl;
-            // Only append the page parameter when it's needed.
-            if (page != 1) {
-                URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
+            URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
+            if (StringUtils.isNotEmpty(rootOutcomeGuid)) {
+                builder.addParameter("root_outcome_guid", rootOutcomeGuid);
+            } else if (page != null && page > 1) {
                 // Add the page parameter since this API is paginated.
                 builder.setParameter("page", String.valueOf(page));
-                requestUrl = builder.build().toString();
             }
 
+            String requestUrl = builder.build().toString();
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(harmonyJWT);
             HttpEntity<String> entity = new HttpEntity<>(headers);
