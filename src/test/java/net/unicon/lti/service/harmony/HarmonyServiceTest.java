@@ -266,7 +266,7 @@ public class HarmonyServiceTest {
     @Test
     public void testForbiddenRequestForFetchDeepLinkingContentItems() {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
+        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
@@ -274,14 +274,14 @@ public class HarmonyServiceTest {
     @Test
     public void testBadRequestForFetchDeepLinkingContentItems() {
         ResponseEntity<HarmonyPageResponse> responseEntity = new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
-        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
+        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenReturn(responseEntity);
 
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
     @Test
     public void testWrongResponseForFetchDeepLinkingContentItems() {
-        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
+        when(restTemplate.exchange(eq(MOCK_SERVER_URL), eq(HttpMethod.POST), any(HttpEntity.class), eq(HarmonyPageResponse.class))).thenThrow(new HttpMessageNotReadableException("JSON not able to be parsed", new MockHttpInputMessage("[{\"not\": \"root\",\"valid\": \"Root\",\"schema\": null}]".getBytes(StandardCharsets.UTF_8))));
         assertNull(harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null));
     }
 
@@ -304,7 +304,7 @@ public class HarmonyServiceTest {
         String deepLinkingUrl = MOCK_SERVER_URL + "/lti_deep_links?guid=" + SAMPLE_ROOT_OUTCOME_GUID + "&course_paired=false";
         HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, SAMPLE_ID_TOKEN, null);
         ArgumentCaptor<HttpEntity<HarmonyFetchDeepLinksBody>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-        when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
+        when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.POST), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
 
         List<HarmonyContentItemDTO> deepLinkingContentItemsList = harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, false, null);
 
@@ -340,11 +340,11 @@ public class HarmonyServiceTest {
         String deepLinkingUrl = MOCK_SERVER_URL + "/lti_deep_links?guid=" + SAMPLE_ROOT_OUTCOME_GUID + "&course_paired=true";
         HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, SAMPLE_ID_TOKEN, List.of("module-id-1", "module-id-2", "module-id-3"));
         ArgumentCaptor<HttpEntity<HarmonyFetchDeepLinksBody>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-        when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), any(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
+        when(restTemplate.exchange(eq(deepLinkingUrl), eq(HttpMethod.POST), any(), eq(HarmonyContentItemDTO[].class))).thenReturn(responseEntity);
 
         List<HarmonyContentItemDTO> deepLinkingContentItemsList = harmonyService.fetchDeepLinkingContentItems(SAMPLE_ROOT_OUTCOME_GUID, SAMPLE_ID_TOKEN, true, List.of("module-id-1", "module-id-2", "module-id-3"));
 
-        verify(restTemplate).exchange(eq(deepLinkingUrl), eq(HttpMethod.GET), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class));
+        verify(restTemplate).exchange(eq(deepLinkingUrl), eq(HttpMethod.POST), httpEntityCaptor.capture(), eq(HarmonyContentItemDTO[].class));
         assertNotNull(deepLinkingContentItemsList);
         HttpEntity<HarmonyFetchDeepLinksBody> httpEntity = httpEntityCaptor.getValue();
         assertEquals("Bearer " + MOCK_HARMONY_JWT, Objects.requireNonNull(httpEntity.getHeaders().get("Authorization")).get(0));
