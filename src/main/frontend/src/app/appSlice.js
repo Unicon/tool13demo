@@ -27,9 +27,16 @@ export const appSlice = createSlice({
     },
     changeSelectedCourse: (state, action) => {
       state.selectedCourse = action.payload;
+      if (action.payload === null) {
+        // This is important, when the course selection is being restored in the UI we must start over.
+        state.root_outcome_guid = null;
+      }
     },
     setErrorFetchingCourses: (state, action) => {
       state.errorFetchingCourses = action.payload;
+    },
+    setErrorAssociatingCourse: (state, action) => {
+      state.errorAssociatingCourse = action.payload;
     },
     changeSelectedModules: (state, action) => {
       // When a user clicks a module, it updates the module selection array.
@@ -57,7 +64,7 @@ export const appSlice = createSlice({
 });
 
 // Defines the actions that can be dispatched using dispatch and defines what happens with the state.
-export const { changeSearchInput, changeSelectedCourse, changeSelectedModules, setErrorFetchingCourses, setLoading, setCourseArray, toggleAllModules, updateMetadata } = appSlice.actions;
+export const { changeSearchInput, changeSelectedCourse, changeSelectedModules, setErrorAssociatingCourse, setErrorFetchingCourses, setLoading, setCourseArray, toggleAllModules, updateMetadata } = appSlice.actions;
 // Connects variables to the state, when you want the state values in a component use this.
 export const selectSearchInputText = (state) => state.searchInputText;
 export const selectSelectedCourse = (state) => state.selectedCourse;
@@ -65,6 +72,7 @@ export const selectCourseArray = (state) => state.filteredCourseArray;
 export const selectMetadata = (state) => state.metadata;
 export const selectLoading = (state) => state.loading;
 export const selectErrorFetchingCourses = (state) => state.errorFetchingCourses;
+export const selectErrorAssociatingCourse = (state) => state.errorAssociatingCourse;
 export const selectSelectedModules = (state) => state.selectedModules;
 // These state selectors are related to the LTI Launch Data.
 export const selectIss = (state) => state.iss;
@@ -101,13 +109,6 @@ export const fetchCourses = (page) => (dispatch, getState) => {
     dispatch(setCourseArray(json.records));
     // Load the pagination information for the first page.
     dispatch(updateMetadata(json.metadata));
-    // If a previous course selection has been made, mark the course as selected.
-    if (root_outcome_guid) {
-      const selectedCourse = json.records.slice().find(item => root_outcome_guid === item.root_outcome_guid);
-      if (selectedCourse) {
-        dispatch(changeSelectedCourse(selectedCourse));
-      }
-    }
   }).catch(reason => {
     // When there's an error fetching courses we must notify the components.
     dispatch(setErrorFetchingCourses(true));
@@ -118,6 +119,43 @@ export const fetchCourses = (page) => (dispatch, getState) => {
       dispatch(updateMetadata(DUMMY_DATA.metadata));
       dispatch(setErrorFetchingCourses(false));
     }
+  }).finally(() => {
+    // If a previous course selection has been made we must load the course from the backend.
+    if (root_outcome_guid) {
+      dispatch(fetchSingleCourse(root_outcome_guid));
+    } else {
+      // Remove the spinner once the request has been resolved.
+      dispatch(setLoading(false));
+    }
+  });
+};
+
+// This function fetches a single course from the backend, it should be invoked when a course has been paired with the LMS course.
+export const fetchSingleCourse = (rootOutcomeGuid) => (dispatch, getState) => {
+  // Get the id_token from the state, thunks already have access to getState as the second argument.
+  const idToken = getState().id_token;
+  // We must display an spinner when loading courses from the backend
+  dispatch(setLoading(true));
+  dispatch(setErrorAssociatingCourse(false));
+  fetch(`/harmony/courses?root_outcome_guid=${rootOutcomeGuid}`, {
+    method: 'GET',
+    headers: {'lti-id-token': idToken}
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`Problem fetching a single course (status: ${response.status})`);
+    }
+    return response.json();
+  }).then(json => {
+    if (Array.isArray(json.records) && json.records.length > 0) {
+      dispatch(changeSelectedCourse(json.records[0]));
+    } else {
+      dispatch(setErrorAssociatingCourse(true));
+    }
+  }).catch(reason => {
+    // When there's an error fetching courses we must notify the components.
+    dispatch(setErrorAssociatingCourse(true));
+    console.error(reason);
   }).finally(() => {
     // Remove the spinner once the request has been resolved.
     dispatch(setLoading(false));

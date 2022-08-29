@@ -32,6 +32,7 @@ const initialState = {
   selectedCourse: null,
   loading: true,
   errorFetchingCourses: false,
+  errorAssociatingCourse: false,
   selectedModules: [],
   // These variables are related to the LTI Launch data.
   deploymentId: ltiLaunchData.deploymentId,
