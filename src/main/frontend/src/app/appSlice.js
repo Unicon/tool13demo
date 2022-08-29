@@ -64,7 +64,18 @@ export const appSlice = createSlice({
 });
 
 // Defines the actions that can be dispatched using dispatch and defines what happens with the state.
-export const { changeSearchInput, changeSelectedCourse, changeSelectedModules, setErrorAssociatingCourse, setErrorFetchingCourses, setLoading, setCourseArray, toggleAllModules, updateMetadata } = appSlice.actions;
+export const {
+  changeSearchInput,
+  changeSelectedCourse,
+  changeSelectedModules,
+  setErrorAssociatingCourse,
+  setErrorFetchingCourses,
+  setCourseArray,
+  setLoading,
+  toggleAllModules,
+  updateMetadata
+} = appSlice.actions;
+
 // Connects variables to the state, when you want the state values in a component use this.
 export const selectSearchInputText = (state) => state.searchInputText;
 export const selectSelectedCourse = (state) => state.selectedCourse;

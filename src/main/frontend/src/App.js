@@ -1,12 +1,19 @@
 // Redux imports
 import { useSelector } from 'react-redux';
+
 // Store imports
-import { selectSelectedCourse } from './app/appSlice';
+import {
+  selectSelectedCourse,
+  selectLoading
+} from './app/appSlice';
+
 // Components import
 import Container from 'react-bootstrap/Container';
 import CoursePreview from './features/CoursePreview';
 import CoursePicker from './features/CoursePicker';
+import LoadingPage from './features/LoadingPage';
 import LtiBreadcrumb from './features/LtiBreadcrumb';
+
 // Stylesheet imports
 import './App.css';
 import "@fontsource/lato";
@@ -14,16 +21,28 @@ import "@fontsource/public-sans";
 
 function App() {
 
-  const selectedCourse = useSelector(selectSelectedCourse);
   // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
   window.scrollTo(0, 0);
+
+  const selectedCourse = useSelector(selectSelectedCourse);
+  const isLoading = useSelector(selectLoading);
+
+  // Show the course picker by default
+  let appContent = <CoursePicker />;
+
+  // Display a spinner when the app is loading data from the backend....
+  if (isLoading) {
+    return <LoadingPage />;
+  // When a course has been selected display the course preview.
+  } else if (selectedCourse) {
+    appContent = <CoursePreview course={selectedCourse} />
+  }
 
   return (
     <>
       <LtiBreadcrumb course={selectedCourse} />
       <Container className="App" fluid role="main">
-        {/* When a course is selected we must display the course info, otherwise the course picker.*/}
-        {selectedCourse ? <CoursePreview course={selectedCourse} /> : <CoursePicker />}
+        {appContent}
       </Container>
     </>
   );

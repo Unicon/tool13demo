@@ -5,7 +5,16 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // Store imports
-import { changeSelectedCourse, toggleAllModules, selectIdToken, selectRootOutcomeGuid, selectSelectedModules, selectState, selectTarget } from '../app/appSlice';
+import {
+  changeSelectedCourse,
+  toggleAllModules,
+  selectIdToken,
+  selectRootOutcomeGuid,
+  selectSelectedModules,
+  selectState,
+  selectTarget
+} from '../app/appSlice';
+
 import { parseCourseCoverImage } from '../util/Utils.js';
 
 // Component imports
@@ -18,6 +27,7 @@ import Form from 'react-bootstrap/Form';
 import Header from './Header';
 import Image from 'react-bootstrap/Image';
 import InfoAlert from './alerts/InfoAlert';
+import LoadingPage from './LoadingPage';
 import Row from 'react-bootstrap/Row';
 
 function CoursePreview(props) {
@@ -36,6 +46,8 @@ function CoursePreview(props) {
   // In case there's an error adding the links, display an error message.
   const [errorAddingLinks, setErrorAddingLinks] = useState(false);
   const errorMessage = 'Oops, the Lumen content was not successfully added. Please try again or contact Lumen Support.';
+
+  const [isFetchingDeepLinks, setFetchingDeepLinks] = useState(false);
 
   // The 'Select All' checkbox is controlled and depends on the state, enables or disables all the modules at the same time.
   // If the course has not been paired with a Lumen course, 'Select All' must be checked.
@@ -57,6 +69,9 @@ function CoursePreview(props) {
   }
 
   const addCourseToLMS = () => {
+
+      // Display the spinner when fetching the deep links.
+      setFetchingDeepLinks(true);
 
       const contextAPIUrl = target.replace("/lti3", "/context");
 
@@ -101,7 +116,18 @@ function CoursePreview(props) {
         form.submit();
       }).catch(reason => {
         setErrorAddingLinks(true);
+      }).finally( () => {
+
+        // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
+        window.scrollTo(0, 0);
+
+        // Remove the spinner once the request has responded.
+        setFetchingDeepLinks(false);
       });
+  }
+
+  if (isFetchingDeepLinks) {
+    return <LoadingPage />;
   }
 
   return (

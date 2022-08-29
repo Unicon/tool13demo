@@ -1,28 +1,17 @@
 // Redux imports
 import { useSelector } from 'react-redux';
-import { selectCourseArray, selectLoading } from '../app/appSlice';
+import { selectCourseArray } from '../app/appSlice';
 
 // Component imports
 import Col from 'react-bootstrap/Col';
 import CourseCard from './CourseCard';
 import InfoAlert from './alerts/InfoAlert';
 import Row from 'react-bootstrap/Row';
-import Spinner from 'react-bootstrap/Spinner';
 
 function CourseGrid(props) {
 
   // useSelector gets the value present in the store, this value may change at a component level.
   const courseArray = useSelector(selectCourseArray);
-  const isLoading = useSelector(selectLoading);
-  const loadingCoursesText = 'Loading courses...';
-
-  // Display a spinner when courses are loading...
-  if (isLoading) {
-    return <div className="header">
-             <Spinner animation="border" role="status"><span className="visually-hidden">{loadingCoursesText}</span></Spinner>
-             <p className="text-dark">{loadingCoursesText}</p>
-           </div>;
-  }
 
   // Display an info alert when there are no courses.
   if (!Array.isArray(courseArray) || !courseArray.length) {

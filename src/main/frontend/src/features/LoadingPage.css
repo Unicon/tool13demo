@@ -1,0 +1,51 @@
+.spinner-body  {
+  background-color: #F4F3EF;
+  font-family: 'Public Sans', sans-serif;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+text {
+  fill: #636566;
+  font-weight: 600;
+}
+
+.spinner-container {
+  position: relative;
+  width: 75%;
+  margin-top: 5rem;
+}
+
+.svgs {
+  position: relative;
+}
+
+.spin {
+  position: absolute;
+  width: 8vw;
+  height: 8vw;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.attribution {
+  text-align: right;
+}
+
+.attribution a, .attribution a:hover {
+  color: #636566;
+  font-size: 14px;
+}
+
+.spin {
+  transform: rotate(0);
+  animation: spin 1500ms infinite linear;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(1turn);
+  }
+}
