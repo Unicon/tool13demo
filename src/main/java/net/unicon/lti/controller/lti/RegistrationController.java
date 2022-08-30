@@ -12,17 +12,16 @@
  */
 package net.unicon.lti.controller.lti;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
-import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
-import net.unicon.lti.model.lti.dto.ToolMessagesSupportedDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
-import net.unicon.lti.utils.TextConstants;
-import org.apache.commons.lang3.StringUtils;
+import net.unicon.lti.utils.RestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -31,8 +30,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,11 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * This LTI controller should be protected by OAuth 1.0a (on the /oauth path)
@@ -70,19 +62,8 @@ public class RegistrationController {
     @Autowired
     RegistrationService registrationService;
 
-    private RestTemplate restTemplate;
-
     @Value("${application.url}")
     private String localUrl;
-
-    @Value("${domain.url}")
-    private String domainUrl;
-
-    @Value("${application.name}")
-    private String clientName;
-
-    @Value("${application.description}")
-    private String description;
 
     @Value("${lti13.demoMode}")
     private boolean demoMode;
@@ -105,12 +86,12 @@ public class RegistrationController {
         // We need to call the configuration endpoint recevied in the registration inititaion message and
         // call it to get all the information about the platform
         HttpSession session = req.getSession();
-        log.debug(openidConfiguration);
+        log.debug("OpenID Configuration: {}", openidConfiguration);
         session.setAttribute(LtiStrings.REGISTRATION_TOKEN, registrationToken);
 
         try {
             // We are going to create the call the openidconfiguration endpoint,
-            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            RestTemplate restTemplate = RestUtils.createRestTemplate();
 
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
@@ -124,6 +105,12 @@ public class RegistrationController {
             PlatformRegistrationDTO platformRegistrationDTO = null;
             if (platformConfiguration != null && platformConfiguration.getStatusCode().is2xxSuccessful() && platformConfiguration.getBody() != null) {
                     platformRegistrationDTO = platformConfiguration.getBody();
+                if (log.isDebugEnabled()) {
+                    log.debug("Platform Registration DTO:");
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String platformRegistrationDTOString = objectMapper.writeValueAsString(platformRegistrationDTO);
+                    log.debug(platformRegistrationDTOString);
+                }
             } else {
                 String exceptionMsg = "Can't get the platform configuration";
                 log.error(exceptionMsg);
@@ -131,7 +118,7 @@ public class RegistrationController {
             }
 
             session.setAttribute(LtiStrings.PLATFORM_CONFIGURATION, platformRegistrationDTO);
-            ToolRegistrationDTO toolRegistrationDTO = generateToolConfiguration(platformConfiguration.getBody());
+            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody());
             session.setAttribute(LtiStrings.TOOL_CONFIGURATION, toolRegistrationDTO);
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
@@ -146,7 +133,7 @@ public class RegistrationController {
 
                 return "registrationRedirect";
             }
-        } catch (HttpServerErrorException | ConnectionException ex) {
+        } catch (HttpServerErrorException | ConnectionException | JsonProcessingException ex) {
             ex.printStackTrace();
             System.out.println(ex.getMessage());
             model.addAttribute("Error", ex.getMessage());
@@ -182,67 +169,6 @@ public class RegistrationController {
         } else {
             return "registrationConfirmationDemo";
         }
-    }
-
-    /**
-     * This generates a JsonNode with all the information that we need to send to the Registration Authorization endpoint in the Platform.
-     * In this case, we will put this in the model to be used by the thymeleaf template.
-     * @param platformRegistrationDTO
-     * @return
-     */
-    private ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration) {
-        ToolRegistrationDTO toolRegistrationDTO = new ToolRegistrationDTO();
-        toolRegistrationDTO.setApplication_type("web");
-        List<String> grantTypes = new ArrayList<>();
-        grantTypes.add("implict");
-        grantTypes.add("client_credentials");
-        toolRegistrationDTO.setGrant_types(grantTypes);
-        toolRegistrationDTO.setResponse_types(Collections.singletonList("id_token"));
-        toolRegistrationDTO.setRedirect_uris(Collections.singletonList(localUrl + TextConstants.LTI3_SUFFIX));
-        toolRegistrationDTO.setInitiate_login_uri(localUrl + "/oidc/login_initiations");
-        toolRegistrationDTO.setClient_name(clientName);
-        toolRegistrationDTO.setJwks_uri(localUrl + "/jwks/jwk");
-        //OPTIONAL -->setLogo_uri
-        toolRegistrationDTO.setToken_endpoint_auth_method("private_key_jwt");
-        //OPTIONAL -->setContacts
-        //OPTIONAL -->setClient_uri
-        //OPTIONAL -->setTos_uri
-        //OPTIONAL -->setPolicy_uri
-        ToolConfigurationDTO toolConfigurationDTO = new ToolConfigurationDTO();
-        toolConfigurationDTO.setDomain(domainUrl);
-        //OPTIONAL -->setSecondary_domains --> Collections.singletonList
-        //OPTIONAL -->setDeployment_id
-
-        toolConfigurationDTO.setTarget_link_uri(domainUrl);
-
-        //OPTIONAL -->setCustom_parameters --> Map
-        toolConfigurationDTO.setDescription(description);
-        List<ToolMessagesSupportedDTO> messages = new ArrayList<>();
-
-        // Uncomment below to indicate Deep Linking support
-//        ToolMessagesSupportedDTO message1 = new ToolMessagesSupportedDTO();
-//        message1.setType("LtiDeepLinkingRequest");
-//        message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
-////        OPTIONAL: --> message1 --> setLabel
-////        OPTIONAL: --> message1 --> setIcon_uri
-////        OPTIONAL: --> message1 --> setCustom_parameters
-//        messages.add(message1);
-
-        ToolMessagesSupportedDTO message2 = new ToolMessagesSupportedDTO();
-        message2.setType("LtiResourceLinkRequest");
-        message2.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
-        messages.add(message2);
-        toolConfigurationDTO.setMessages_supported(messages);
-
-        Set<String> platformAndOptionalClaims = new LinkedHashSet<>(platformConfiguration.getClaims_supported());
-        platformAndOptionalClaims.addAll(LtiStrings.LTI_OPTIONAL_CLAIMS);
-        List<String> toolConfigurationClaims = new ArrayList<>(platformAndOptionalClaims);
-        toolConfigurationDTO.setClaims(toolConfigurationClaims);
-
-        toolRegistrationDTO.setToolConfiguration(toolConfigurationDTO);
-        toolRegistrationDTO.setScope(StringUtils.join(platformConfiguration.getScopes_supported(), " "));
-
-        return toolRegistrationDTO;
     }
 
 }
