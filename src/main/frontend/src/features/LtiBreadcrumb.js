@@ -1,7 +1,12 @@
 // Redux imports
 import { useDispatch, useSelector } from 'react-redux';
 // Store imports
-import { changeSelectedCourse, selectSelectedCourse, toggleAllModules } from '../app/appSlice';
+import {
+  changeSelectedCourse,
+  selectSelectedCourse,
+  selectRootOutcomeGuid,
+  toggleAllModules
+} from '../app/appSlice';
 // Component imports
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
 
@@ -9,10 +14,16 @@ function LtiBreadcrumb(props) {
 
   const dispatch = useDispatch();
   const selectedCourse = useSelector(selectSelectedCourse);
+  const rootOutcomeGuid = useSelector(selectRootOutcomeGuid);
 
   const resetSelection = () => {
     dispatch(changeSelectedCourse(null));
     dispatch(toggleAllModules(0));
+  }
+
+  // When a course has been paired with the LMS, do not display the breadcrumb so the user cannot go back and select a different course.
+  if (rootOutcomeGuid !== null) {
+    return <></>;
   }
 
   return (

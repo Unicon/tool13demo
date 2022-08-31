@@ -27,10 +27,6 @@ export const appSlice = createSlice({
     },
     changeSelectedCourse: (state, action) => {
       state.selectedCourse = action.payload;
-      if (action.payload === null) {
-        // This is important, when the course selection is being restored in the UI we must start over.
-        state.root_outcome_guid = null;
-      }
     },
     setErrorFetchingCourses: (state, action) => {
       state.errorFetchingCourses = action.payload;
@@ -167,6 +163,11 @@ export const fetchSingleCourse = (rootOutcomeGuid) => (dispatch, getState) => {
     // When there's an error fetching courses we must notify the components.
     dispatch(setErrorAssociatingCourse(true));
     console.error(reason);
+    // This is useful for local development purposes, load some dummy data instead of the error message.
+    if (window.location.href.includes('localhost')) {
+      dispatch(changeSelectedCourse(DUMMY_DATA.records[0]));
+      dispatch(setErrorAssociatingCourse(false));
+    }
   }).finally(() => {
     // Remove the spinner once the request has been resolved.
     dispatch(setLoading(false));
