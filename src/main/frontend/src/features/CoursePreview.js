@@ -42,6 +42,9 @@ function CoursePreview(props) {
   // Check if the user has selected any module, the Add button must be disabled if there's no selection.
   const hasSelectedModules = Array.isArray(selectedModules) && selectedModules.length > 0;
 
+  // A returning user means a user that previously associated a course with the LMS course, exists a previous root_outcome_guid selection.
+  const isReturningUser = rootOutcomeGuid !== null;
+
   // Some courses may not have a valid cover image, use a default instead
   const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url, true);
   const dispatch = useDispatch();
@@ -54,9 +57,9 @@ function CoursePreview(props) {
 
   // The 'Select All' checkbox is controlled and depends on the state, enables or disables all the modules at the same time.
   // If the course has not been paired with a Lumen course, 'Select All' must be checked.
-  const [selectAllChecked, setSelectAllChecked] = useState(rootOutcomeGuid === null);
+  const [selectAllChecked, setSelectAllChecked] = useState(!isReturningUser);
   // If the course has been paired with a Lumen course we must display a different text for the button.
-  const addButtonText = rootOutcomeGuid === null ? 'Add Course' : 'Add Content';
+  const addButtonText = !isReturningUser ? 'Add Course' : 'Add Content';
 
   // When the user clicks cancel it should reset the module and the course selection.
   const resetSelection = () => {
@@ -168,7 +171,7 @@ function CoursePreview(props) {
       <div className="fixed-bottom course-footer d-flex flex-row">
           <p className="action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
           <div className="ms-auto mx-3 d-flex d-row">
-            <Button variant="secondary" onClick={(e) => resetSelection()}>Cancel</Button>
+            {!isReturningUser && <Button variant="secondary" onClick={(e) => resetSelection()}>Cancel</Button>}
             <Button disabled={!hasSelectedModules} variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>{addButtonText}</Button>
           </div>
       </div>
