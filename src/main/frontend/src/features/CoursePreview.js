@@ -39,6 +39,9 @@ function CoursePreview(props) {
   const rootOutcomeGuid = useSelector(selectRootOutcomeGuid);
   const selectedModules = useSelector(selectSelectedModules);
 
+  // Check if the user has selected any module, the Add button must be disabled if there's no selection.
+  const hasSelectedModules = Array.isArray(selectedModules) && selectedModules.length > 0;
+
   // Some courses may not have a valid cover image, use a default instead
   const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url, true);
   const dispatch = useDispatch();
@@ -166,7 +169,7 @@ function CoursePreview(props) {
           <p className="action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
           <div className="ms-auto mx-3 d-flex d-row">
             <Button variant="secondary" onClick={(e) => resetSelection()}>Cancel</Button>
-            <Button variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>{addButtonText}</Button>
+            <Button disabled={!hasSelectedModules} variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>{addButtonText}</Button>
           </div>
       </div>
   </>
