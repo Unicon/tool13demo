@@ -154,6 +154,7 @@ public class LTI3Controller {
                 model.addAttribute("target", target);
                 model.addAttribute("id_token", middlewareIdToken);
                 model.addAttribute("state", state);
+                model.addAttribute("platform_family_code", lti3Request.getLtiToolPlatformFamilyCode());
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
                 return "lti3Redirect";

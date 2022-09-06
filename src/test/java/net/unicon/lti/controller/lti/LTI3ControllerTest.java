@@ -74,6 +74,8 @@ public class LTI3ControllerTest {
     private static final String SAMPLE_ISS = "https://lms.com";
     private static final String SAMPLE_TARGET = "https://tool.com/test";
     private static final String TARGET = "target";
+    private static final String CANVAS = "canvas";
+    private static final String PLATFORM_FAMILY_CODE = "platform_family_code";
 
     @InjectMocks
     private LTI3Controller lti3Controller = new LTI3Controller();
@@ -154,6 +156,7 @@ public class LTI3ControllerTest {
             when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/test");
             when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
             when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_LTI_CONTEXT_ID);
+            when(lti3Request.getLtiToolPlatformFamilyCode()).thenReturn("canvas");
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(List.of(platformDeployment));
             ltiContext.setLineitems(SAMPLE_LINEITEMS_URL);
             when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContext);
@@ -244,6 +247,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("target"), "https://tool.com/test");
             String finalIdToken = (String) model.getAttribute("id_token");
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -299,6 +303,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -331,6 +336,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -439,6 +445,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
@@ -470,6 +477,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -532,6 +540,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("root_outcome_guid"), "root-outcome-guid-1");
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
