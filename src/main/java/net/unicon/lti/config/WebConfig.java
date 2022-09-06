@@ -46,8 +46,15 @@ public class WebConfig implements WebMvcConfigurer {
                         "classpath:/static/static/css/"
                         );
 
+//        Resource resource = resourceLoader.getResource("classpath:/static/index.html");
+//        if (resource.exists()) {
+//            System.out.println("Resource exists");
+//        } else {
+//            System.out.println("resource does not exist");
+//        }
+
         registry.addResourceHandler("/index.html")
-                .addResourceLocations("classpath:/frontend/public/index.html")
+                .addResourceLocations("classpath:/static/index.html")
                 .setCachePeriod(0);
     }
 
