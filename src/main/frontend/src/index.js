@@ -43,6 +43,7 @@ const initialState = {
   state: ltiLaunchData.state,
   target: ltiLaunchData.target,
   root_outcome_guid: isValidRootOutcomeGuid(ltiLaunchData.root_outcome_guid) ? ltiLaunchData.root_outcome_guid : null,
+  isCanvas: ltiLaunchData.isCanvas
 };
 
 // Creates the store and preloads the initial state of the store.

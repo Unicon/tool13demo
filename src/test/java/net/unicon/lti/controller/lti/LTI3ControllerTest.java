@@ -154,6 +154,7 @@ public class LTI3ControllerTest {
             when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/test");
             when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
             when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_LTI_CONTEXT_ID);
+            when(lti3Request.getLtiToolPlatformFamilyCode()).thenReturn("canvas");
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(List.of(platformDeployment));
             ltiContext.setLineitems(SAMPLE_LINEITEMS_URL);
             when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContext);
@@ -244,6 +245,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("target"), "https://tool.com/test");
             String finalIdToken = (String) model.getAttribute("id_token");
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -299,6 +301,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -331,6 +334,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -439,6 +443,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
@@ -470,6 +475,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -532,6 +538,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("root_outcome_guid"), "root-outcome-guid-1");
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertTrue((Boolean) model.getAttribute("isCanvas"));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
