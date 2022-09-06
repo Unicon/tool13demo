@@ -43,8 +43,10 @@ const initialState = {
   state: ltiLaunchData.state,
   target: ltiLaunchData.target,
   root_outcome_guid: isValidRootOutcomeGuid(ltiLaunchData.root_outcome_guid) ? ltiLaunchData.root_outcome_guid : null,
-  isCanvas: ltiLaunchData.isCanvas
+  platform_family_code: ltiLaunchData.platform_family_code
 };
+console.log("platform_family_code:");
+console.log(initialState.platform_family_code);
 
 // Creates the store and preloads the initial state of the store.
 const store = configureStore({
