@@ -50,12 +50,9 @@ public class HarmonyService {
     @Value("${harmony.courses.api}")
     private String harmonyCoursesApiUrl;
 
-    @Value("${harmony.courses.jwt}")
-    private String harmonyJWT;
-
     public HarmonyPageResponse fetchHarmonyCourses(Integer page, String rootOutcomeGuid) {
 
-        if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
             log.warn("The Harmony Courses API has not been configured, courses will not be fetched.");
             return null;
         }
@@ -74,10 +71,7 @@ public class HarmonyService {
             }
 
             String requestUrl = builder.build().toString();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(harmonyJWT);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<HarmonyPageResponse> response = restTemplate.exchange(requestUrl, HttpMethod.GET, entity, HarmonyPageResponse.class);
+            ResponseEntity<HarmonyPageResponse> response = restTemplate.getForEntity(requestUrl, HarmonyPageResponse.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
             } else {
@@ -92,7 +86,7 @@ public class HarmonyService {
     }
 
     public List<HarmonyContentItemDTO> fetchDeepLinkingContentItems(String rootOutcomeGuid, String idToken, boolean coursePaired, List moduleIds) {
-        if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
             log.error("The Harmony API has not been configured, deep links will not be fetched.");
             return null;
         }
@@ -117,10 +111,8 @@ public class HarmonyService {
             requestUrl = builder.build().toString();
             log.debug("About to request deep links from: {}", requestUrl);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(harmonyJWT);
             HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, idToken, moduleIds);
-            HttpEntity<HarmonyFetchDeepLinksBody> entity = new HttpEntity<>(body, headers);
+            HttpEntity<HarmonyFetchDeepLinksBody> entity = new HttpEntity<>(body);
 
             ResponseEntity<HarmonyContentItemDTO[]> response = restTemplate.exchange(requestUrl, HttpMethod.POST, entity, HarmonyContentItemDTO[].class);
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -150,7 +142,6 @@ public class HarmonyService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(harmonyJWT);
         Map<String, Object> body = new HashMap<>();
         body.put("id_token", idToken);
         body.put("lineitems", lineItems.getLineItemList());
