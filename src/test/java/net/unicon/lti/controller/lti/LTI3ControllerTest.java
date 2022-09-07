@@ -364,11 +364,10 @@ public class LTI3ControllerTest {
             assertTrue(Objects.requireNonNull(exception.getReason()).contains("Could not fetch lineitems to sync with Harmony"));
 
             // validate lineitems not synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), anyString());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
-
-            Mockito.verify(ltiDataService, never()).getDemoMode();
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
@@ -391,11 +390,10 @@ public class LTI3ControllerTest {
             assertTrue(Objects.requireNonNull(exception.getReason()).contains("Harmony could not receive lineitems"));
 
             // validate lineitems not synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
-
-            Mockito.verify(ltiDataService, never()).getDemoMode();
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
@@ -412,11 +410,10 @@ public class LTI3ControllerTest {
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
 
             // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
-
-            Mockito.verify(ltiDataService, never()).getDemoMode();
 
             assertEquals("Harmony Lineitems API returned 500 INTERNAL_SERVER_ERROR\nnull", model.getAttribute("Error"));
 
@@ -499,13 +496,12 @@ public class LTI3ControllerTest {
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
 
-            // validate lineitems synced
-            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
-            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
-            Mockito.verify(ltiContextRepository).save(eq(ltiContext));
-            assertTrue(ltiContext.getLineitemsSynced());
-
+            // validate lineitems not synced
             Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(advantageAGSService, never()).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
             assertEquals(finalResponse, "lti3Redirect");
         } catch (JsonProcessingException | DataServiceException | ConnectionException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
