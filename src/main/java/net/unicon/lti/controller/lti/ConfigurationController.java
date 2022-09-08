@@ -107,6 +107,7 @@ public class ConfigurationController {
         platformDeploymentToChange.setIss(platformDeployment.getIss());
         platformDeploymentToChange.setOidcEndpoint(platformDeployment.getOidcEndpoint());
         platformDeploymentToChange.setJwksEndpoint(platformDeployment.getJwksEndpoint());
+        platformDeploymentToChange.setLumenAdminId(platformDeployment.getLumenAdminId());
 
         platformDeploymentRepository.saveAndFlush(platformDeploymentToChange);
         return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);
