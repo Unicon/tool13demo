@@ -33,6 +33,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -405,16 +406,17 @@ public class HarmonyServiceTest {
             lineItem.setLabel("Quiz 1");
             lineItems.setLineItemList(List.of(lineItem));
             ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor = ArgumentCaptor.forClass(HttpEntity.class);
-            when(restTemplate.exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), any(), eq(String.class))).thenReturn(new ResponseEntity<>("test-harmony-response", HttpStatus.OK));
+            when(restTemplate.exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), any(), eq(Map.class))).thenReturn(new ResponseEntity<>(Map.of("root_outcome_guid", "test-rog"), HttpStatus.OK));
 
-            ResponseEntity<String> response = harmonyService.postLineitemsToHarmony(lineItems, SAMPLE_ID_TOKEN);
+            ResponseEntity<Map> response = harmonyService.postLineitemsToHarmony(lineItems, SAMPLE_ID_TOKEN);
 
-            verify(restTemplate).exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), eq(String.class));
+            verify(restTemplate).exchange(eq(MOCK_SERVER_LINEITEMS_URL), eq(HttpMethod.POST), httpEntityArgumentCaptor.capture(), eq(Map.class));
             HttpEntity<String> entity = httpEntityArgumentCaptor.getValue();
             assertEquals(MediaType.APPLICATION_JSON, entity.getHeaders().getContentType());
             assertEquals("{\"lineitems\":[{\"id\":\"https://lms.com/course/lineitem/1\",\"scoreMaximum\":\"100\",\"label\":\"Quiz 1\"}],\"id_token\":\"sample-id-token\"}", entity.getBody());
             assertEquals(HttpStatus.OK, response.getStatusCode());
-            assertEquals("test-harmony-response", response.getBody());
+            Map<String, String> rogMap = response.getBody();
+            assertEquals("test-rog", rogMap.get("root_outcome_guid"));
 
         } catch (DataServiceException | JsonProcessingException e) {
             fail("Exception should not be thrown.");
