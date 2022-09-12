@@ -61,6 +61,8 @@ function CoursePreview(props) {
   const [selectAllChecked, setSelectAllChecked] = useState(!isReturningUser);
   // If the course has been paired with a Lumen course we must display a different text for the button.
   const addButtonText = !isReturningUser ? 'Add Course' : 'Add Content';
+  const helpText = !isReturningUser ? 'Clicking Add Course will add the selected content for this Lumen course to your LMS' :
+                   'Clicking Add Content will add the selected content for this Lumen course to your LMS';
 
   // When the user clicks cancel it should reset the module and the course selection.
   const resetSelection = () => {
@@ -174,7 +176,7 @@ function CoursePreview(props) {
         <CourseTOC topics={props.course.table_of_contents} />
       </div>
       <div className="fixed-bottom course-footer d-flex flex-row">
-          <p className="action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
+          <p className="action-info">{helpText}</p>
           <div className="ms-auto mx-3 d-flex d-row">
             {!isReturningUser && <Button variant="secondary" onClick={(e) => resetSelection()}>Cancel</Button>}
             <Button disabled={!hasSelectedModules} variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>{addButtonText}</Button>
