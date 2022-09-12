@@ -3,15 +3,13 @@ import { useSelector } from 'react-redux';
 
 // Store imports
 import {
-  selectSelectedCourse,
-  selectLoading
+  selectSelectedCourse
 } from './app/appSlice';
 
 // Components import
 import Container from 'react-bootstrap/Container';
 import CoursePreview from './features/CoursePreview';
 import CoursePicker from './features/CoursePicker';
-import LoadingPage from './features/LoadingPage';
 import LtiBreadcrumb from './features/LtiBreadcrumb';
 
 // Stylesheet imports
@@ -25,16 +23,12 @@ function App() {
   window.scrollTo(0, 0);
 
   const selectedCourse = useSelector(selectSelectedCourse);
-  const isLoading = useSelector(selectLoading);
 
   // Show the course picker by default
   let appContent = <CoursePicker />;
 
-  // Display a spinner when the app is loading data from the backend....
-  if (isLoading) {
-    return <LoadingPage />;
   // When a course has been selected display the course preview.
-  } else if (selectedCourse) {
+  if (selectedCourse) {
     appContent = <CoursePreview course={selectedCourse} />
   }
 

@@ -79,6 +79,9 @@ function CoursePreview(props) {
 
   const addCourseToLMS = () => {
 
+      // The window will never notice if the user is browsing in long contents or not, should always scroll to top when fetching items.
+      window.scrollTo(0, 0);
+
       // Display the spinner when fetching the deep links.
       setFetchingDeepLinks(true);
       // Notify other components that a deep linking request has been started.
@@ -98,7 +101,6 @@ function CoursePreview(props) {
       }
 
       // TODO: Handle error cases of blank/null values
-
       const bookPairingData = {
         "id_token": idToken,
         "root_outcome_guid": props.course.root_outcome_guid,
@@ -127,14 +129,9 @@ function CoursePreview(props) {
         form.submit();
       }).catch(reason => {
         setErrorAddingLinks(true);
-      }).finally( () => {
-
-        // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
-        window.scrollTo(0, 0);
-
-        // Remove the spinner once the request has responded.
+        // Remove the spinner once the request has responded with an error, otherwise the LMS will close the modal.
         setFetchingDeepLinks(false);
-        // Notify other components that the request has been completed.
+        // Notify other components that the request has been completed with an error.
         dispatch(setIsFetchingDeepLinks(false));
       });
   }
