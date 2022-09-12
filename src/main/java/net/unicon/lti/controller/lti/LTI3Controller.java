@@ -188,8 +188,6 @@ public class LTI3Controller {
                     model.addAttribute("clientId", clientIdFromState);
                     model.addAttribute("iss", lti3Request.getIss());
                     model.addAttribute("context", lti3Request.getLtiContextId());
-                    System.out.println("Lineitems root_outcome_guid:");
-                    System.out.println(ltiContext.getRootOutcomeGuid());
                     model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
                     log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
                             lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());
