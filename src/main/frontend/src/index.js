@@ -31,6 +31,7 @@ const initialState = {
   searchInputText: '',
   selectedCourse: null,
   loading: true,
+  isFetchingDeepLinks: false,
   errorFetchingCourses: false,
   errorAssociatingCourse: false,
   selectedModules: [],

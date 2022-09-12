@@ -12,7 +12,8 @@ import {
   selectRootOutcomeGuid,
   selectSelectedModules,
   selectState,
-  selectTarget
+  selectTarget,
+  setIsFetchingDeepLinks
 } from '../app/appSlice';
 
 import { parseCourseCoverImage } from '../util/Utils.js';
@@ -78,6 +79,8 @@ function CoursePreview(props) {
 
       // Display the spinner when fetching the deep links.
       setFetchingDeepLinks(true);
+      // Notify other components that a deep linking request has been started.
+      dispatch(setIsFetchingDeepLinks(true));
 
       const contextAPIUrl = target.replace("/lti3", "/context");
 
@@ -129,6 +132,8 @@ function CoursePreview(props) {
 
         // Remove the spinner once the request has responded.
         setFetchingDeepLinks(false);
+        // Notify other components that the request has been completed.
+        dispatch(setIsFetchingDeepLinks(false));
       });
   }
 
