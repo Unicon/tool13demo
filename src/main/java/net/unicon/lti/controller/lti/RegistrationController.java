@@ -22,6 +22,7 @@ import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.RestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -42,6 +43,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -56,6 +58,8 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/registration")
 @ConditionalOnExpression("${lti13.enableDynamicRegistration}")
 public class RegistrationController {
+    private static final String D2L_DUPLICATE_REGISTRATION_ERROR = "400 Bad Request: \"{\"error\":\"invalid_registration_data\",\"error_description\":\"Name must be unique across the org\"}\"";
+
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
 
@@ -156,13 +160,18 @@ public class RegistrationController {
         try {
             answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
         } catch (ConnectionException e) {
-            e.printStackTrace();
+            if (StringUtils.contains(e.getMessage(), D2L_DUPLICATE_REGISTRATION_ERROR)) {
+                return "registrationDuplicationError";
+            }
+            log.error(e.getStackTrace().toString());
+            return "registrationError";
         }
         model.addAttribute("registration_confirmation", answer);
         try {
-            model.addAttribute("issuer", java.net.URLDecoder.decode(platformRegistrationDTO.getIssuer(), StandardCharsets.UTF_8.name()));
+            model.addAttribute("issuer", URLDecoder.decode(platformRegistrationDTO.getIssuer(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
-            log.error("Error decoding the issuer as URL", e);
+            log.error("Error decoding the issuer {} as URL", platformRegistrationDTO.getIssuer(), e);
+            return "registrationError";
         }
         if (!demoMode) {
             return "registrationConfirmation";
