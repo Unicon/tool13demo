@@ -40,5 +40,6 @@ public class TextConstants {
     public static final String ALL_LINEITEMS_TYPE = "application/vnd.ims.lis.v2.lineitemcontainer+json";
     public static final String RESULTS_TYPE = "application/vnd.ims.lis.v2.resultcontainer+json";
     public static final String REACT_UI_TEMPLATE = "index";
+    public static final String LTI_LINEITEMS_SYNC_ERROR = "lti_lineitems_sync_error";
 
 }

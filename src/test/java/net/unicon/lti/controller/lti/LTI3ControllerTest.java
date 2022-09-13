@@ -420,7 +420,8 @@ public class LTI3ControllerTest {
 
             assertEquals("Harmony Lineitems API returned 500 INTERNAL_SERVER_ERROR\nnull", model.getAttribute("Error"));
 
-            assertEquals("lti3Error", response);
+            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
 
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);

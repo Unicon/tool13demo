@@ -44,7 +44,8 @@ const initialState = {
   state: ltiLaunchData.state,
   target: ltiLaunchData.target,
   root_outcome_guid: isValidRootOutcomeGuid(ltiLaunchData.root_outcome_guid) ? ltiLaunchData.root_outcome_guid : null,
-  platform_family_code: ltiLaunchData.platform_family_code
+  platform_family_code: ltiLaunchData.platform_family_code,
+  lti_lineitems_sync_error: ltiLaunchData.lti_lineitems_sync_error,
 };
 
 // Creates the store and preloads the initial state of the store.

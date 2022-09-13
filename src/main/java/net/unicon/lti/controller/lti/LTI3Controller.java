@@ -151,13 +151,19 @@ public class LTI3Controller {
                             } else {
                                 log.error("Harmony lineitems API did not return root_outcome_guid");
                                 model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
-                                return "lti3Error";
+                                // When there's an error syncing LineItems the frontend will display a specific error.
+                                model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+                                // This redirects to the REACT UI which is a secondary set of templates.
+                                return TextConstants.REACT_UI_TEMPLATE;
                             }
                         } else {
                             log.error("Harmony Lineitems API returned {}", harmonyLineitemsResponse.getStatusCode());
                             log.error(String.valueOf(harmonyLineitemsResponse.getBody()));
                             model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
-                            return "lti3Error";
+                            // When there's an error syncing LineItems the frontend will display a specific error.
+                            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+                            // This redirects to the REACT UI which is a secondary set of templates.
+                            return TextConstants.REACT_UI_TEMPLATE;
                         }
                     } else {
                         log.info("No lineitems found in the LMS for iss {}, client_id {}, deployment_id {}, LMS context_id {}, and lineitems URL {}.",

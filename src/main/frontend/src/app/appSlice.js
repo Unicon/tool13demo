@@ -95,6 +95,7 @@ export const selectIdToken = (state) => state.id_token;
 export const selectState = (state) => state.state;
 export const selectTarget = (state) => state.target;
 export const selectRootOutcomeGuid = (state) => state.root_outcome_guid;
+export const selectLtiLineItemsSyncError = (state) => state.lti_lineitems_sync_error;
 
 // This function fetches the courses from the backend, it should be invoked when loading the application.
 export const fetchCourses = (page) => (dispatch, getState) => {
