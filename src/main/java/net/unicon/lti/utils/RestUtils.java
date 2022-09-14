@@ -1,5 +1,6 @@
 package net.unicon.lti.utils;
 
+import net.unicon.lti.exceptions.helper.MiddlewareErrorHandler;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.springframework.http.HttpMethod;
@@ -11,7 +12,9 @@ import java.net.URI;
 public class RestUtils {
 
     public static RestTemplate createRestTemplate() {
-        return new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
+        RestTemplate restTemplate = new RestTemplate(new CustomHttpComponentsClientHttpRequestFactory());
+        restTemplate.setErrorHandler(new MiddlewareErrorHandler());
+        return restTemplate;
     }
 
     private static final class CustomHttpComponentsClientHttpRequestFactory extends HttpComponentsClientHttpRequestFactory {

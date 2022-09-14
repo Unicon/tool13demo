@@ -139,8 +139,8 @@ public class LTI3Controller {
                         // if no exceptions were thrown and root_outcome_guid received, set lineitems synced to true for the context
                         if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
                             Map<String, String> rogMap = harmonyLineitemsResponse.getBody();
-                            String rootOutcomeGuid = rogMap.get("root_outcome_guid");
-                            if (StringUtils.isNotBlank(rootOutcomeGuid)) {
+                            if (rogMap != null && StringUtils.isNotBlank(rogMap.get("root_outcome_guid"))) {
+                                String rootOutcomeGuid = rogMap.get("root_outcome_guid");
                                 log.info("{} lineitems have been synced to Harmony successfully for iss {}, client_id {}, deployment_id {}, and LMS context_id {}. We received root_outcome_guid {} from Harmony.",
                                         lineItems.getLineItemList().size(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), rootOutcomeGuid);
                                 if (StringUtils.isBlank(ltiContext.getRootOutcomeGuid())) {
@@ -209,14 +209,20 @@ public class LTI3Controller {
             log.error("Invalid Signature: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
         } catch (ConnectionException e) {
-            log.error("Could not fetch lineitems to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not fetch lineitems to sync with Harmony");
+            log.error("Could not fetch lineitems from LMS to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            // When there's an error syncing LineItems the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         } catch (GeneralSecurityException e) {
             log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         } catch (JsonProcessingException | DataServiceException e) {
             log.error("HarmonyService could not receive lineitems: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Harmony could not receive lineitems");
+            // When there's an error syncing LineItems the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage() + "\n Stack Trace: " + Arrays.toString(e.getStackTrace()));

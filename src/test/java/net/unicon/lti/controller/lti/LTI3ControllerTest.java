@@ -46,6 +46,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -356,20 +357,18 @@ public class LTI3ControllerTest {
         try {
             when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenThrow(new ConnectionException("Exception fetching lineitems"));
 
-            ResponseStatusException exception = Assertions.assertThrows(
-                    ResponseStatusException.class,
-                    () -> {lti3Controller.lti3(req, res, model);}
-            );
+            String response = lti3Controller.lti3(req, res, model);
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
-            assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
-            assertTrue(Objects.requireNonNull(exception.getReason()).contains("Could not fetch lineitems to sync with Harmony"));
 
             // validate lineitems not synced
             Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), anyString());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
+            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
@@ -378,7 +377,6 @@ public class LTI3ControllerTest {
     @Test
     public void testNoErrorZeroLineitemsFetchedFromLMS() {
         try {
-            LineItems sampleLineItems = new LineItems();
             when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenReturn(new LineItems());
 
             String response = lti3Controller.lti3(req, res, model);
@@ -398,6 +396,32 @@ public class LTI3ControllerTest {
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
             assertEquals(response, "lti3Redirect");
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testErrorNoRootOutcomeGuidSendingLineitemsToHarmony() {
+        try {
+            ResponseEntity<Map> harmonyResponse = new ResponseEntity<>(new HashMap(), HttpStatus.OK);
+            when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenReturn(harmonyResponse);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
+            assertEquals("Harmony Lineitems API returned 200 OK\n{}", model.getAttribute("Error"));
+
+            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
+
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
