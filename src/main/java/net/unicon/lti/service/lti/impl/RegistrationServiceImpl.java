@@ -99,7 +99,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             HttpStatus status = registrationRequest.getStatusCode();
             if (status.is2xxSuccessful()) {
                 answer = registrationRequest.getBody();
-                log.debug("Platform's response to the Tool Registration DTO: {}", answer);
+                log.info("Registration successfully confirmed! Platform's response to the Tool Registration DTO: {}", answer);
             } else {
                 log.error(registrationRequest.getBody());
                 String exceptionMsg = "Can't get confirmation of the registration";

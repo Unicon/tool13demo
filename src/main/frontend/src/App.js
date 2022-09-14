@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 // Store imports
 import {
   selectSelectedCourse,
-  selectLtiLineItemsSyncError
+  selectLtiSystemError
 } from './app/appSlice';
 
 // Components import
@@ -19,19 +19,36 @@ import './App.css';
 import "@fontsource/lato";
 import "@fontsource/public-sans";
 
+// Utils
+import { LTI_SYSTEM_ERRORS } from './util/LtiSystemErrors';
+
 function App() {
 
   // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
   window.scrollTo(0, 0);
 
   const selectedCourse = useSelector(selectSelectedCourse);
-  const errorSyncingLineItems = useSelector(selectLtiLineItemsSyncError);
+  const ltiSystemErrorCode = useSelector(selectLtiSystemError);
 
-  // This error comes from the backend when there's an issue syncing line items, we must display an error when this happens. it's sent as string.
-  if (errorSyncingLineItems === "true") {
-    const syncingErrorMessage = `Oops, something went wrong and we couldn't load your content. Please try again. If the issue persists, please contact Lumen Support.`;
+  // When there's a system error from the backend we must inform the user and do not render any content.
+  if (Number.isInteger(parseInt(ltiSystemErrorCode))) {
+    let systemErrorMessage = null;
+    switch (parseInt(ltiSystemErrorCode)) {
+      case LTI_SYSTEM_ERRORS.DYNAMIC_REGISTRATION_GENERAL_ERROR:
+        systemErrorMessage = `Oops something went wrong with the Lumen Dynamic Registration. Please contact Lumen Support.`;
+        break;
+      case LTI_SYSTEM_ERRORS.DYNAMIC_REGISTRATION_DUPLICATE_ERROR:
+        systemErrorMessage = `Oops something went wrong. It appears you already have a tool registered with this Lumen domain.`;
+        break;
+      case LTI_SYSTEM_ERRORS.LINEITEMS_SYNCING_ERROR:
+        systemErrorMessage = `Oops, something went wrong and we couldn't load your content. Please try again. If the issue persists, please contact Lumen Support.`;
+        break;
+      default:
+        systemErrorMessage = `Unrecognized error message. Please try again. If the issue persists, please contact Lumen Support.`;
+        break;
+    }
     return <Container className="App" fluid role="main">
-             <div className="mt-3"><ErrorAlert message={syncingErrorMessage} /></div>
+             <div className="mt-3"><ErrorAlert message={systemErrorMessage} /></div>
            </Container>;
   }
 

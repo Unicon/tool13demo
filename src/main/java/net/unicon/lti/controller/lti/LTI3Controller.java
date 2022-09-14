@@ -31,6 +31,7 @@ import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
@@ -149,19 +150,16 @@ public class LTI3Controller {
                                 ltiContext.setLineitemsSynced(true);
                                 ltiDataService.getRepos().contexts.save(ltiContext);
                             } else {
-                                log.error("Harmony lineitems API did not return root_outcome_guid");
-                                model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
+                                log.error("Harmony lineitems API did not return root_outcome_guid. {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
                                 // When there's an error syncing LineItems the frontend will display a specific error.
-                                model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+                                model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
                                 // This redirects to the REACT UI which is a secondary set of templates.
                                 return TextConstants.REACT_UI_TEMPLATE;
                             }
                         } else {
-                            log.error("Harmony Lineitems API returned {}", harmonyLineitemsResponse.getStatusCode());
-                            log.error(String.valueOf(harmonyLineitemsResponse.getBody()));
-                            model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
+                            log.error("Harmony Lineitems API returned {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
                             // When there's an error syncing LineItems the frontend will display a specific error.
-                            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+                            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
                             // This redirects to the REACT UI which is a secondary set of templates.
                             return TextConstants.REACT_UI_TEMPLATE;
                         }
