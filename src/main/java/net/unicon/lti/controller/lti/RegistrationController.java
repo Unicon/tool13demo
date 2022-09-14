@@ -21,6 +21,8 @@ import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
+import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.RestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,10 +140,11 @@ public class RegistrationController {
                 return "registrationRedirect";
             }
         } catch (HttpServerErrorException | ConnectionException | JsonProcessingException ex) {
-            ex.printStackTrace();
-            System.out.println(ex.getMessage());
-            model.addAttribute("Error", ex.getMessage());
-            return "registrationError";
+            log.error("General error while doing dynamic registration: {}", ex.getMessage());
+            // When there's an general error with dynamic registration the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         }
     }
 
@@ -161,17 +164,27 @@ public class RegistrationController {
             answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
         } catch (ConnectionException e) {
             if (StringUtils.contains(e.getMessage(), D2L_DUPLICATE_REGISTRATION_ERROR)) {
-                return "registrationDuplicationError";
+                log.error("Duplicate registration error while doing dynamic registration {}", e.getMessage());
+                // When there's a duplicate error with dynamic registration the frontend will display a specific error.
+                model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_DUPLICATE_ERROR.ordinal());
+                // This redirects to the REACT UI which is a secondary set of templates.
+                return TextConstants.REACT_UI_TEMPLATE;
             }
-            log.error(e.getStackTrace().toString());
-            return "registrationError";
+            log.error("General error while doing dynamic registration {}", e.getMessage());
+            // When there's a general error with dynamic registration the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         }
         model.addAttribute("registration_confirmation", answer);
         try {
             model.addAttribute("issuer", URLDecoder.decode(platformRegistrationDTO.getIssuer(), StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             log.error("Error decoding the issuer {} as URL", platformRegistrationDTO.getIssuer(), e);
-            return "registrationError";
+            // When there's a general error with dynamic registration the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         }
         if (!demoMode) {
             return "registrationConfirmation";

@@ -18,6 +18,7 @@ import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import org.junit.jupiter.api.AfterEach;
@@ -418,9 +419,7 @@ public class LTI3ControllerTest {
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            assertEquals("Harmony Lineitems API returned 500 INTERNAL_SERVER_ERROR\nnull", model.getAttribute("Error"));
-
-            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
 
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {

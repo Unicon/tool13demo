@@ -5,6 +5,8 @@ import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
+import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.RestUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.web.client.RestTemplate;
 
@@ -63,8 +66,7 @@ public class RegistrationControllerTest {
     @Mock
     private HttpSession session;
 
-    @Mock
-    private Model model;
+    private Model model = new ExtendedModelMap();
 
     @BeforeEach
     public void setUp() {
@@ -144,7 +146,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session, never()).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), any(PlatformRegistrationDTO.class));
             verify(session, never()).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
@@ -162,7 +165,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session, never()).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), any(PlatformRegistrationDTO.class));
             verify(session, never()).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
@@ -182,7 +186,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session, never()).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), any(PlatformRegistrationDTO.class));
             verify(session, never()).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
@@ -211,7 +216,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationDuplicationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_DUPLICATE_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
@@ -240,7 +246,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
@@ -269,7 +276,8 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
-            assertEquals("registrationError", registrationOutput);
+            assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
         } catch (ConnectionException e) {
             fail();
         }
