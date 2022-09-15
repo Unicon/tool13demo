@@ -211,7 +211,7 @@ public class LTI3Controller {
         } catch (ConnectionException e) {
             log.error("Could not fetch lineitems from LMS to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             // When there's an error syncing LineItems the frontend will display a specific error.
-            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
             // This redirects to the REACT UI which is a secondary set of templates.
             return TextConstants.REACT_UI_TEMPLATE;
         } catch (GeneralSecurityException e) {
@@ -220,7 +220,7 @@ public class LTI3Controller {
         } catch (JsonProcessingException | DataServiceException e) {
             log.error("HarmonyService could not receive lineitems: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             // When there's an error syncing LineItems the frontend will display a specific error.
-            model.addAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR, true);
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
             // This redirects to the REACT UI which is a secondary set of templates.
             return TextConstants.REACT_UI_TEMPLATE;
         } catch (Exception e) {

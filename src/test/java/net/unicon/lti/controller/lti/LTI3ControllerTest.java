@@ -367,7 +367,7 @@ public class LTI3ControllerTest {
             Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), anyString());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
@@ -417,9 +417,7 @@ public class LTI3ControllerTest {
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            assertEquals("Harmony Lineitems API returned 200 OK\n{}", model.getAttribute("Error"));
-
-            assertEquals(true, model.getAttribute(TextConstants.LTI_LINEITEMS_SYNC_ERROR));
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
 
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
