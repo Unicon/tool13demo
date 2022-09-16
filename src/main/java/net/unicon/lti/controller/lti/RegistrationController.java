@@ -60,7 +60,7 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/registration")
 @ConditionalOnExpression("${lti13.enableDynamicRegistration}")
 public class RegistrationController {
-    private static final String D2L_DUPLICATE_REGISTRATION_ERROR = "400 Bad Request: \"{\"error\":\"invalid_registration_data\",\"error_description\":\"Name must be unique across the org\"}\"";
+    private static final String D2L_DUPLICATE_REGISTRATION_ERROR = "Name must be unique across the org";
 
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
