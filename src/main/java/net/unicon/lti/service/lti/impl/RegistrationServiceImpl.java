@@ -101,10 +101,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 answer = registrationRequest.getBody();
                 log.info("Registration successfully confirmed! Platform's response to the Tool Registration DTO: {}", answer);
             } else {
+                log.error("Can't get confirmation of the registration");
                 log.error(registrationRequest.getBody());
-                String exceptionMsg = "Can't get confirmation of the registration";
-                log.error(exceptionMsg);
-                throw new ConnectionException(exceptionMsg);
+                throw new ConnectionException(registrationRequest.getBody());
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
