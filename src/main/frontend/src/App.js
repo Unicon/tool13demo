@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 // Store imports
 import {
   selectSelectedCourse,
+  selectLoading,
   selectLtiSystemError
 } from './app/appSlice';
 
@@ -12,6 +13,7 @@ import Container from 'react-bootstrap/Container';
 import CoursePreview from './features/CoursePreview';
 import CoursePicker from './features/CoursePicker';
 import ErrorAlert from './features/alerts/ErrorAlert';
+import LoadingCoursesPage from './features/LoadingCoursesPage';
 import LtiBreadcrumb from './features/LtiBreadcrumb';
 
 // Stylesheet imports
@@ -29,6 +31,7 @@ function App() {
 
   const selectedCourse = useSelector(selectSelectedCourse);
   const ltiSystemErrorCode = useSelector(selectLtiSystemError);
+  const isLoading = useSelector(selectLoading);
 
   // When there's a system error from the backend we must inform the user and do not render any content.
   if (Number.isInteger(parseInt(ltiSystemErrorCode))) {
@@ -52,22 +55,18 @@ function App() {
            </Container>;
   }
 
-  // Show the course picker by default
-  let appContent = <CoursePicker />;
-
-  // When a course has been selected display the course preview.
-  if (selectedCourse) {
-    appContent = <CoursePreview course={selectedCourse} />
+  // When courses are being loaded display a loading page.
+  if (isLoading) {
+    return <LoadingCoursesPage />;
   }
 
-  return (
-    <>
-      <LtiBreadcrumb course={selectedCourse} />
-      <Container className="App" fluid role="main">
-        {appContent}
-      </Container>
-    </>
-  );
+  // When a course has been selected display the course preview.
+  return <>
+           <LtiBreadcrumb course={selectedCourse} />
+           <Container className="App" fluid role="main">
+             {selectedCourse ? <CoursePreview course={selectedCourse} /> : <CoursePicker />}
+           </Container>
+         </>;
 
 }
 
