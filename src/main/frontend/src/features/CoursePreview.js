@@ -48,6 +48,8 @@ function CoursePreview(props) {
 
   // Some courses may not have a valid cover image, use a default instead
   const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url, true);
+  const courseTitle = props.course.book_title ? props.course.book_title : 'This course does not have a title.';
+  const courseCoverTitle = `The cover image for the ${courseTitle} course.`;
   const dispatch = useDispatch();
 
   // In case there's an error adding the links, display an error message.
@@ -157,7 +159,7 @@ function CoursePreview(props) {
       <div className="course-info">
         <Row className="course-preview-info">
           <Col sm={2}>
-            <Image rounded fluid src={courseCoverUrl} title={props.course.book_title} />
+            <Image rounded fluid src={courseCoverUrl} title={courseCoverTitle} />
           </Col>
           <Col sm={10}>
             {(props.course.book_title || props.course.description) ?
