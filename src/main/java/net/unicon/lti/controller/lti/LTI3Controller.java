@@ -124,51 +124,55 @@ public class LTI3Controller {
 
             // Sync lineitems and update db if needed
             if (!ltiDataService.getDemoMode()) {
-                // check if lti resource link and it is a new lti_context or lineitems are out of sync
-                boolean lineitemsAlreadySynced = ltiContext.getLineitemsSynced() != null && ltiContext.getLineitemsSynced();
-                if (!lineitemsAlreadySynced) {
-                    // fetch lineitems from ags
-                    log.debug("Attempting to fetch lineitems from the LMS...");
-                    LineItems lineItems = advantageAGSService.getLineItems(platformDeployment, ltiContext.getLineitems());
+                if (ltiDataService.getDeepLinkingEnabled()) { // only attempt to sync lineitems if deep linking is enabled
+                    // check if lti resource link and it is a new lti_context or lineitems are out of sync
+                    boolean lineitemsAlreadySynced = ltiContext.getLineitemsSynced() != null && ltiContext.getLineitemsSynced();
+                    if (!lineitemsAlreadySynced) {
+                        // fetch lineitems from ags
+                        log.debug("Attempting to fetch lineitems from the LMS...");
+                        LineItems lineItems = advantageAGSService.getLineItems(platformDeployment, ltiContext.getLineitems());
 
-                    // if there are lineitems in the LMS, sync them to Harmony
-                    if (lineItems != null && lineItems.getLineItemList() != null && !lineItems.getLineItemList().isEmpty()) {
-                        log.debug("Attempting to send lineitems to Harmony...");
-                        ResponseEntity<Map> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
+                        // if there are lineitems in the LMS, sync them to Harmony
+                        if (lineItems != null && lineItems.getLineItemList() != null && !lineItems.getLineItemList().isEmpty()) {
+                            log.debug("Attempting to send lineitems to Harmony...");
+                            ResponseEntity<Map> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
 
-                        // if no exceptions were thrown and root_outcome_guid received, set lineitems synced to true for the context
-                        if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
-                            Map<String, String> rogMap = harmonyLineitemsResponse.getBody();
-                            if (rogMap != null && StringUtils.isNotBlank(rogMap.get("root_outcome_guid"))) {
-                                String rootOutcomeGuid = rogMap.get("root_outcome_guid");
-                                log.info("{} lineitems have been synced to Harmony successfully for iss {}, client_id {}, deployment_id {}, and LMS context_id {}. We received root_outcome_guid {} from Harmony.",
-                                        lineItems.getLineItemList().size(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), rootOutcomeGuid);
-                                if (StringUtils.isBlank(ltiContext.getRootOutcomeGuid())) {
-                                    log.info("This is a copied course. Setting root_outcome_guid to {}", rootOutcomeGuid);
-                                    ltiContext.setRootOutcomeGuid(rootOutcomeGuid);
+                            // if no exceptions were thrown and root_outcome_guid received, set lineitems synced to true for the context
+                            if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
+                                Map<String, String> rogMap = harmonyLineitemsResponse.getBody();
+                                if (rogMap != null && StringUtils.isNotBlank(rogMap.get("root_outcome_guid"))) {
+                                    String rootOutcomeGuid = rogMap.get("root_outcome_guid");
+                                    log.info("{} lineitems have been synced to Harmony successfully for iss {}, client_id {}, deployment_id {}, and LMS context_id {}. We received root_outcome_guid {} from Harmony.",
+                                            lineItems.getLineItemList().size(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), rootOutcomeGuid);
+                                    if (StringUtils.isBlank(ltiContext.getRootOutcomeGuid())) {
+                                        log.info("This is a copied course. Setting root_outcome_guid to {}", rootOutcomeGuid);
+                                        ltiContext.setRootOutcomeGuid(rootOutcomeGuid);
+                                    }
+                                    ltiContext.setLineitemsSynced(true);
+                                    ltiDataService.getRepos().contexts.save(ltiContext);
+                                } else {
+                                    log.error("Harmony lineitems API did not return root_outcome_guid. {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
+                                    // When there's an error syncing LineItems the frontend will display a specific error.
+                                    model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
+                                    // This redirects to the REACT UI which is a secondary set of templates.
+                                    return TextConstants.REACT_UI_TEMPLATE;
                                 }
-                                ltiContext.setLineitemsSynced(true);
-                                ltiDataService.getRepos().contexts.save(ltiContext);
                             } else {
-                                log.error("Harmony lineitems API did not return root_outcome_guid. {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
+                                log.error("Harmony Lineitems API returned {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
                                 // When there's an error syncing LineItems the frontend will display a specific error.
                                 model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
                                 // This redirects to the REACT UI which is a secondary set of templates.
                                 return TextConstants.REACT_UI_TEMPLATE;
                             }
                         } else {
-                            log.error("Harmony Lineitems API returned {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
-                            // When there's an error syncing LineItems the frontend will display a specific error.
-                            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
-                            // This redirects to the REACT UI which is a secondary set of templates.
-                            return TextConstants.REACT_UI_TEMPLATE;
+                            log.info("No lineitems found in the LMS for iss {}, client_id {}, deployment_id {}, LMS context_id {}, and lineitems URL {}.",
+                                    lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), ltiContext.getLineitems());
                         }
                     } else {
-                        log.info("No lineitems found in the LMS for iss {}, client_id {}, deployment_id {}, LMS context_id {}, and lineitems URL {}.",
-                                lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), ltiContext.getLineitems());
+                        log.info("Lineitems are already in sync and will not be synced again at this time");
                     }
                 } else {
-                    log.info("Lineitems are already in sync and will not be synced again at this time");
+                    log.info("Deep linking is disabled.");
                 }
 
                 // Setup data for the frontend
