@@ -452,6 +452,29 @@ public class LTI3ControllerTest {
     }
 
     @Test
+    public void testErrorSendingLineitemsToHarmonyWithoutHarmonyApiUrl() {
+        try {
+            when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenThrow(new DataServiceException("The Harmony API has not been configured, lineitems cannot be synced."));
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
+
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
     public void testLTI3StandardLaunch() {
         try {
             when(ltiDataService.getDemoMode()).thenReturn(false);

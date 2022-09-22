@@ -331,6 +331,26 @@ public class HarmonyServiceTest {
     }
 
     @Test
+    public void testPostLineitemsToHarmonyWithoutConfiguringHarmonyApi() {
+        ReflectionTestUtils.setField(harmonyService, HARMONY_COURSES_API_URL, "");
+        LineItems lineItems = new LineItems();
+        LineItem lineItem = new LineItem();
+        lineItem.setId("https://lms.com/course/lineitem/1");
+        lineItem.setScoreMaximum("100");
+        lineItem.setLabel("Quiz 1");
+        lineItems.setLineItemList(List.of(lineItem));
+
+        DataServiceException exception = Assertions.assertThrows(
+                DataServiceException.class,
+                () -> {
+                    harmonyService.postLineitemsToHarmony(lineItems, SAMPLE_ID_TOKEN);
+                }
+        );
+
+        assertEquals("The Harmony API has not been configured, lineitems cannot be synced.", exception.getMessage());
+    }
+
+    @Test
     public void testPostLineitemsToHarmonyWithNullLineitems() {
         DataServiceException exception = Assertions.assertThrows(
                 DataServiceException.class,
