@@ -42,14 +42,14 @@ public class HarmonyRestController {
     LTI3Request lti3Request;
 
     @RequestMapping(value = "/courses")
-    public ResponseEntity<HarmonyPageResponse> listHarmonyCourses(@RequestHeader(value="lti-id-token") String ltiIdToken, @RequestParam int page) {
+    public ResponseEntity<HarmonyPageResponse> listHarmonyCourses(@RequestHeader(value="lti-id-token") String ltiIdToken, @RequestParam(required = false) Integer page, @RequestParam(required = false, value = "root_outcome_guid") String rootOutcomeGuid) {
         //To keep this endpoint secured, we will validate the id_token
         try {
             // validates JWT signature, ensures existing platformDeployment, validates 1.3 format of JWT, validates nonce
             lti3Request = new LTI3Request(ltiDataService, true, null, ltiIdToken);
             log.debug("The id_token is valid, fetching courses....");
             // We convert the JSON response to a Java object, and send the JSON value again to the frontend.
-            return ResponseEntity.ok(harmonyService.fetchHarmonyCourses(page));
+            return ResponseEntity.ok(harmonyService.fetchHarmonyCourses(page, rootOutcomeGuid));
         } catch (Exception e) {
             log.debug(e.getMessage());
             log.debug("No permissions to fetch courses from Harmony");

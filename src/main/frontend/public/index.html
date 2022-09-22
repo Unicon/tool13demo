@@ -18,6 +18,7 @@
           clientId: '[[${clientId}]]',
           iss: '[[${iss}]]',
           context: '[[${context}]]',
+          root_outcome_guid: '[[${root_outcome_guid}]]'
         };
         <!--/* We have to set an attribute to the root element so the APP can use the values of the LTI launch data. */-->
         document.getElementById('root').setAttribute('lti-launch-data', JSON.stringify(ltiLaunchData));

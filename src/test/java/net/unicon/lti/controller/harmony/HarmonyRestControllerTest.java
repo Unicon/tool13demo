@@ -113,16 +113,50 @@ public class HarmonyRestControllerTest {
             prepareIdTokenForFinalValidations();
             // Givens to mock HarmonyService
             HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
-            when(harmonyService.fetchHarmonyCourses(anyInt())).thenReturn(harmonyPageResponse);
+            when(harmonyService.fetchHarmonyCourses(anyInt(), any())).thenReturn(harmonyPageResponse);
 
-            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1);
+            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1, null);
 
             // verify id_token is a valid, unexpired JWT with a valid signature
             verify(jwtParser).parseClaimsJws(eq(ID_TOKEN));
             // verify id_token can be mapped back to a registration
             verify(platformDeploymentRepository, times(2)).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             // verify HarmonyService is called to retrieve the courses and that the response is successful and not null
-            verify(harmonyService).fetchHarmonyCourses(1);
+            verify(harmonyService).fetchHarmonyCourses(1, null);
+            assertTrue(harmonyPageResponseResponseEntity.getStatusCode().is2xxSuccessful());
+            assertNotNull(harmonyPageResponseResponseEntity.getBody());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Exception should not be thrown.");
+        }
+    }
+
+    @Test
+    public void testGetSingleHarmonyCourseByRootOutcomeGuid() {
+        try (MockedStatic<Jwts> jwts = Mockito.mockStatic(Jwts.class);
+             MockedStatic<RequestContextHolder> requestContextHolder = Mockito.mockStatic(RequestContextHolder.class)
+        ) {
+            // Givens to validate id_token
+            prepareIdTokenForInitialValidations();
+            jwts.when(Jwts::parser).thenReturn(jwtParser);
+            ServletRequestAttributes servletRequestAttributes = mock(ServletRequestAttributes.class);
+            requestContextHolder.when(RequestContextHolder::getRequestAttributes).thenReturn(servletRequestAttributes);
+            when(servletRequestAttributes.getRequest()).thenReturn(req);
+            when(req.getCookies()).thenReturn(new Cookie[]{NONCE_COOKIE});
+            when(claims.get(LtiStrings.LTI_NONCE, String.class)).thenReturn(SAMPLE_NONCE_HASH);
+            prepareIdTokenForFinalValidations();
+            // Givens to mock HarmonyService
+            HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
+            when(harmonyService.fetchHarmonyCourses(anyInt(), any())).thenReturn(harmonyPageResponse);
+
+            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1, "root");
+
+            // verify id_token is a valid, unexpired JWT with a valid signature
+            verify(jwtParser).parseClaimsJws(eq(ID_TOKEN));
+            // verify id_token can be mapped back to a registration
+            verify(platformDeploymentRepository, times(2)).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
+            // verify HarmonyService is called to retrieve the courses and that the response is successful and not null
+            verify(harmonyService).fetchHarmonyCourses(1, "root");
             assertTrue(harmonyPageResponseResponseEntity.getStatusCode().is2xxSuccessful());
             assertNotNull(harmonyPageResponseResponseEntity.getBody());
         } catch (Exception e) {
@@ -147,20 +181,20 @@ public class HarmonyRestControllerTest {
             prepareIdTokenForFinalValidations();
             // Givens to mock HarmonyService
             HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
-            when(harmonyService.fetchHarmonyCourses(anyInt())).thenReturn(harmonyPageResponse);
+            when(harmonyService.fetchHarmonyCourses(anyInt(), any())).thenReturn(harmonyPageResponse);
 
             // Given no matching Platform Deployment registration
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class)))
                     .thenReturn(new ArrayList<>());
 
-            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1);
+            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1, null);
 
             // verify id_token is a valid, unexpired JWT with a valid signature
             verify(jwtParser).parseClaimsJws(eq(ID_TOKEN));
             // verify id_token can be mapped back to a registration
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             // verify HarmonyService is not called to retrieve the courses and that the response is 403 and not null
-            verify(harmonyService, never()).fetchHarmonyCourses(1);
+            verify(harmonyService, never()).fetchHarmonyCourses(1, null);
             assertEquals(403, harmonyPageResponseResponseEntity.getStatusCode().value());
             assertNull(harmonyPageResponseResponseEntity.getBody());
         } catch (Exception e) {
@@ -185,16 +219,16 @@ public class HarmonyRestControllerTest {
             prepareIdTokenForFinalValidations();
             // Givens to mock HarmonyService
             HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
-            when(harmonyService.fetchHarmonyCourses(anyInt())).thenReturn(harmonyPageResponse);
+            when(harmonyService.fetchHarmonyCourses(anyInt(), any())).thenReturn(harmonyPageResponse);
 
-            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(null, 1);
+            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(null, 1, null);
 
             // verify id_token is a valid, unexpired JWT with a valid signature
             verify(jwtParser).parseClaimsJws(eq(null));
             // verify registration cannot be validated without id_token
             verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             // verify HarmonyService is not called to retrieve the courses and that the response is 403 and not null
-            verify(harmonyService, never()).fetchHarmonyCourses(1);
+            verify(harmonyService, never()).fetchHarmonyCourses(1, null);
             assertEquals(403, harmonyPageResponseResponseEntity.getStatusCode().value());
             assertNull(harmonyPageResponseResponseEntity.getBody());
         } catch (Exception e) {
@@ -219,19 +253,19 @@ public class HarmonyRestControllerTest {
             prepareIdTokenForFinalValidations();
             // Givens to mock HarmonyService
             HarmonyPageResponse harmonyPageResponse = new HarmonyPageResponse();
-            when(harmonyService.fetchHarmonyCourses(anyInt())).thenReturn(harmonyPageResponse);
+            when(harmonyService.fetchHarmonyCourses(anyInt(), any())).thenReturn(harmonyPageResponse);
             // Given JwtParser throws exception
             // Example exception from here: http://javadox.com/io.jsonwebtoken/jjwt/0.4/io/jsonwebtoken/JwtParser.html#parseClaimsJws
             when(jwtParser.parseClaimsJws(eq(ID_TOKEN))).thenThrow(new SignatureException("Signature validation failed"));
 
-            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1);
+            ResponseEntity<HarmonyPageResponse> harmonyPageResponseResponseEntity = harmonyRestController.listHarmonyCourses(ID_TOKEN, 1, null);
 
             // verify id_token is a valid, unexpired JWT with a valid signature
             verify(jwtParser).parseClaimsJws(eq(ID_TOKEN));
             // verify registration cannot be validated without valid id_token
             verify(platformDeploymentRepository, never()).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             // verify HarmonyService is not called to retrieve the courses and that the response is 403 and not null
-            verify(harmonyService, never()).fetchHarmonyCourses(1);
+            verify(harmonyService, never()).fetchHarmonyCourses(1, null);
             assertEquals(403, harmonyPageResponseResponseEntity.getStatusCode().value());
             assertNull(harmonyPageResponseResponseEntity.getBody());
         } catch (Exception e) {

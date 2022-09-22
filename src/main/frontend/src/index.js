@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import appSlice from './app/appSlice';
 import { fetchCourses } from './app/appSlice';
+import { isValidRootOutcomeGuid } from './util/Utils.js';
 
 // Components import
 import ThemeProvider from 'react-bootstrap/ThemeProvider'
@@ -23,18 +24,25 @@ const ltiLaunchData = JSON.parse(roolElement.getAttribute('lti-launch-data'));
 // Use the backend attributes, it's recommended to store them in the Redux store.
 // This defines the initial state of the store, the variables sent from the backend should be in the store.
 const initialState = {
+  // These variables are related to the LTI APP.
   courseArray: [],
   filteredCourseArray: [],
   metadata: {},
   searchInputText: '',
   selectedCourse: null,
+  loading: true,
+  errorFetchingCourses: false,
+  errorAssociatingCourse: false,
+  selectedModules: [],
+  // These variables are related to the LTI Launch data.
   deploymentId: ltiLaunchData.deploymentId,
   clientId: ltiLaunchData.clientId,
   iss: ltiLaunchData.iss,
   context: ltiLaunchData.context,
   id_token: ltiLaunchData.id_token,
-  loading: true,
-  errorFetchingCourses: false
+  state: ltiLaunchData.state,
+  target: ltiLaunchData.target,
+  root_outcome_guid: isValidRootOutcomeGuid(ltiLaunchData.root_outcome_guid) ? ltiLaunchData.root_outcome_guid : null,
 };
 
 // Creates the store and preloads the initial state of the store.

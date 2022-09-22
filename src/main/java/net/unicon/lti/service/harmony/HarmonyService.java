@@ -12,9 +12,13 @@
  */
 package net.unicon.lti.service.harmony;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.unicon.lti.exceptions.DataServiceException;
+import net.unicon.lti.model.ags.LineItems;
 import net.unicon.lti.model.harmony.HarmonyContentItemDTO;
+import net.unicon.lti.model.harmony.HarmonyFetchDeepLinksBody;
 import net.unicon.lti.model.harmony.HarmonyPageResponse;
 import net.unicon.lti.utils.RestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,12 +27,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,16 +45,14 @@ import java.util.Objects;
 @Slf4j
 public class HarmonyService {
     private static final String DEEP_LINKS_PATH = "/lti_deep_links";
+    private static final String LINEITEMS_PATH = "/lineitems";
 
     @Value("${harmony.courses.api}")
     private String harmonyCoursesApiUrl;
 
-    @Value("${harmony.courses.jwt}")
-    private String harmonyJWT;
+    public HarmonyPageResponse fetchHarmonyCourses(Integer page, String rootOutcomeGuid) {
 
-    public HarmonyPageResponse fetchHarmonyCourses(int page) {
-
-        if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
             log.warn("The Harmony Courses API has not been configured, courses will not be fetched.");
             return null;
         }
@@ -59,19 +62,16 @@ public class HarmonyService {
             RestTemplate restTemplate = RestUtils.createRestTemplate();
 
             // Build the URL
-            String requestUrl = harmonyCoursesApiUrl;
-            // Only append the page parameter when it's needed.
-            if (page != 1) {
-                URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
+            URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl);
+            if (StringUtils.isNotEmpty(rootOutcomeGuid)) {
+                builder.addParameter("root_outcome_guid", rootOutcomeGuid);
+            } else if (page != null && page > 1) {
                 // Add the page parameter since this API is paginated.
                 builder.setParameter("page", String.valueOf(page));
-                requestUrl = builder.build().toString();
             }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(harmonyJWT);
-            HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-            ResponseEntity<HarmonyPageResponse> response = restTemplate.exchange(requestUrl, HttpMethod.GET, entity, HarmonyPageResponse.class);
+            String requestUrl = builder.build().toString();
+            ResponseEntity<HarmonyPageResponse> response = restTemplate.getForEntity(requestUrl, HarmonyPageResponse.class);
             if (response.getStatusCode().is2xxSuccessful()) {
                 return response.getBody();
             } else {
@@ -85,8 +85,8 @@ public class HarmonyService {
         }
     }
 
-    public List<HarmonyContentItemDTO> fetchDeepLinkingContentItems(String rootOutcomeGuid, String piGuid, String idToken) {
-        if (StringUtils.isAnyBlank(harmonyCoursesApiUrl, harmonyJWT)) {
+    public List<HarmonyContentItemDTO> fetchDeepLinkingContentItems(String rootOutcomeGuid, String idToken, boolean coursePaired, List moduleIds) {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
             log.error("The Harmony API has not been configured, deep links will not be fetched.");
             return null;
         }
@@ -96,47 +96,59 @@ public class HarmonyService {
             return null;
         }
 
-        if (piGuid == null || piGuid.isEmpty()) {
-            log.error("Cannot fetch deep links without pi_guid (tool_platform.guid from id_token)");
-            return null;
-        }
-
         if (idToken == null || idToken.isEmpty()) {
             log.error("Cannot fetch deep links without id_token");
             return null;
         }
 
+        String requestUrl = "";
         try {
             RestTemplate restTemplate = RestUtils.createRestTemplate();
 
-            // Build the URL
-            String requestUrl = harmonyCoursesApiUrl;
-
             URIBuilder builder = new URIBuilder(harmonyCoursesApiUrl + DEEP_LINKS_PATH);
             builder.addParameter("guid", rootOutcomeGuid);
-            builder.addParameter("pi_guid", piGuid);
-            builder.addParameter("course_paired", "false"); // temporarily hardcoding until DL3-48
+            builder.addParameter("course_paired", String.valueOf(coursePaired));
             requestUrl = builder.build().toString();
+            log.debug("About to request deep links from: {}", requestUrl);
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(harmonyJWT);
-            Map<String, String> body = Collections.singletonMap("id_token", idToken);
-            HttpEntity<String> entity = new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers);
+            HarmonyFetchDeepLinksBody body = new HarmonyFetchDeepLinksBody(null, idToken, moduleIds);
+            HttpEntity<HarmonyFetchDeepLinksBody> entity = new HttpEntity<>(body);
 
-            ResponseEntity<HarmonyContentItemDTO[]> response = restTemplate.exchange(requestUrl, HttpMethod.GET, entity, HarmonyContentItemDTO[].class);
+            ResponseEntity<HarmonyContentItemDTO[]> response = restTemplate.exchange(requestUrl, HttpMethod.POST, entity, HarmonyContentItemDTO[].class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.debug("Got a successful response from the Harmony Deep Links API for guid {} and pi_guid {}:\n {}", rootOutcomeGuid, piGuid, Arrays.toString(response.getBody()));
                 return Arrays.asList(Objects.requireNonNull(response.getBody()));
             } else {
+                log.error("Error requesting deep links from {}", requestUrl);
                 log.error("Harmony API returned {}", response.getStatusCode());
                 log.error(String.valueOf(response.getBody()));
                 return null;
             }
         } catch (Exception e) {
-            log.error("Error requesting deep links with guid {} and pi_guid {}", rootOutcomeGuid, piGuid);
+            log.error("Error requesting deep links from {}", requestUrl);
             log.error(e.getMessage());
             return null;
         }
+    }
+
+    public ResponseEntity<String> postLineitemsToHarmony(LineItems lineItems, String idToken) throws JsonProcessingException, DataServiceException {
+        if (lineItems == null || lineItems.getLineItemList() == null || lineItems.getLineItemList().isEmpty()) {
+            throw new DataServiceException("No lineitems to send to Harmony");
+        }
+        if (idToken == null || idToken.isEmpty()) {
+            throw new DataServiceException("Must include an id_token when posting lineitems to harmony.");
+        }
+
+        RestTemplate restTemplate = RestUtils.createRestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        Map<String, Object> body = new HashMap<>();
+        body.put("id_token", idToken);
+        body.put("lineitems", lineItems.getLineItemList());
+        HttpEntity<String> entity = new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers);
+
+        log.debug("Posting lineitems to {}", harmonyCoursesApiUrl + LINEITEMS_PATH);
+        return restTemplate.exchange(harmonyCoursesApiUrl + LINEITEMS_PATH, HttpMethod.POST, entity, String.class);
     }
 
 }

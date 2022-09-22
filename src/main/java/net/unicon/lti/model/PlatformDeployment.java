@@ -55,6 +55,9 @@ public class PlatformDeployment extends BaseEntity {
     @Basic
     @Column(name = "deployment_id")
     private String deploymentId;  // Where in the platform we need to ask for the oidc authentication.
+    @Basic
+    @Column(name = "lumen_admin_id")
+    private String lumenAdminId; // Points back to the institution (in Lumen Admin) to which this configuration belongs
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @OneToMany(mappedBy = "platformDeployment", fetch = FetchType.LAZY)
@@ -123,6 +126,14 @@ public class PlatformDeployment extends BaseEntity {
 
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
+    }
+
+    public String getLumenAdminId() {
+        return lumenAdminId;
+    }
+
+    public void setLumenAdminId(String lumenAdminId) {
+        this.lumenAdminId = lumenAdminId;
     }
 
     @JsonIgnore

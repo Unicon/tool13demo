@@ -12,12 +12,22 @@
  */
 package net.unicon.lti.controller.lti;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
 import lombok.extern.slf4j.Slf4j;
+import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.DataServiceException;
+import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.LtiLinkEntity;
+import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.ags.LineItems;
+import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
+import net.unicon.lti.repository.PlatformDeploymentRepository;
+import net.unicon.lti.service.harmony.HarmonyService;
+import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
@@ -32,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +52,9 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This LTI 3 redirect controller will retrieve the LTI3 requests and redirect them to the right page.
@@ -58,7 +71,19 @@ public class LTI3Controller {
     LtiLinkRepository ltiLinkRepository;
 
     @Autowired
+    LtiContextRepository ltiContextRepository;
+
+    @Autowired
+    PlatformDeploymentRepository platformDeploymentRepository;
+
+    @Autowired
     LTIDataService ltiDataService;
+
+    @Autowired
+    AdvantageAGSService advantageAGSService;
+
+    @Autowired
+    HarmonyService harmonyService;
 
     LTI3Request lti3Request;
 
@@ -87,16 +112,51 @@ public class LTI3Controller {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
             }
 
+            // Convert id_token to be signed by middleware so that Harmony can validate it
+            String middlewareIdToken = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
+
+            // Sync lineitems and update db if needed
+            boolean isLtiResourceLink = StringUtils.equals(lti3Request.getLtiMessageType(), LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+            PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId()).get(0);
+            LtiContextEntity ltiContext = Objects.requireNonNull(
+                    ltiDataService.getRepos().contexts.findByContextKeyAndPlatformDeployment(lti3Request.getLtiContextId(), platformDeployment),
+                    "LTI context should exist for iss " + lti3Request.getIss() + ", client_id " + lti3Request.getAud() + ", and deployment_id " + lti3Request.getLtiDeploymentId());
+            // check if lti resource link and it is a new lti_context or lineitems are out of sync
+            boolean lineitemsAlreadySynced = ltiContext.getLineitemsSynced() != null && ltiContext.getLineitemsSynced();
+            if (isLtiResourceLink && !lineitemsAlreadySynced) {
+                // fetch lineitems from ags
+                log.debug("Attempting to fetch lineitems from the LMS...");
+                LineItems lineItems = advantageAGSService.getLineItems(platformDeployment, ltiContext.getLineitems());
+
+                // sync lineitems to harmony
+                log.debug("Attempting to send lineitems to Harmony...");
+                ResponseEntity<String> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
+
+                // if no exceptions were thrown, set lineitems synced to true for the context
+                if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
+                    log.debug("Lineitems have been synced to Harmony successfully");
+                    ltiContext.setLineitemsSynced(true);
+                    ltiDataService.getRepos().contexts.save(ltiContext);
+                } else {
+                    log.error("Harmony Lineitems API returned {}", harmonyLineitemsResponse.getStatusCode());
+                    log.error(String.valueOf(harmonyLineitemsResponse.getBody()));
+                    model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
+                    return "lti3Error";
+                }
+            } else {
+                log.debug("Lineitem syncing criteria not met: isLtiResourceLink = {}, ltiContext.getLineitemsSynced = {}", isLtiResourceLink, ltiContext.getLineitemsSynced());
+            }
+
             if (!ltiDataService.getDemoMode()) {
                 String target = lti3Request.getLtiTargetLinkUrl();
                 log.debug("Target Link URL: {}", target);
-                String ltiData = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
 
                 model.addAttribute("target", target);
-                model.addAttribute("id_token", ltiData);
+                model.addAttribute("id_token", middlewareIdToken);
                 model.addAttribute("state", state);
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
+                return "lti3Redirect";
             }
 
             // When the LTI message type is deep linking we must to display the React UI to select courses from harmony. 
@@ -107,6 +167,10 @@ public class LTI3Controller {
                     model.addAttribute("clientId", clientIdFromState);
                     model.addAttribute("iss", lti3Request.getIss());
                     model.addAttribute("context", lti3Request.getLtiContextId());
+                    model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
+                    log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
+                            lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());
+
                     // This redirects to the REACT UI which is a secondary set of templates.
                     return TextConstants.REACT_UI_TEMPLATE;
                 } else {
@@ -116,10 +180,21 @@ public class LTI3Controller {
 
             return "lti3Redirect";
 
-        } catch (SignatureException ex) {
+        } catch (SignatureException e) {
+            log.error("Invalid Signature: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
-        } catch (GeneralSecurityException ex) {
+        } catch (ConnectionException e) {
+            log.error("Could not fetch lineitems to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not fetch lineitems to sync with Harmony");
+        } catch (GeneralSecurityException e) {
+            log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
+        } catch (JsonProcessingException | DataServiceException e) {
+            log.error("HarmonyService could not receive lineitems: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Harmony could not receive lineitems");
+        } catch (Exception e) {
+            log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage() + "\n Stack Trace: " + Arrays.toString(e.getStackTrace()));
         }
     }
 

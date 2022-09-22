@@ -38,6 +38,9 @@ import net.unicon.lti.service.lti.impl.LTIDataServiceImpl;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
@@ -83,9 +86,11 @@ import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
 @SuppressWarnings("ConstantConditions")
 @Data
 @Slf4j
-public class LTI3Request {
+public class LTI3Request implements ApplicationContextAware {
     HttpServletRequest httpServletRequest;
     LTIDataService ltiDataService;
+    ApplicationContext applicationContext;
+
     Jws<Claims> jws;
 
     // these are populated by the loadLTIDataFromDB operation
@@ -422,8 +427,11 @@ public class LTI3Request {
             // NOTE: This is just to hardcode some demo information.
             if (ltiDataService.getDemoMode()) {
                 try {
-                    deepLinkJwts = DeepLinkUtils.generateDeepLinkDemoJWT(ltiDataService, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0),
-                            this, ltiDataService.getLocalUrl());
+                    PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0);
+                    deepLinkJwts = DeepLinkUtils.generateDeepLinkDemoJWT(ltiDataService, platformDeployment, this, ltiDataService.getLocalUrl());
+                    LtiContextEntity ltiContext = ltiDataService.getRepos().contexts.findByContextKeyAndPlatformDeployment(ltiContextId, platformDeployment);
+                    ltiContext.setLineitemsSynced(false);
+                    ltiDataService.getRepos().contexts.save(ltiContext);
                 } catch (GeneralSecurityException | IOException | NullPointerException ex) {
                     log.error("Error creating the DeepLinking Response", ex);
                 }
@@ -854,5 +862,10 @@ public class LTI3Request {
 
     public static LTI3Request makeLTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt) throws DataServiceException {
         return new LTI3Request(ltiDataService, update, linkId, jwt);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
