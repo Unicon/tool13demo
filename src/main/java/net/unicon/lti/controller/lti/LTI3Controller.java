@@ -172,7 +172,7 @@ public class LTI3Controller {
                         log.info("Lineitems are already in sync and will not be synced again at this time");
                     }
                 } else {
-                    log.info("Deep linking is disabled.");
+                    log.info("Lineitems will not be synced because deep linking is disabled.");
                 }
 
                 // Setup data for the frontend
