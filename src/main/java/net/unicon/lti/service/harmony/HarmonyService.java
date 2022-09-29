@@ -131,6 +131,10 @@ public class HarmonyService {
     }
 
     public ResponseEntity<Map> postLineitemsToHarmony(LineItems lineItems, String idToken) throws JsonProcessingException, DataServiceException {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
+            throw new DataServiceException("The Harmony API has not been configured, lineitems cannot be synced.");
+        }
+
         if (lineItems == null || lineItems.getLineItemList() == null || lineItems.getLineItemList().isEmpty()) {
             throw new DataServiceException("No lineitems to send to Harmony");
         }
