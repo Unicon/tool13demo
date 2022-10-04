@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 @Data
 public class SQSLineItem {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss.SSS'Z'");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH.mm.ss'Z'");
 
     @JsonProperty("client_id")
     private String clientId;
