@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 
 @Data
 public class SQSLineItem {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
     @JsonProperty("client_id")
     private String clientId;
 
@@ -34,7 +36,7 @@ public class SQSLineItem {
         score.setScoreMaximum(1.0f);
         score.setActivityProgress(LtiStrings.ACTIVITY_PROGRESS_COMPLETED);
         score.setGradingProgress(LtiStrings.GRADING_PROGRESS_FULLY_GRADED);
-        String now = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
+        String now = ZonedDateTime.now(ZoneOffset.UTC).format(FORMATTER);
         score.setTimestamp(now);
         return score;
     }
