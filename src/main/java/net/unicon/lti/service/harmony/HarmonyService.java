@@ -130,7 +130,11 @@ public class HarmonyService {
         }
     }
 
-    public ResponseEntity<String> postLineitemsToHarmony(LineItems lineItems, String idToken) throws JsonProcessingException, DataServiceException {
+    public ResponseEntity<Map> postLineitemsToHarmony(LineItems lineItems, String idToken) throws JsonProcessingException, DataServiceException {
+        if (StringUtils.isBlank(harmonyCoursesApiUrl)) {
+            throw new DataServiceException("The Harmony API has not been configured, lineitems cannot be synced.");
+        }
+
         if (lineItems == null || lineItems.getLineItemList() == null || lineItems.getLineItemList().isEmpty()) {
             throw new DataServiceException("No lineitems to send to Harmony");
         }
@@ -148,7 +152,7 @@ public class HarmonyService {
         HttpEntity<String> entity = new HttpEntity<>(new ObjectMapper().writeValueAsString(body), headers);
 
         log.debug("Posting lineitems to {}", harmonyCoursesApiUrl + LINEITEMS_PATH);
-        return restTemplate.exchange(harmonyCoursesApiUrl + LINEITEMS_PATH, HttpMethod.POST, entity, String.class);
+        return restTemplate.exchange(harmonyCoursesApiUrl + LINEITEMS_PATH, HttpMethod.POST, entity, Map.class);
     }
 
 }

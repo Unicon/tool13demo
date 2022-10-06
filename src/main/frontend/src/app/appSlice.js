@@ -11,6 +11,9 @@ export const appSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
+    setIsFetchingDeepLinks: (state, action) => {
+      state.isFetchingDeepLinks = action.payload;
+    },
     setCourseArray: (state, action) => {
       state.courseArray = state.filteredCourseArray = action.payload;
     },
@@ -68,6 +71,7 @@ export const {
   setErrorFetchingCourses,
   setCourseArray,
   setLoading,
+  setIsFetchingDeepLinks,
   toggleAllModules,
   updateMetadata
 } = appSlice.actions;
@@ -78,6 +82,7 @@ export const selectSelectedCourse = (state) => state.selectedCourse;
 export const selectCourseArray = (state) => state.filteredCourseArray;
 export const selectMetadata = (state) => state.metadata;
 export const selectLoading = (state) => state.loading;
+export const selectIsFetchingDeepLinks = (state) => state.isFetchingDeepLinks;
 export const selectErrorFetchingCourses = (state) => state.errorFetchingCourses;
 export const selectErrorAssociatingCourse = (state) => state.errorAssociatingCourse;
 export const selectSelectedModules = (state) => state.selectedModules;
@@ -90,6 +95,7 @@ export const selectIdToken = (state) => state.id_token;
 export const selectState = (state) => state.state;
 export const selectTarget = (state) => state.target;
 export const selectRootOutcomeGuid = (state) => state.root_outcome_guid;
+export const selectLtiSystemError = (state) => state.lti_system_error;
 
 // This function fetches the courses from the backend, it should be invoked when loading the application.
 export const fetchCourses = (page) => (dispatch, getState) => {

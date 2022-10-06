@@ -57,6 +57,8 @@ public class RegistrationServiceTest {
     private static final String SAMPLE_DESCRIPTION = "LTI 1.3 Tool Description";
     private static final String DEEP_LINKING_MENU_LABEL = "deepLinkingMenuLabel";
     private static final String SAMPLE_DEEP_LINKING_MENU_LABEL = "Tool Content Selector";
+    private static final String ENABLE_DEEP_LINKING = "enableDeepLinking";
+    private static final boolean SAMPLE_ENABLE_DEEP_LINKING = true;
 
     @InjectMocks
     private RegistrationService registrationService = new RegistrationServiceImpl();
@@ -79,6 +81,7 @@ public class RegistrationServiceTest {
         ReflectionTestUtils.setField(registrationService, CLIENT_NAME, SAMPLE_CLIENT_NAME);
         ReflectionTestUtils.setField(registrationService, DESCRIPTION, SAMPLE_DESCRIPTION);
         ReflectionTestUtils.setField(registrationService, DEEP_LINKING_MENU_LABEL, SAMPLE_DEEP_LINKING_MENU_LABEL);
+        ReflectionTestUtils.setField(registrationService, ENABLE_DEEP_LINKING, SAMPLE_ENABLE_DEEP_LINKING);
     }
 
     @AfterEach
@@ -169,7 +172,7 @@ public class RegistrationServiceTest {
         assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
         ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
         assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
-        assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getTarget_link_uri());
+        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
         assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
 
         // Validate tool supports Deep Linking
@@ -181,6 +184,48 @@ public class RegistrationServiceTest {
 
         // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
         ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(1);
+        assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
+        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
+
+        // Validate tool accepts the claims and scopes from the platform
+        assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
+        assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
+        assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+    }
+
+    @Test
+    public void testGenerateToolConfigurationGoldilocks() {
+        ReflectionTestUtils.setField(registrationService, ENABLE_DEEP_LINKING, !SAMPLE_ENABLE_DEEP_LINKING);
+        PlatformRegistrationDTO platformRegistration = new PlatformRegistrationDTO();
+        List<String> customClaims = List.of("custom-claim-1", "custom-claim-2");
+        platformRegistration.setClaims_supported(customClaims);
+        platformRegistration.setScopes_supported(TEST_SCOPES);
+        platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
+        platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
+
+        ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration);
+
+        // Validate required constants set
+        assertEquals("web", toolRegistration.getApplication_type());
+        assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
+        assertEquals("id_token", toolRegistration.getResponse_types().get(0));
+        assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
+
+        // Validate tool urls/data set
+        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
+        assertEquals(SAMPLE_LOCAL_URL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
+        assertEquals(SAMPLE_CLIENT_NAME, toolRegistration.getClient_name());
+        assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
+        ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
+        assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
+        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
+        assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
+
+        // Validate message types supported
+        List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
+
+        // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
+        ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(0);
         assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
         assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
 

@@ -1,6 +1,9 @@
 // Redux imports
 import { useSelector } from 'react-redux';
-import { selectErrorAssociatingCourse, selectErrorFetchingCourses } from '../app/appSlice';
+import {
+  selectErrorAssociatingCourse,
+  selectErrorFetchingCourses
+} from '../app/appSlice';
 
 // Components import
 import Col from 'react-bootstrap/Col';

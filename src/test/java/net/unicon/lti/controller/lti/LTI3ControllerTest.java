@@ -18,6 +18,7 @@ import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import org.junit.jupiter.api.AfterEach;
@@ -45,10 +46,13 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -74,6 +78,8 @@ public class LTI3ControllerTest {
     private static final String SAMPLE_ISS = "https://lms.com";
     private static final String SAMPLE_TARGET = "https://tool.com/test";
     private static final String TARGET = "target";
+    private static final String CANVAS = "canvas";
+    private static final String PLATFORM_FAMILY_CODE = "platform_family_code";
 
     @InjectMocks
     private LTI3Controller lti3Controller = new LTI3Controller();
@@ -137,6 +143,7 @@ public class LTI3ControllerTest {
             MockitoAnnotations.openMocks(this);
             lti3RequestMockedStatic = Mockito.mockStatic(LTI3Request.class);
             when(req.getParameter("state")).thenReturn(VALID_STATE);
+            when(ltiDataService.getDeepLinkingEnabled()).thenReturn(true);
             when(ltiDataService.getRepos()).thenReturn(allRepositories);
             when(jwsClaims.getBody()).thenReturn(claims);
             when(ltijwtService.validateState(VALID_STATE)).thenReturn(jwsClaims);
@@ -154,10 +161,11 @@ public class LTI3ControllerTest {
             when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/test");
             when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
             when(lti3Request.getLtiContextId()).thenReturn(SAMPLE_LTI_CONTEXT_ID);
+            when(lti3Request.getLtiToolPlatformFamilyCode()).thenReturn("canvas");
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(List.of(platformDeployment));
             ltiContext.setLineitems(SAMPLE_LINEITEMS_URL);
             when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), eq(platformDeployment))).thenReturn(ltiContext);
-            ResponseEntity<String> harmonyResponse = new ResponseEntity<>(HttpStatus.OK);
+            ResponseEntity<Map> harmonyResponse = new ResponseEntity<>(Map.of("root_outcome_guid", "test-rog"), HttpStatus.OK);
             LineItems sampleLineItems = new LineItems();
             sampleLineItems.setLineItemList(List.of(new LineItem()));
             when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenReturn(sampleLineItems);
@@ -244,6 +252,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("target"), "https://tool.com/test");
             String finalIdToken = (String) model.getAttribute("id_token");
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -299,6 +308,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -331,6 +341,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute("id_token");
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -348,48 +359,69 @@ public class LTI3ControllerTest {
         try {
             when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenThrow(new ConnectionException("Exception fetching lineitems"));
 
-            ResponseStatusException exception = Assertions.assertThrows(
-                    ResponseStatusException.class,
-                    () -> {lti3Controller.lti3(req, res, model);}
-            );
+            String response = lti3Controller.lti3(req, res, model);
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
-            assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
-            assertTrue(Objects.requireNonNull(exception.getReason()).contains("Could not fetch lineitems to sync with Harmony"));
 
             // validate lineitems not synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), anyString());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            Mockito.verify(ltiDataService, never()).getDemoMode();
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
     }
 
     @Test
-    public void testErrorZeroLineitemsFetchedFromLMS() {
+    public void testNoErrorZeroLineitemsFetchedFromLMS() {
         try {
-            LineItems sampleLineItems = new LineItems();
-            when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenReturn(sampleLineItems);
-            when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenThrow(new DataServiceException("No lineitems to send to Harmony"));
+            when(advantageAGSService.getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL))).thenReturn(new LineItems());
 
-            ResponseStatusException exception = Assertions.assertThrows(
-                    ResponseStatusException.class,
-                    () -> {lti3Controller.lti3(req, res, model);}
-            );
+            String response = lti3Controller.lti3(req, res, model);
+
+            // validate attempt to fetch lineitems but no sync to Harmony
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
-            assertEquals(exception.getStatus(), HttpStatus.BAD_REQUEST);
-            assertTrue(Objects.requireNonNull(exception.getReason()).contains("Harmony could not receive lineitems"));
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, "lti3Redirect");
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
 
-            // validate lineitems not synced
+    @Test
+    public void testErrorNoRootOutcomeGuidSendingLineitemsToHarmony() {
+        try {
+            ResponseEntity<Map> harmonyResponse = new ResponseEntity<>(new HashMap(), HttpStatus.OK);
+            when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenReturn(harmonyResponse);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            Mockito.verify(ltiDataService, never()).getDemoMode();
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
+
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
         }
@@ -398,7 +430,7 @@ public class LTI3ControllerTest {
     @Test
     public void testErrorSendingLineitemsToHarmony() {
         try {
-            ResponseEntity<String> harmonyResponse = new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            ResponseEntity<Map> harmonyResponse = new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenReturn(harmonyResponse);
 
             String response = lti3Controller.lti3(req, res, model);
@@ -406,15 +438,13 @@ public class LTI3ControllerTest {
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
 
             // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
             Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
 
-            Mockito.verify(ltiDataService, never()).getDemoMode();
-
-            assertEquals("Harmony Lineitems API returned 500 INTERNAL_SERVER_ERROR\nnull", model.getAttribute("Error"));
-
-            assertEquals("lti3Error", response);
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
 
         } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
@@ -422,9 +452,34 @@ public class LTI3ControllerTest {
     }
 
     @Test
-    public void testLTI3DemoModeOff() {
+    public void testErrorSendingLineitemsToHarmonyWithoutHarmonyApiUrl() {
+        try {
+            when(harmonyService.postLineitemsToHarmony(any(LineItems.class), anyString())).thenThrow(new DataServiceException("The Harmony API has not been configured, lineitems cannot be synced."));
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
+            assertEquals(LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
+            assertEquals(TextConstants.REACT_UI_TEMPLATE, response);
+
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testLTI3StandardLaunch() {
         try {
             when(ltiDataService.getDemoMode()).thenReturn(false);
+            ltiContext.setRootOutcomeGuid("root-outcome-guid-1");
+            ltiContext.setLineitemsSynced(false);
 
             String response = lti3Controller.lti3(req, res, model);
 
@@ -433,12 +488,111 @@ public class LTI3ControllerTest {
             Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
             Mockito.verify(ltiContextRepository).save(eq(ltiContext));
             assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("root-outcome-guid-1", ltiContext.getRootOutcomeGuid());
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
             Mockito.verify(ltiDataService).getDemoMode();
             assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, "lti3Redirect");
+
+        } catch (JsonProcessingException | DataServiceException | ConnectionException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testLTI3StandardLaunchDeepLinkingDisabled() {
+        try {
+            when(ltiDataService.getDemoMode()).thenReturn(false);
+            when(ltiDataService.getDeepLinkingEnabled()).thenReturn(false);
+            ltiContext.setRootOutcomeGuid("root-outcome-guid-1");
+            ltiContext.setLineitemsSynced(false);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            // validate lineitems not synced
+            Mockito.verify(advantageAGSService, never()).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+            assertFalse(ltiContext.getLineitemsSynced());
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(ltiDataService).getDeepLinkingEnabled();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, "lti3Redirect");
+
+        } catch (JsonProcessingException | DataServiceException | ConnectionException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testLTI3StandardLaunchLineitemsAlreadySynced() {
+        try {
+            when(ltiDataService.getDemoMode()).thenReturn(false);
+            ltiContext.setRootOutcomeGuid("root-outcome-guid-1");
+            ltiContext.setLineitemsSynced(true);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            // validate lineitems synced
+            Mockito.verify(advantageAGSService, never()).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+            assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("root-outcome-guid-1", ltiContext.getRootOutcomeGuid());
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, "lti3Redirect");
+
+        } catch (JsonProcessingException | DataServiceException | ConnectionException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testLTI3StandardLaunchCopiedCourse() {
+        try {
+            when(ltiDataService.getDemoMode()).thenReturn(false);
+            ltiContext.setRootOutcomeGuid(null);
+            ltiContext.setLineitemsSynced(null);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            // validate lineitems synced
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository).save(eq(ltiContext));
+            assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("test-rog", ltiContext.getRootOutcomeGuid());
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);
@@ -470,6 +624,7 @@ public class LTI3ControllerTest {
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertEquals(finalIdToken, middlewareIdTokenCaptor.getValue());
             assertNotEquals(finalIdToken, ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
 
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
@@ -491,13 +646,12 @@ public class LTI3ControllerTest {
 
             Mockito.verify(ltijwtService).validateState(VALID_STATE);
 
-            // validate lineitems synced
-            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
-            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
-            Mockito.verify(ltiContextRepository).save(eq(ltiContext));
-            assertTrue(ltiContext.getLineitemsSynced());
-
+            // validate lineitems not synced
             Mockito.verify(ltiDataService).getDemoMode();
+            Mockito.verify(advantageAGSService, never()).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), middlewareIdTokenCaptor.capture());
+            Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+
             assertEquals(finalResponse, "lti3Redirect");
         } catch (JsonProcessingException | DataServiceException | ConnectionException e) {
             fail(UNIT_TEST_EXCEPTION_TEXT);
@@ -505,13 +659,98 @@ public class LTI3ControllerTest {
     }
 
     @Test
-    public void testLTI3DeepLinkingRequest() {
+    public void testNewCourseFirstLTI3DeepLinkingRequest() {
+        try {
+            // Set the message type to Deep Linking
+            when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
+            // Enable the Deep Linking feature
+            when(ltiDataService.getDeepLinkingEnabled()).thenReturn(true);
+            ltiContext.setRootOutcomeGuid(null);
+            ltiContext.setLineitemsSynced(null);
+            when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID))).thenReturn(List.of(new PlatformDeployment()));
+            when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class))).thenReturn(ltiContext);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), anyString());
+            Mockito.verify(ltiContextRepository).save(eq(ltiContext));
+            assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("test-rog", ltiContext.getRootOutcomeGuid());
+
+            Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+            Mockito.verify(ltiContextRepository).findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class));
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            assertEquals(model.getAttribute("root_outcome_guid"), "test-rog");
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, TextConstants.REACT_UI_TEMPLATE);
+
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testReturningUserPreLineitemsSyncLTI3DeepLinkingRequest() {
         try {
             // Set the message type to Deep Linking
             when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
             // Enable the Deep Linking feature
             when(ltiDataService.getDeepLinkingEnabled()).thenReturn(true);
             ltiContext.setRootOutcomeGuid("root-outcome-guid-1");
+            ltiContext.setLineitemsSynced(false);
+            when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID))).thenReturn(List.of(new PlatformDeployment()));
+            when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class))).thenReturn(ltiContext);
+
+            String response = lti3Controller.lti3(req, res, model);
+
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+
+            // validate lineitems synced
+            Mockito.verify(advantageAGSService).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
+            Mockito.verify(harmonyService).postLineitemsToHarmony(any(LineItems.class), anyString());
+            Mockito.verify(ltiContextRepository).save(eq(ltiContext));
+            assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("root-outcome-guid-1", ltiContext.getRootOutcomeGuid());
+
+            Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+            Mockito.verify(ltiContextRepository).findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class));
+            Mockito.verify(ltijwtService).validateState(VALID_STATE);
+            Mockito.verify(ltiDataService).getDemoMode();
+            assertEquals(model.getAttribute(TARGET), SAMPLE_TARGET);
+            assertEquals(model.getAttribute("root_outcome_guid"), "root-outcome-guid-1");
+            String finalIdToken = (String) model.getAttribute(ID_TOKEN);
+            assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
+            // validate that final jwt was signed by middleware
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
+            assertNotNull(finalClaims);
+            assertEquals(response, TextConstants.REACT_UI_TEMPLATE);
+
+        } catch (ConnectionException | JsonProcessingException | DataServiceException e) {
+            fail(UNIT_TEST_EXCEPTION_TEXT);
+        }
+    }
+
+    @Test
+    public void testReturningUserPostLineitemsSyncLTI3DeepLinkingRequest() {
+        try {
+            // Set the message type to Deep Linking
+            when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
+            // Enable the Deep Linking feature
+            when(ltiDataService.getDeepLinkingEnabled()).thenReturn(true);
+            ltiContext.setRootOutcomeGuid("root-outcome-guid-1");
+            ltiContext.setLineitemsSynced(true);
             when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID))).thenReturn(List.of(new PlatformDeployment()));
             when(ltiContextRepository.findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class))).thenReturn(ltiContext);
 
@@ -523,6 +762,8 @@ public class LTI3ControllerTest {
             Mockito.verify(advantageAGSService, never()).getLineItems(eq(platformDeployment), eq(SAMPLE_LINEITEMS_URL));
             Mockito.verify(harmonyService, never()).postLineitemsToHarmony(any(LineItems.class), anyString());
             Mockito.verify(ltiContextRepository, never()).save(eq(ltiContext));
+            assertTrue(ltiContext.getLineitemsSynced());
+            assertEquals("root-outcome-guid-1", ltiContext.getRootOutcomeGuid());
 
             Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
             Mockito.verify(ltiContextRepository).findByContextKeyAndPlatformDeployment(eq(SAMPLE_LTI_CONTEXT_ID), any(PlatformDeployment.class));
@@ -532,6 +773,7 @@ public class LTI3ControllerTest {
             assertEquals(model.getAttribute("root_outcome_guid"), "root-outcome-guid-1");
             String finalIdToken = (String) model.getAttribute(ID_TOKEN);
             assertNotEquals(finalIdToken, SAMPLE_ID_TOKEN);
+            assertEquals(CANVAS, model.getAttribute(PLATFORM_FAMILY_CODE));
             // validate that final jwt was signed by middleware
             Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(finalIdToken);
             assertNotNull(finalClaims);

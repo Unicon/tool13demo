@@ -31,6 +31,7 @@ import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
+import net.unicon.lti.utils.LtiSystemErrorEnum;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
@@ -54,6 +55,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -115,45 +117,72 @@ public class LTI3Controller {
             // Convert id_token to be signed by middleware so that Harmony can validate it
             String middlewareIdToken = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
 
-            // Sync lineitems and update db if needed
-            boolean isLtiResourceLink = StringUtils.equals(lti3Request.getLtiMessageType(), LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
             PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId()).get(0);
             LtiContextEntity ltiContext = Objects.requireNonNull(
                     ltiDataService.getRepos().contexts.findByContextKeyAndPlatformDeployment(lti3Request.getLtiContextId(), platformDeployment),
                     "LTI context should exist for iss " + lti3Request.getIss() + ", client_id " + lti3Request.getAud() + ", and deployment_id " + lti3Request.getLtiDeploymentId());
-            // check if lti resource link and it is a new lti_context or lineitems are out of sync
-            boolean lineitemsAlreadySynced = ltiContext.getLineitemsSynced() != null && ltiContext.getLineitemsSynced();
-            if (isLtiResourceLink && !lineitemsAlreadySynced) {
-                // fetch lineitems from ags
-                log.debug("Attempting to fetch lineitems from the LMS...");
-                LineItems lineItems = advantageAGSService.getLineItems(platformDeployment, ltiContext.getLineitems());
 
-                // sync lineitems to harmony
-                log.debug("Attempting to send lineitems to Harmony...");
-                ResponseEntity<String> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
-
-                // if no exceptions were thrown, set lineitems synced to true for the context
-                if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
-                    log.debug("Lineitems have been synced to Harmony successfully");
-                    ltiContext.setLineitemsSynced(true);
-                    ltiDataService.getRepos().contexts.save(ltiContext);
-                } else {
-                    log.error("Harmony Lineitems API returned {}", harmonyLineitemsResponse.getStatusCode());
-                    log.error(String.valueOf(harmonyLineitemsResponse.getBody()));
-                    model.addAttribute("Error", "Harmony Lineitems API returned " + harmonyLineitemsResponse.getStatusCode() + "\n" + harmonyLineitemsResponse.getBody());
-                    return "lti3Error";
-                }
-            } else {
-                log.debug("Lineitem syncing criteria not met: isLtiResourceLink = {}, ltiContext.getLineitemsSynced = {}", isLtiResourceLink, ltiContext.getLineitemsSynced());
-            }
-
+            // Sync lineitems and update db if needed
             if (!ltiDataService.getDemoMode()) {
+                if (ltiDataService.getDeepLinkingEnabled()) { // only attempt to sync lineitems if deep linking is enabled
+                    // check if lti resource link and it is a new lti_context or lineitems are out of sync
+                    boolean lineitemsAlreadySynced = ltiContext.getLineitemsSynced() != null && ltiContext.getLineitemsSynced();
+                    if (!lineitemsAlreadySynced) {
+                        // fetch lineitems from ags
+                        log.debug("Attempting to fetch lineitems from the LMS...");
+                        LineItems lineItems = advantageAGSService.getLineItems(platformDeployment, ltiContext.getLineitems());
+
+                        // if there are lineitems in the LMS, sync them to Harmony
+                        if (lineItems != null && lineItems.getLineItemList() != null && !lineItems.getLineItemList().isEmpty()) {
+                            log.debug("Attempting to send lineitems to Harmony...");
+                            ResponseEntity<Map> harmonyLineitemsResponse = harmonyService.postLineitemsToHarmony(lineItems, middlewareIdToken);
+
+                            // if no exceptions were thrown and root_outcome_guid received, set lineitems synced to true for the context
+                            if (harmonyLineitemsResponse != null && harmonyLineitemsResponse.getStatusCode().is2xxSuccessful()) {
+                                Map<String, String> rogMap = harmonyLineitemsResponse.getBody();
+                                if (rogMap != null && StringUtils.isNotBlank(rogMap.get("root_outcome_guid"))) {
+                                    String rootOutcomeGuid = rogMap.get("root_outcome_guid");
+                                    log.info("{} lineitems have been synced to Harmony successfully for iss {}, client_id {}, deployment_id {}, and LMS context_id {}. We received root_outcome_guid {} from Harmony.",
+                                            lineItems.getLineItemList().size(), lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), rootOutcomeGuid);
+                                    if (StringUtils.isBlank(ltiContext.getRootOutcomeGuid())) {
+                                        log.info("This is a copied course. Setting root_outcome_guid to {}", rootOutcomeGuid);
+                                        ltiContext.setRootOutcomeGuid(rootOutcomeGuid);
+                                    }
+                                    ltiContext.setLineitemsSynced(true);
+                                    ltiDataService.getRepos().contexts.save(ltiContext);
+                                } else {
+                                    log.error("Harmony lineitems API did not return root_outcome_guid. {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
+                                    // When there's an error syncing LineItems the frontend will display a specific error.
+                                    model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
+                                    // This redirects to the REACT UI which is a secondary set of templates.
+                                    return TextConstants.REACT_UI_TEMPLATE;
+                                }
+                            } else {
+                                log.error("Harmony Lineitems API returned {} \n {}", harmonyLineitemsResponse.getStatusCode(), harmonyLineitemsResponse.getBody());
+                                // When there's an error syncing LineItems the frontend will display a specific error.
+                                model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
+                                // This redirects to the REACT UI which is a secondary set of templates.
+                                return TextConstants.REACT_UI_TEMPLATE;
+                            }
+                        } else {
+                            log.info("No lineitems found in the LMS for iss {}, client_id {}, deployment_id {}, LMS context_id {}, and lineitems URL {}.",
+                                    lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId(), ltiContext.getContextKey(), ltiContext.getLineitems());
+                        }
+                    } else {
+                        log.info("Lineitems are already in sync and will not be synced again at this time");
+                    }
+                } else {
+                    log.info("Lineitems will not be synced because deep linking is disabled.");
+                }
+
+                // Setup data for the frontend
                 String target = lti3Request.getLtiTargetLinkUrl();
                 log.debug("Target Link URL: {}", target);
 
                 model.addAttribute("target", target);
                 model.addAttribute("id_token", middlewareIdToken);
                 model.addAttribute("state", state);
+                model.addAttribute("platform_family_code", lti3Request.getLtiToolPlatformFamilyCode());
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
                 return "lti3Redirect";
@@ -184,14 +213,20 @@ public class LTI3Controller {
             log.error("Invalid Signature: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid signature");
         } catch (ConnectionException e) {
-            log.error("Could not fetch lineitems to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not fetch lineitems to sync with Harmony");
+            log.error("Could not fetch lineitems from LMS to sync with harmony: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            // When there's an error syncing LineItems the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         } catch (GeneralSecurityException e) {
             log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error");
         } catch (JsonProcessingException | DataServiceException e) {
             log.error("HarmonyService could not receive lineitems: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Harmony could not receive lineitems");
+            // When there's an error syncing LineItems the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.LINEITEMS_SYNCING_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         } catch (Exception e) {
             log.error("Error: {}", e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage() + "\n Stack Trace: " + Arrays.toString(e.getStackTrace()));

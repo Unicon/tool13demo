@@ -175,3 +175,7 @@ li:not(:last-child) {
   max-width: 135px;
   padding: 10px;
 }
+
+.loading-courses {
+  min-height: 340px;
+}

@@ -60,6 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/ags/**")
                 .antMatchers("/demo/**")
                 .antMatchers("/harmony/**")
+                .antMatchers("/valkyrie/**")
                 .and()
                 .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }

@@ -167,11 +167,13 @@ lti13.enableDynamicRegistration=false
 lti13.enableDeepLinking=false
 lti13.enableRoleTesting=false
 lti13.enableTokenController=false
+lti13.enableMockValkyrie=false
 ```
  - `lti13.demoMode` must have a value of `true` for AGS, Membership, or Deep Linking (the LTI Advantage Services) to function regardless of the value of their individual env variables. This is because each of these services is currently a demo.
  - `lti13.enableAGS` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Assignments and Grades (AGS) demo service to function.
  - `lti13.enableMembership` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Membership demo service to function.
  - `lti13.enableDeepLinking` must have a value of `true` in addition to `lti13.demoMode` having a value of `true` for the Deep Linking demo service to function.
+ - `lti13.enableMockValkyrie` must have a value of `true` in order to do integration testing locally.
  - The remaining new env vars `lti13.enableDynamicRegistration`, `lti13.enableRoleTesting`, `lti13.enableTokenController` are for test endpoints. `lti13.enableDynamicRegistration` corresponds to the `RegistrationController` which has not been tested. `lti13.enableRoleTesting` corresponds to the `TestController` which I suspect will be deleted as role authorization is not needed. `lti13.enableTokenController` corresponds to `TokenController` which I suspect will be deleted if it remains unused.
 
 ## Setup SQS for AGS Grade Pass Back
@@ -235,6 +237,7 @@ Please complete this properties in the `.properties`
 ```
 harmony.courses.api=http://localhost:3000/lti/deep_linking
 ```
+To do integration testing locally ensure that `lti13.enableMockValkyrie=true` and set the `harmony.courses.api` equal to your ngrok url with `/valkyrie` appended to the end. (e.g. `https://5f41-184-101-29-219.ngrok.io/valkyrie`)
 
 ## Dynamic Registration
 

@@ -12,7 +12,8 @@ import {
   selectRootOutcomeGuid,
   selectSelectedModules,
   selectState,
-  selectTarget
+  selectTarget,
+  setIsFetchingDeepLinks
 } from '../app/appSlice';
 
 import { parseCourseCoverImage } from '../util/Utils.js';
@@ -47,6 +48,8 @@ function CoursePreview(props) {
 
   // Some courses may not have a valid cover image, use a default instead
   const courseCoverUrl = parseCourseCoverImage(props.course.cover_img_url, true);
+  const courseTitle = props.course.book_title ? props.course.book_title : 'This course does not have a title.';
+  const courseCoverTitle = `The cover image for the ${courseTitle} course.`;
   const dispatch = useDispatch();
 
   // In case there's an error adding the links, display an error message.
@@ -60,6 +63,8 @@ function CoursePreview(props) {
   const [selectAllChecked, setSelectAllChecked] = useState(!isReturningUser);
   // If the course has been paired with a Lumen course we must display a different text for the button.
   const addButtonText = !isReturningUser ? 'Add Course' : 'Add Content';
+  const helpText = !isReturningUser ? 'Clicking Add Course will add the selected content for this Lumen course to your LMS' :
+                   'Clicking Add Content will add the selected content for this Lumen course to your LMS';
 
   // When the user clicks cancel it should reset the module and the course selection.
   const resetSelection = () => {
@@ -76,8 +81,13 @@ function CoursePreview(props) {
 
   const addCourseToLMS = () => {
 
+      // The window will never notice if the user is browsing in long contents or not, should always scroll to top when fetching items.
+      window.scrollTo(0, 0);
+
       // Display the spinner when fetching the deep links.
       setFetchingDeepLinks(true);
+      // Notify other components that a deep linking request has been started.
+      dispatch(setIsFetchingDeepLinks(true));
 
       const contextAPIUrl = target.replace("/lti3", "/context");
 
@@ -93,7 +103,6 @@ function CoursePreview(props) {
       }
 
       // TODO: Handle error cases of blank/null values
-
       const bookPairingData = {
         "id_token": idToken,
         "root_outcome_guid": props.course.root_outcome_guid,
@@ -122,13 +131,10 @@ function CoursePreview(props) {
         form.submit();
       }).catch(reason => {
         setErrorAddingLinks(true);
-      }).finally( () => {
-
-        // The window will never notice if the user is browsing in long contents or not, should always scroll to top when navigating across courses.
-        window.scrollTo(0, 0);
-
-        // Remove the spinner once the request has responded.
+        // Remove the spinner once the request has responded with an error, otherwise the LMS will close the modal.
         setFetchingDeepLinks(false);
+        // Notify other components that the request has been completed with an error.
+        dispatch(setIsFetchingDeepLinks(false));
       });
   }
 
@@ -153,7 +159,7 @@ function CoursePreview(props) {
       <div className="course-info">
         <Row className="course-preview-info">
           <Col sm={2}>
-            <Image rounded fluid src={courseCoverUrl} title={props.course.book_title} />
+            <Image rounded fluid src={courseCoverUrl} title={courseCoverTitle} />
           </Col>
           <Col sm={10}>
             {(props.course.book_title || props.course.description) ?
@@ -169,7 +175,7 @@ function CoursePreview(props) {
         <CourseTOC topics={props.course.table_of_contents} />
       </div>
       <div className="fixed-bottom course-footer d-flex flex-row">
-          <p className="action-info">Clicking Add Course will add all of the content for this Lumen course to your LMS</p>
+          <p className="action-info">{helpText}</p>
           <div className="ms-auto mx-3 d-flex d-row">
             {!isReturningUser && <Button variant="secondary" onClick={(e) => resetSelection()}>Cancel</Button>}
             <Button disabled={!hasSelectedModules} variant="primary" className="ms-1" onClick={(e) => addCourseToLMS()}>{addButtonText}</Button>

@@ -15,7 +15,7 @@ function CourseTopic (props) {
   if (Array.isArray(props.topic.sub_topics) && props.topic.sub_topics.length) {
     courseSectionSubtopics = (<ul>
           {props.topic.sub_topics.map((item, index) => {
-            return <li key={index}>{item}</li>
+            return <li key={index} tabIndex="0">{item}</li>
           })}
         </ul>);
   }

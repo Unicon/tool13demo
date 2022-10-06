@@ -64,6 +64,9 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Value("${application.deep.linking.menu.label}")
     private String deepLinkingMenuLabel;
 
+    @Value("${lti13.enableDeepLinking}")
+    private boolean enableDeepLinking;
+
     @Autowired
     private ExceptionMessageGenerator exceptionMessageGenerator;
 
@@ -99,12 +102,11 @@ public class RegistrationServiceImpl implements RegistrationService {
             HttpStatus status = registrationRequest.getStatusCode();
             if (status.is2xxSuccessful()) {
                 answer = registrationRequest.getBody();
-                log.debug("Platform's response to the Tool Registration DTO: {}", answer);
+                log.info("Registration successfully confirmed! Platform's response to the Tool Registration DTO: {}", answer);
             } else {
+                log.error("Can't get confirmation of the registration");
                 log.error(registrationRequest.getBody());
-                String exceptionMsg = "Can't get confirmation of the registration";
-                log.error(exceptionMsg);
-                throw new ConnectionException(exceptionMsg);
+                throw new ConnectionException(registrationRequest.getBody());
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
@@ -142,20 +144,22 @@ public class RegistrationServiceImpl implements RegistrationService {
         //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
 
-        toolConfigurationDTO.setTarget_link_uri(domainUrl);
+        toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
 
         //OPTIONAL -->setCustom_parameters --> Map
         toolConfigurationDTO.setDescription(description);
         List<ToolMessagesSupportedDTO> messages = new ArrayList<>();
 
-        // Indicate Deep Linking support
-        ToolMessagesSupportedDTO message1 = new ToolMessagesSupportedDTO();
-        message1.setType("LtiDeepLinkingRequest");
-        message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
-        message1.setLabel(deepLinkingMenuLabel);
-//        OPTIONAL: --> message1 --> setIcon_uri
-//        OPTIONAL: --> message1 --> setCustom_parameters
-        messages.add(message1);
+        if (enableDeepLinking) { // Goldilocks shouldn't support deep linking - although this is non-critical and will not break dynamic registration if deep linking IS set for Goldilocks
+            // Indicate Deep Linking support
+            ToolMessagesSupportedDTO message1 = new ToolMessagesSupportedDTO();
+            message1.setType("LtiDeepLinkingRequest");
+            message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
+            message1.setLabel(deepLinkingMenuLabel);
+            //OPTIONAL: --> message1 --> setIcon_uri
+            //OPTIONAL: --> message1 --> setCustom_parameters
+            messages.add(message1);
+        }
 
         ToolMessagesSupportedDTO message2 = new ToolMessagesSupportedDTO();
         message2.setType("LtiResourceLinkRequest");
