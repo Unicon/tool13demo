@@ -1,0 +1,355 @@
+{
+	"info": {
+		"_postman_id": "30c8ae14-57b6-43ed-bb0a-3090fb449b2f",
+		"name": "Unicon Demo Tool LTI Advantage",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3873920"
+	},
+	"item": [
+		{
+			"name": "Step 0: POST for OAuth2 Client Assertion",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let clientAssertion = pm.response.json().client_assertion;",
+							"pm.environment.set(\"client_assertion_jwt\", clientAssertion);",
+							"",
+							"pm.test(\"Has status 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "{{auth_password}}",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "admin",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"iss\": \"https://canvas.instructure.com\",\n    \"client_id\": \"97140000000000269\",\n    \"deployment_id\": \"526:5440a08422ab1ee7794a0588b5e4cb4a094c4256\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{middleware_url}}/config/lti_advantage/client_assertion",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"config",
+						"lti_advantage",
+						"client_assertion"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 1: POST to LMS for OAuth2 Bearer Token Lineitem Scope",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let accessToken = pm.response.json().access_token;",
+							"pm.environment.set(\"lti_adv_access_token\", accessToken);",
+							"",
+							"pm.test(\"Has status 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{client_assertion_jwt}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://canvas.unicon.net/login/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"login",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2: GET Lineitems from LMS",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{lti_adv_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://canvas.unicon.net/api/lti/courses/3623/line_items",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"api",
+						"lti",
+						"courses",
+						"3623",
+						"line_items"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 1: POST to LMS for OAuth2 Bearer Token Score Scope",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let accessToken = pm.response.json().access_token;",
+							"pm.environment.set(\"lti_adv_access_token\", accessToken);",
+							"",
+							"pm.test(\"Has status 200\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{client_assertion_jwt}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://canvas.unicon.net/login/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"login",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2: POST Score to LMS",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{lti_adv_access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"4999c972-7da9-40c8-afe6-3c278a9e5895\",\n    \"scoreGiven\": 75,\n    \"scoreMaximum\": 100,\n    \"activityProgress\": \"Completed\",\n    \"gradingProgress\": \"FullyGraded\",\n    \"comment\": \"Hello World\",\n    \"timestamp\": \"2022-10-12T18:54:36.736+00:00\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://canvas.unicon.net/api/lti/courses/3618/line_items/1177/scores",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"api",
+						"lti",
+						"courses",
+						"3618",
+						"line_items",
+						"1177",
+						"scores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 1: POST to LMS for OAuth2 Bearer Token NRPS Scope",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "eyJraWQiOiJPV05LRVkiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiI5NzE0MDAwMDAwMDAwMDI2OSIsInN1YiI6Ijk3MTQwMDAwMDAwMDAwMjY5IiwiYXVkIjoiaHR0cHM6Ly9jYW52YXMudW5pY29uLm5ldC9sb2dpbi9vYXV0aDIvdG9rZW4iLCJleHAiOjE2NjU2OTY3MjUsIm5iZiI6MTY2NTY5MzEyNSwiaWF0IjoxNjY1NjkzMTI1LCJqdGkiOiIwNTA4MTg2Yy01ZTA2LTQwNWYtOTBmYy1hM2NiMDMzMDVlYmYifQ.KriNrXn4HMokkcPLCjt91uF4L6uIiNy9SD5q8WBsxxGihvSiTdIOVEoJYm_kk2xLeQt0hBSuRg9cA5d7D1yXcRl4R16W3y9Vz6i9-cqlBV2M9CsiUrRvARWi8GtIs9o3CYcJTypV1AUigt4hZG5KohTBwCIat7TqfMI4za1CmjefmqNlIdCjrHIybkWMh0Sc0ePdVObv_JsOUt3HPWo_URXo25ExzD0bFNJC6K2JMPkVCqV6Sc0qn6uHWmeZ84AoJvXf2UneYoqwSPWH8reHP3fmfZDvA7WAUV26NjD5QVGfiVF4kmOXTcuMKspRnssTgbPEBGHJvE6FtoXmtxjxfg",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://canvas.unicon.net/login/oauth2/token",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"login",
+						"oauth2",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2: GET Memberships",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2NhbnZhcy5pbnN0cnVjdHVyZS5jb20iLCJzdWIiOiI5NzE0MDAwMDAwMDAwMDI2OSIsImF1ZCI6Imh0dHBzOi8vY2FudmFzLnVuaWNvbi5uZXQvbG9naW4vb2F1dGgyL3Rva2VuIiwiaWF0IjoxNjY1NjkzMTQ2LCJleHAiOjE2NjU2OTY3NDYsImp0aSI6IjM4YjMyMDgyLTA3ODMtNDg2Yi1iMWM5LTNiY2JlYzkxODcwYyIsInNjb3BlcyI6Imh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpLW5ycHMvc2NvcGUvY29udGV4dG1lbWJlcnNoaXAucmVhZG9ubHkiLCJjYW52YXMuaW5zdHJ1Y3R1cmUuY29tIjp7ImFjY291bnRfdXVpZCI6InBvdDI4eU5wRFNaczFGdk1RYTQyTWlQV2xST0xRQ0FlZHpRWDZNYzIifX0.UZKj7YSXRf1zI-bvsA9UNy3-2dv57yM6uWP1XZdYjm8",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://canvas.unicon.net/api/lti/courses/3623/names_and_roles",
+					"protocol": "https",
+					"host": [
+						"canvas",
+						"unicon",
+						"net"
+					],
+					"path": [
+						"api",
+						"lti",
+						"courses",
+						"3623",
+						"names_and_roles"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

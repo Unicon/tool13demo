@@ -13,5 +13,5 @@ public interface LTIJWTService {
 
     Jws<Claims> validateJWT(String jwt, String clientId);
 
-    String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException;
+    String generateStateOrClientAssertionJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException;
 }

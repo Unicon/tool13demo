@@ -48,7 +48,6 @@ import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 @Service
@@ -187,7 +186,7 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
         // This is standard too
         map.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
         //This is special (see the generateTokenRequestJWT method for more comments)
-        map.add("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
+        map.add("client_assertion", ltijwtService.generateStateOrClientAssertionJWT(platformDeployment));
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
         map.add("scope", scope);
         return new HttpEntity<>(map, headers);
@@ -203,7 +202,7 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
         // This is standard too
         parameterJson.put("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
         //This is special (see the generateTokenRequestJWT method for more comments)
-        parameterJson.put("client_assertion", ltijwtService.generateTokenRequestJWT(platformDeployment));
+        parameterJson.put("client_assertion", ltijwtService.generateStateOrClientAssertionJWT(platformDeployment));
         //We need to pass the scope of the token, meaning, the service we want to allow with this token.
         parameterJson.put("scope", scope);
         return new HttpEntity<>(parameterJson.toString(), headers);

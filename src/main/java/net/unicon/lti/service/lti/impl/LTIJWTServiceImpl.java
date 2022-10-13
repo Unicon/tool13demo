@@ -135,7 +135,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
      * This JWT will contain the token request
      */
     @Override
-    public String generateTokenRequestJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
+    public String generateStateOrClientAssertionJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException {
 
         Date date = new Date();
         Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
@@ -158,7 +158,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
                 .claim("jti", UUID.randomUUID().toString())  //This is an specific claim to ask for tokens.
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
                 .compact();
-        log.debug("Token Request: \n {} \n", state);
+        log.debug("Client Assertion JWT/State: \n {} \n", state);
         return state;
     }
 
