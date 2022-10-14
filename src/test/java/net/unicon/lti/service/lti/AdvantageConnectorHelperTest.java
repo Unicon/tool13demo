@@ -89,14 +89,14 @@ public class AdvantageConnectorHelperTest {
         try {
             PlatformDeployment platformDeployment = new PlatformDeployment();
             platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
-            when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
+            when(ltijwtService.generateStateOrClientAssertionJWT(platformDeployment)).thenReturn("jwt");
             LTIToken ltiToken = new LTIToken();
             ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.OK);
             when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
 
             LTIToken ltiTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
 
-            verify(ltijwtService).generateTokenRequestJWT(platformDeployment);
+            verify(ltijwtService).generateStateOrClientAssertionJWT(platformDeployment);
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
             assertEquals(ltiTokenResponse, ltiToken);
         } catch (Exception e) {
@@ -109,7 +109,7 @@ public class AdvantageConnectorHelperTest {
         try {
             PlatformDeployment platformDeployment = new PlatformDeployment();
             platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
-            when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
+            when(ltijwtService.generateStateOrClientAssertionJWT(platformDeployment)).thenReturn("jwt");
             List<HttpMessageConverter<?>> messageConverters = Mockito.mock(ArrayList.class);
             when(restTemplate.getMessageConverters()).thenReturn(messageConverters);
             LTIToken ltiToken = new LTIToken();
@@ -120,7 +120,7 @@ public class AdvantageConnectorHelperTest {
 
             LTIToken ltiTokenResponse = advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
 
-            verify(ltijwtService).generateTokenRequestJWT(platformDeployment);
+            verify(ltijwtService).generateStateOrClientAssertionJWT(platformDeployment);
             verify(messageConverters).add(converterArgumentCaptor.capture());
             MappingJackson2HttpMessageConverter converter = converterArgumentCaptor.getValue();
             assertTrue(converter.getSupportedMediaTypes().contains(MediaType.TEXT_HTML));
@@ -138,7 +138,7 @@ public class AdvantageConnectorHelperTest {
             ConnectionException exception = assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
                 platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
-                when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
+                when(ltijwtService.generateStateOrClientAssertionJWT(platformDeployment)).thenReturn("jwt");
                 LTIToken ltiToken = new LTIToken();
                 ResponseEntity<LTIToken> responseEntity = new ResponseEntity<>(ltiToken, HttpStatus.BAD_REQUEST);
                 when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(responseEntity);
@@ -146,7 +146,7 @@ public class AdvantageConnectorHelperTest {
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
 
-            verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
+            verify(ltijwtService).generateStateOrClientAssertionJWT(any(PlatformDeployment.class));
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
             assertEquals("Can't get the token: " + HttpStatus.BAD_REQUEST.getReasonPhrase(), exception.getMessage());
         } catch (GeneralSecurityException | IOException e) {
@@ -160,13 +160,13 @@ public class AdvantageConnectorHelperTest {
             Exception exception = assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
                 platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
-                when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenReturn("jwt");
+                when(ltijwtService.generateStateOrClientAssertionJWT(platformDeployment)).thenReturn("jwt");
                 when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class))).thenReturn(null);
 
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
 
-            verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
+            verify(ltijwtService).generateStateOrClientAssertionJWT(any(PlatformDeployment.class));
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
             assertEquals(exception.getMessage(), "Problem getting the token");
         } catch (GeneralSecurityException | IOException e) {
@@ -180,11 +180,11 @@ public class AdvantageConnectorHelperTest {
             assertThrows(ConnectionException.class, () -> {
                 PlatformDeployment platformDeployment = new PlatformDeployment();
                 platformDeployment.setoAuth2TokenUrl("https://lms.com/oauth2/token");
-                when(ltijwtService.generateTokenRequestJWT(platformDeployment)).thenThrow(GeneralSecurityException.class);
+                when(ltijwtService.generateStateOrClientAssertionJWT(platformDeployment)).thenThrow(GeneralSecurityException.class);
 
                 advantageConnectorHelper.getToken(platformDeployment, AGSScope.AGS_SCORES_SCOPE.getScope());
             });
-            verify(ltijwtService).generateTokenRequestJWT(any(PlatformDeployment.class));
+            verify(ltijwtService).generateStateOrClientAssertionJWT(any(PlatformDeployment.class));
             verify(restTemplate, never()).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
             verify(exceptionMessageGenerator).exceptionMessage(eq("Can't get the token. Exception"), any(GeneralSecurityException.class));
         } catch (GeneralSecurityException | IOException e) {

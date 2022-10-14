@@ -9,7 +9,8 @@ LTI 1.3 tool.
 ### Endpoints
 #### Accessible without an LMS:
 - Manage Deployment Configurations/Registrations: https://localhost:443/config/
-- JWKS: https://localhost:443/jwks/jwk  
+- JWKS: https://localhost:443/jwks/jwk
+- LTI Advantage Client Assertion: https://localhost:443/config/lti_advantage/client_assertion
 #### Only Accessible within an LMS:
 - Redirect & Target URI: https://localhost:443/lti3
 - OIDC Initiation: https://localhost:443/oidc/login_initiations
