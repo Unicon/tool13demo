@@ -19,6 +19,7 @@ import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,6 +53,9 @@ import java.util.Optional;
 @Scope("session")
 @RequestMapping("/config")
 public class ConfigurationController {
+    @Value("${lti13.demoMode}")
+    private boolean demoMode;
+
     @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
 
@@ -124,21 +128,25 @@ public class ConfigurationController {
 
     @RequestMapping(value = "/lti_advantage/client_assertion", method = RequestMethod.POST, consumes = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<Map<String, String>> generateClientAssertionJWT(@RequestBody Map<String, String> body) throws GeneralSecurityException, IOException {
-        if (StringUtils.isAnyBlank(body.get("iss"), body.get("client_id"), body.get("deployment_id"))) {
-            String errorMessage = "iss was " + body.get("iss") + ", client_id was " + body.get("client_id") + ", and deployment_id was " + body.get("deployment_id") + ". All values must be provided.";
-            log.error(errorMessage);
-            return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.BAD_REQUEST);
-        }
-        List<PlatformDeployment> platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(body.get("iss"), body.get("client_id"), body.get("deployment_id"));
-        if (platformDeploymentList.size() != 1) {
-            String errorMessage = "PlatformDeployment size was " + platformDeploymentList.size() + ". There should be exactly 1.";
-            log.error(errorMessage);
-            return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.BAD_REQUEST);
-        }
-        PlatformDeployment platformDeployment = platformDeploymentList.get(0);
+        if (demoMode) {
+            if (StringUtils.isAnyBlank(body.get("iss"), body.get("client_id"), body.get("deployment_id"))) {
+                String errorMessage = "iss was " + body.get("iss") + ", client_id was " + body.get("client_id") + ", and deployment_id was " + body.get("deployment_id") + ". All values must be provided.";
+                log.error(errorMessage);
+                return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.BAD_REQUEST);
+            }
+            List<PlatformDeployment> platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(body.get("iss"), body.get("client_id"), body.get("deployment_id"));
+            if (platformDeploymentList.size() != 1) {
+                String errorMessage = "PlatformDeployment size was " + platformDeploymentList.size() + ". There should be exactly 1.";
+                log.error(errorMessage);
+                return new ResponseEntity<>(Collections.singletonMap("error", errorMessage), HttpStatus.BAD_REQUEST);
+            }
+            PlatformDeployment platformDeployment = platformDeploymentList.get(0);
 
-        String clientAssertionJWT = ltijwtService.generateStateOrClientAssertionJWT(platformDeployment);
+            String clientAssertionJWT = ltijwtService.generateStateOrClientAssertionJWT(platformDeployment);
 
-        return new ResponseEntity<>(Collections.singletonMap("client_assertion", clientAssertionJWT), HttpStatus.OK);
+            return new ResponseEntity<>(Collections.singletonMap("client_assertion", clientAssertionJWT), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(Collections.singletonMap("error", "Disabled: You do not have permission."), HttpStatus.FORBIDDEN);
+        }
     }
 }
