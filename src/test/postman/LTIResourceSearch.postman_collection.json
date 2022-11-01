@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "5bd4b37e-6df6-4250-b42b-17a278f07fe5",
+		"name": "LTI Resource Search",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3873920"
+	},
+	"item": [
+		{
+			"name": "POST Subject",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Reading\",\n    \"parent\": \"1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{middleware_url}}/subjects/",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"subjects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Vendor",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"code\": \"mgwozdz\",\n    \"name\": \"Mary Gwozdz\",\n    \"description\": \"Unicon LTI testing\",\n    \"url\": \"https://mgwozdz-ltidemotool.herokuapp.com\",\n    \"emailContact\": \"mgwozdz@unicon.net\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{middleware_url}}/resources/vendor",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources",
+						"vendor"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST CCLTILink",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Reading 6\",\n    \"description\": \"sixth reading\",\n    \"launchUrl\": \"https://mgwozdz-ltidemotool.herokuapp.com/lti3?link=6\",\n    \"vendor_id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{middleware_url}}/resources/ccltilink",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources",
+						"ccltilink"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Resource",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Reading 6\",\n    \"description\": \"sixth reading\",\n    \"publisher\": \"Mary Gwozdz\",\n    \"subject\": [\"ELA\", \"English\", \"Language Arts\", \"Reading\"],\n    \"url\": \"https://mgwozdz-ltidemotool.herokuapp.com/lti3?link=6\",\n    \"language\": [\"en-us\"],\n    \"textComplexity\": [\n        {\n            \"textComplexityName\": \"LEXILE\",\n            \"value\": \"2\"\n        }\n    ],\n    \"author\": [\"Mary Author\"]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{middleware_url}}/resources/",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST Resource CCLTILink",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{middleware_url}}/resources/4/ccltilink/6",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources",
+						"4",
+						"ccltilink",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET CCLTILinks",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{middleware_url}}/resources/ccltilink",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources",
+						"ccltilink"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Subjects",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{middleware_url}}/subjects",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"subjects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET Resources",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{middleware_url}}/resources",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
