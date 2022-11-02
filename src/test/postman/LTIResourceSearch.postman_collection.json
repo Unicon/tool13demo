@@ -185,6 +185,29 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "GET Resources by Subject",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{middleware_url}}/resources?filter=subject%3D%27Geometry%27",
+					"host": [
+						"{{middleware_url}}"
+					],
+					"path": [
+						"resources"
+					],
+					"query": [
+						{
+							"key": "filter",
+							"value": "subject%3D%27Geometry%27"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
