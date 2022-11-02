@@ -1,0 +1,13 @@
+{
+  "createdAt": null,
+  "updatedAt": null,
+  "version": 0,
+  "keyId": null,
+  "iss": "http://localhost:8000",
+  "clientId": "WOQy8fk2enmJtDz",
+  "oidcEndpoint": "http://localhost:8000/mod/lti/auth.php",
+  "jwksEndpoint": "http://localhost:8000/mod/lti/certs.php",
+  "oAuth2TokenUrl": "http://localhost:8000/mod/lti/token.php",
+  "oAuth2TokenAud": null,
+  "deploymentId": "1"
+}
