@@ -23,7 +23,7 @@ Everyday Use
 Build
 -----
 This will produce a lti13demo.jar file in the *target* directory
-
+ 
     mvn clean install 
 
 note, to avoid some test errors if those happen, try
