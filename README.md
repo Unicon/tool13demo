@@ -106,3 +106,19 @@ Using Ngrok For Local SSL Cert
 3. Utilize the https url from ngrok when registering your tool with the platform   
 
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+
+Using Heroku
+------------
+Go to the Heroku app dashboard (https://dashboard.heroku.com/) and create a new app.   
+`heroku login`   
+`heroku git:clone -a <heroku project name>`   
+`cd <heroku project name>`   
+`git add .`   
+`git commit -am 'commit message'`   
+`git push heroku master`   
+`heroku logs --tail`   
+1. Get the free ClearDB MySQL add-on. Pull the db username and password out of the database url provided as output from setting that up.   
+   1. `heroku addons:create cleardb:ignite`
+2. Go to the Settings page > Reveal Config vars to add your environment variable values for the database and SSH keys.   
+   1. Or you can manually set them using `heroku config:set SPRING_DATASOURCE_URL='<your value here>'` and `heroku config` to read them back
+3. Ensure that you comment out the SSL Cert section of the application.properties file
