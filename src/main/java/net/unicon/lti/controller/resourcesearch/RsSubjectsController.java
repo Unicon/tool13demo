@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Slf4j
 @Controller
 @Scope("session")
-@RequestMapping("/subjects")
+@RequestMapping("/ims/rs/v1p0/subjects")
 public class RsSubjectsController {
 
     @Autowired

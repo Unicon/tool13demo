@@ -64,7 +64,7 @@ import java.util.Set;
 @Slf4j
 @Controller
 @Scope("session")
-@RequestMapping("/resources")
+@RequestMapping("/ims/rs/v1p0/resources")
 public class RsResourcesController {
 
     @Autowired
