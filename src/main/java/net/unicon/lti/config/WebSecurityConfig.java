@@ -58,8 +58,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/registration/**")
                 .antMatchers("/jwks/**")
                 .antMatchers("/ags/**")
-                .antMatchers("/resources/**")
-                .antMatchers("/subjects/**")
+                .antMatchers("/ims/rs/v1p0/resources/**")
+                .antMatchers("/ims/rs/v1p0/subjects/**")
                     .and()
                 .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }

@@ -12,21 +12,17 @@
  */
 package net.unicon.lti.repository;
 
-import net.unicon.lti.model.LtiContextEntity;
-import net.unicon.lti.model.LtiMembershipEntity;
-import net.unicon.lti.model.LtiUserEntity;
 import net.unicon.lti.model.resourcesearch.RsResourceEntity;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Transactional
-public interface RsResourceRepository extends JpaRepository<RsResourceEntity, Long> {
+public interface RsResourceRepository extends JpaRepository<RsResourceEntity, Long>, JpaSpecificationExecutor<RsResourceEntity> {
 
     RsResourceEntity findById(long id);
 

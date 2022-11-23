@@ -1,6 +1,5 @@
 package net.unicon.lti.model.resourcesearch;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.unicon.lti.model.resourcesearch.utils.TextComplexityNameEnum;
@@ -14,6 +13,6 @@ import javax.persistence.Enumerated;
 @NoArgsConstructor
 public class TextComplexity {
     @Enumerated(EnumType.STRING)
-    private TextComplexityNameEnum textComplexityName;
+    private TextComplexityNameEnum name;
     private String value;
 }

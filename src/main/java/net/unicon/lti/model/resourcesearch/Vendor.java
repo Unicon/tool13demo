@@ -1,13 +1,14 @@
 package net.unicon.lti.model.resourcesearch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.Set;
@@ -28,7 +29,7 @@ public class Vendor {
     private String emailContact;
 
     // properties for database
-    @OneToMany
-    @JoinColumn(name = "vendor_id")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "vendor")
+    @JsonIgnore
     private Set<CCLTILinkEntity> ccltiLinkEntitySet;
 }

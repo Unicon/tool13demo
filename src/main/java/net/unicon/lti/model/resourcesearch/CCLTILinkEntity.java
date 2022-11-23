@@ -3,12 +3,9 @@ package net.unicon.lti.model.resourcesearch;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 import net.unicon.lti.model.BaseEntity;
 
 import javax.persistence.CascadeType;
@@ -69,7 +66,7 @@ public class CCLTILinkEntity extends BaseEntity {
     @Column(name = "secure_icon")
     private String secureIcon;
 
-    @ManyToOne
+    @ManyToOne(targetEntity = Vendor.class, fetch = FetchType.EAGER)
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
 
