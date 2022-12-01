@@ -5,6 +5,10 @@
   font-family: 'Public Sans';
 }
 
+.App.coursePreview {
+  padding-bottom: 80px;
+}
+
 .breadcrumb-item {
   font-family: 'Lato';
   font-size: 18px;

@@ -63,7 +63,7 @@ function App() {
   // When a course has been selected display the course preview.
   return <>
            <LtiBreadcrumb course={selectedCourse} />
-           <Container className="App" fluid role="main">
+           <Container className="App coursePreview" fluid role="main">
              {selectedCourse ? <CoursePreview course={selectedCourse} /> : <CoursePicker />}
            </Container>
          </>;
