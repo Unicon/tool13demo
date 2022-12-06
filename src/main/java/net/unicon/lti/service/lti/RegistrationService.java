@@ -8,5 +8,5 @@ public interface RegistrationService {
     //Calling the membership service and getting a paginated result of users.
     String callDynamicRegistration(String token, ToolRegistrationDTO toolRegistrationDTO, String endpoint) throws ConnectionException;
 
-    ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration);
+    ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration, String altDomain);
 }
