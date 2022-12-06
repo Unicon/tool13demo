@@ -21,6 +21,7 @@ import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
 import net.unicon.lti.model.lti.dto.ToolMessagesSupportedDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.service.lti.RegistrationService;
+import net.unicon.lti.utils.DomainUtils;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.RestUtils;
 import net.unicon.lti.utils.TextConstants;
@@ -117,7 +118,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         return answer;
     }
 
-    public ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration) {
+    public ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration, String altDomain) {
         ToolRegistrationDTO toolRegistrationDTO = new ToolRegistrationDTO();
 
         // Provide Required Constants for the Spec
@@ -129,22 +130,30 @@ public class RegistrationServiceImpl implements RegistrationService {
         toolRegistrationDTO.setResponse_types(Collections.singletonList("id_token"));
         toolRegistrationDTO.setToken_endpoint_auth_method("private_key_jwt");
 
+        String altDomainLocalUrl = localUrl;
+        if (StringUtils.isNotBlank(altDomain)) {
+            altDomainLocalUrl = DomainUtils.insertDomain(altDomain, localUrl);
+        }
         // Provide Tool URLs/Data for Registration
-        toolRegistrationDTO.setRedirect_uris(Collections.singletonList(localUrl + TextConstants.LTI3_SUFFIX));
-        toolRegistrationDTO.setInitiate_login_uri(localUrl + "/oidc/login_initiations");
+        toolRegistrationDTO.setRedirect_uris(Collections.singletonList(altDomainLocalUrl + TextConstants.LTI3_SUFFIX));
+        toolRegistrationDTO.setInitiate_login_uri(altDomainLocalUrl + "/oidc/login_initiations");
         toolRegistrationDTO.setClient_name(clientName);
-        toolRegistrationDTO.setJwks_uri(localUrl + "/jwks/jwk");
+        toolRegistrationDTO.setJwks_uri(altDomainLocalUrl + "/jwks/jwk");
         //OPTIONAL -->setLogo_uri
         //OPTIONAL -->setContacts
         //OPTIONAL -->setClient_uri
         //OPTIONAL -->setTos_uri
         //OPTIONAL -->setPolicy_uri
         ToolConfigurationDTO toolConfigurationDTO = new ToolConfigurationDTO();
-        toolConfigurationDTO.setDomain(domainUrl);
+        if (StringUtils.isNotBlank(altDomain)) {
+            toolConfigurationDTO.setDomain(DomainUtils.insertDomain(altDomain, domainUrl));
+        } else {
+            toolConfigurationDTO.setDomain(domainUrl);
+        }
         //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
 
-        toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
+        toolConfigurationDTO.setTarget_link_uri(altDomainLocalUrl + TextConstants.LTI3_SUFFIX);
 
         //OPTIONAL -->setCustom_parameters --> Map
         toolConfigurationDTO.setDescription(description);
@@ -154,7 +163,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             // Indicate Deep Linking support
             ToolMessagesSupportedDTO message1 = new ToolMessagesSupportedDTO();
             message1.setType("LtiDeepLinkingRequest");
-            message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
+            message1.setTarget_link_uri(altDomainLocalUrl + TextConstants.LTI3_SUFFIX);
             message1.setLabel(deepLinkingMenuLabel);
             //OPTIONAL: --> message1 --> setIcon_uri
             //OPTIONAL: --> message1 --> setCustom_parameters
@@ -163,7 +172,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         ToolMessagesSupportedDTO message2 = new ToolMessagesSupportedDTO();
         message2.setType("LtiResourceLinkRequest");
-        message2.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
+        message2.setTarget_link_uri(altDomainLocalUrl + TextConstants.LTI3_SUFFIX);
         messages.add(message2);
         toolConfigurationDTO.setMessages_supported(messages);
 

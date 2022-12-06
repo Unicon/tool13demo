@@ -35,6 +35,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -87,8 +88,8 @@ public class RegistrationController {
      * @param model
      * @return
      */
-    @RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
-    public String registration(@RequestParam("openid_configuration") String openidConfiguration, @RequestParam(name = LtiStrings.REGISTRATION_TOKEN, required = false) String registrationToken, HttpServletRequest req, Model model) {
+    @RequestMapping(value = {"", "/", "/{altDomain}"}, method = RequestMethod.GET)
+    public String registration(@PathVariable(name = "altDomain", required = false) String altDomain, @RequestParam(name = "openid_configuration") String openidConfiguration, @RequestParam(name = LtiStrings.REGISTRATION_TOKEN, required = false) String registrationToken, HttpServletRequest req, Model model) {
         // We need to call the configuration endpoint recevied in the registration inititaion message and
         // call it to get all the information about the platform
         HttpSession session = req.getSession();
@@ -124,7 +125,7 @@ public class RegistrationController {
             }
 
             session.setAttribute(LtiStrings.PLATFORM_CONFIGURATION, platformRegistrationDTO);
-            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody());
+            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody(), altDomain);
             session.setAttribute(LtiStrings.TOOL_CONFIGURATION, toolRegistrationDTO);
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
