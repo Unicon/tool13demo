@@ -1,6 +1,7 @@
 package net.unicon.lti.controller.lti;
 
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.NoExistingDomainException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.service.lti.RegistrationService;
@@ -105,7 +106,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals("registrationConfirmation", registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }
@@ -133,7 +134,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals("registrationConfirmation", registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }
@@ -146,7 +147,11 @@ public class RegistrationControllerTest {
         platformRegistration.setScopes_supported(TEST_SCOPES);
         ResponseEntity<PlatformRegistrationDTO> responseEntity = new ResponseEntity<>(platformRegistration, HttpStatus.OK);
         when(restTemplate.exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class))).thenReturn(responseEntity);
+        try {
         when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+        } catch (NoExistingDomainException e) {
+            fail();
+        }
         try {
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
@@ -157,7 +162,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals("registrationRedirect", registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }
@@ -247,7 +252,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_DUPLICATE_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }
@@ -277,7 +282,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }
@@ -307,7 +312,7 @@ public class RegistrationControllerTest {
             verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
             assertEquals(LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal(), model.getAttribute(TextConstants.LTI_SYSTEM_ERROR));
             assertEquals(TextConstants.REACT_UI_TEMPLATE, registrationOutput);
-        } catch (ConnectionException e) {
+        } catch (ConnectionException | NoExistingDomainException e) {
             fail();
         }
     }

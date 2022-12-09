@@ -27,14 +27,7 @@ public class DomainUtils {
         }
         String prefix = buf.substring(start+1, dot);
 
-        Set<String> defaultPrefixes = new HashSet<>();
-        defaultPrefixes.add("staging");
-        defaultPrefixes.add("stage");
-        defaultPrefixes.add("develop");
-        defaultPrefixes.add("dev");
-        defaultPrefixes.add("demo");
-
-        if ((defaultPrefixes.contains(prefix))){
+        if ((TextConstants.FILTERED_DOMAINS.contains(prefix))){
             return null;
         } else {
             return prefix;

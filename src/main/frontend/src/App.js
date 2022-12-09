@@ -43,6 +43,9 @@ function App() {
       case LTI_SYSTEM_ERRORS.DYNAMIC_REGISTRATION_DUPLICATE_ERROR:
         systemErrorMessage = `Oops something went wrong. It appears you already have a tool registered with this Lumen domain.`;
         break;
+      case LTI_SYSTEM_ERRORS.DYNAMIC_REGISTRATION_NO_DOMAIN_ERROR:
+        systemErrorMessage = `Oops something went wrong. It appears you are trying to register a subdomain that is not expected. Please contact Lumen Support.`;
+        break;
       case LTI_SYSTEM_ERRORS.LINEITEMS_SYNCING_ERROR:
         systemErrorMessage = `Oops, something went wrong and we couldn't load your content. Please try again. If the issue persists, please contact Lumen Support.`;
         break;

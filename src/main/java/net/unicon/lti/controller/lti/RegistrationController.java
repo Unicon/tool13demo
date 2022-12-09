@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.NoExistingDomainException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -146,7 +147,14 @@ public class RegistrationController {
             model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal());
             // This redirects to the REACT UI which is a secondary set of templates.
             return TextConstants.REACT_UI_TEMPLATE;
+        } catch (NoExistingDomainException ex) {
+            log.error("Error while doing dynamic registration: {}", ex.getMessage());
+            // When there's an no domain error with dynamic registration the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_NO_DOMAIN_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         }
+
     }
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
