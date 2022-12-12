@@ -10,10 +10,12 @@ LTI 1.3 tool.
 
 - Target: https://localhost:443/lti3   
 - OIDC Initiation: https://localhost:443/oidc/login_initiations   
-- Config: https://localhost:443/config/   
+- Config: https://localhost:443/config/
+- Config Alternative Domains: https://localhost:443/config/altDomain/
 - JWKS: https://localhost:443/jwks/jwk   
 - Dynamic Registration: https://localhost:443/registration
-
+- Dynamic Registration with Alternative Domain: https://localhost:443/registration/{altDomain}
+ 
 # Prerequisites
 
 If you do not have Java v16 installed we recommend installing the [adoptium](https://adoptium.net/installation.html) version through homebrew
@@ -150,6 +152,28 @@ You can add this `-DskipTests=true` to either of the build and run command to sk
 ### Config Endpoints
 - Likely the main endpoints you will want to test or use directly when developing locally is the `/config/` endpoint
 - This endpoint is how we access and save LTI 1.3 tool deployment records which need to be configured when setting up a tool in an LMS
+
+### Config Alternative Domain Endpoints
+- To add alternative domain configurations the path to the endpoint is `/config/altDomain`
+- It supports GET, POST, and adding the altDomain id to the path, GET (one), PUT and DELETE
+- The structure of the altDomain is:
+
+```{
+"altDomain": "sunymar",
+"name": "Lti tool name Suny Playa",
+"description": "Desired description of the tool",
+"menuLabel": "Menu Label",
+"localUrl": "https://lti-sunymar.one.lumenlearning.com",
+"domainUrl": "https://home-sunymar.one.lumenlearning.com"
+}
+```
+Only altDomain and name can't be null.
+`altDomain` needs to be unique because it will be the id, used later to get or put or delete
+`name` must be unique too.
+`description` and `menuLabel` will take the default values if they are empty or null. 
+If `localURL` or `domainURL` are empty, they will be calculated based on the default baseUrl and domainURL values.
+
+
 #### Postman Exports
 - There are Postman exports stored in `src/test/postman` that can be imported in to Postman to use the config endpoints.
 - Once imported, in Postman:
@@ -244,6 +268,8 @@ To do integration testing locally ensure that `lti13.enableMockValkyrie=true` an
 If using dynamic registration, ensure that the `domain.url` in the `.properties` file is set to the appropriate version of Waymaker. ie:
 
 `domain.url=https://local.waymaker.xyz`
+
+Adding an altDomain path parameter in the registration url will register the tool with alternative `name`, `localURL` and `domainURL` and optionally `description` and `menuLabel`
 
 ## Deploying to the Dev/Staging Environment
 
