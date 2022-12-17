@@ -152,7 +152,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 if (StringUtils.isNotBlank(alternativeDomain.getDescription())){
                     altDescription = alternativeDomain.getDescription();
                 }
-                if (StringUtils.isNotBlank(alternativeDomain.getName())){
+                if (StringUtils.isNotBlank(alternativeDomain.getMenuLabel())){
                     altDeepLinkMenuLabel = alternativeDomain.getMenuLabel();
                 }
                 if (StringUtils.isNotBlank(alternativeDomain.getLocalUrl())){
