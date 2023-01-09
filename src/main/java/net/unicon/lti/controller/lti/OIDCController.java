@@ -18,6 +18,7 @@ import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
+import net.unicon.lti.utils.DomainUtils;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -164,7 +165,13 @@ public class OIDCController {
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
-        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
+        //Getting the right redirect url based on the target url.
+        String altDomain = DomainUtils.extractDomain(loginInitiationDTO.getTargetLinkUri());
+        String altLocalUrl = ltiDataService.getLocalUrl();
+        if (altDomain!=null){
+            altLocalUrl = DomainUtils.insertDomain(altDomain, altLocalUrl);
+        }
+        authRequestMap.put("redirect_uri", altLocalUrl + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
         authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.

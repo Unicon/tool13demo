@@ -10,6 +10,7 @@ class DomainUtilsTest {
     @Test
     public void testExtractDomain() {
         assertEquals("sunymar", DomainUtils.extractDomain("https://lti-sunymar.one.lumenlearning.com"));
+        assertEquals("sunymar", DomainUtils.extractDomain("https://lti-sunymar.one.lumenlearning.com/any/extra/path?whatever=extra"));
         assertEquals("sunymar", DomainUtils.extractDomain("https://home-sunymar.one.lumenlearning.com"));
         assertEquals("sunymar", DomainUtils.extractDomain("https://lti-sunymar.lumenlearning.com"));
         assertEquals("sunymar", DomainUtils.extractDomain("https://goldilocks-sunymar.lumenlearning.com"));
