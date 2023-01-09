@@ -76,6 +76,7 @@ public class OIDCController {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
+        log.debug(loginInitiationDTO.toString());
         List<PlatformDeployment> platformDeploymentList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
         String clientIdValue = loginInitiationDTO.getClientId();
@@ -181,6 +182,7 @@ public class OIDCController {
         authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OICD request.
         authRequestMap.put("oicdEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
         authRequestMap.put("oicdEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
+        log.debug("Authorization Request Payload = " + authRequestMap);
         return authRequestMap;
     }
 

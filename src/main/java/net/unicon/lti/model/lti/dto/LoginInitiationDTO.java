@@ -100,4 +100,16 @@ public class LoginInitiationDTO {
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
     }
+
+    @Override
+    public String toString() {
+        return "LoginInitiationDTO{" +
+                "iss='" + iss + '\'' +
+                ", loginHint='" + loginHint + '\'' +
+                ", targetLinkUri='" + targetLinkUri + '\'' +
+                ", ltiMessageHint='" + ltiMessageHint + '\'' +
+                ", clientId='" + clientId + '\'' +
+                ", deploymentId='" + deploymentId + '\'' +
+                '}';
+    }
 }
