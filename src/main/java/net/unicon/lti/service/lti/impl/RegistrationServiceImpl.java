@@ -125,7 +125,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         return answer;
     }
 
-    public ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration, String altDomain) throws NoExistingDomainException {
+    public ToolRegistrationDTO generateToolConfiguration(PlatformRegistrationDTO platformConfiguration, String altDomain, boolean wildcard) throws NoExistingDomainException {
         ToolRegistrationDTO toolRegistrationDTO = new ToolRegistrationDTO();
 
         // Provide Required Constants for the Spec
@@ -158,12 +158,21 @@ public class RegistrationServiceImpl implements RegistrationService {
                 if (StringUtils.isNotBlank(alternativeDomain.getLocalUrl())){
                     altLocalUrl = alternativeDomain.getLocalUrl();
                 } else {
-                    altLocalUrl = DomainUtils.insertDomain(altDomain, localUrl);
+                    if (wildcard){
+                        altLocalUrl = DomainUtils.insertWildcardDomain(altDomain, localUrl);
+                    }else {
+                        altLocalUrl = DomainUtils.insertDomain(altDomain, localUrl);
+                    }
                 }
                 if (StringUtils.isNotBlank(alternativeDomain.getDomainUrl())){
                     altDomainUrl = alternativeDomain.getDomainUrl();
                 } else {
-                    altDomainUrl = DomainUtils.insertDomain(altDomain, domainUrl);
+                    if (wildcard){
+                        altDomainUrl = DomainUtils.insertWildcardDomain(altDomain, domainUrl);
+                    }else {
+                        altDomainUrl = DomainUtils.insertDomain(altDomain, domainUrl);
+                    }
+
                 }
             } else {
                 throw new NoExistingDomainException("The domain " + altDomain + "does not exist");

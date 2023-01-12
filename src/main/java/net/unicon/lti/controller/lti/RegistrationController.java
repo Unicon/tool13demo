@@ -76,6 +76,9 @@ public class RegistrationController {
     @Value("${lti13.demoMode}")
     private boolean demoMode;
 
+    @Value("${allow.flexible.urls}")
+    private boolean wildcard;
+
 
     /**
      * This will receive the request to start the dynamic registration process and prepare the answer.
@@ -126,7 +129,7 @@ public class RegistrationController {
             }
 
             session.setAttribute(LtiStrings.PLATFORM_CONFIGURATION, platformRegistrationDTO);
-            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody(), altDomain);
+            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody(), altDomain, wildcard);
             session.setAttribute(LtiStrings.TOOL_CONFIGURATION, toolRegistrationDTO);
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
@@ -202,4 +205,8 @@ public class RegistrationController {
         }
     }
 
+    //For testing purposes
+    public void setWildcard(boolean wildcard) {
+        this.wildcard = wildcard;
+    }
 }

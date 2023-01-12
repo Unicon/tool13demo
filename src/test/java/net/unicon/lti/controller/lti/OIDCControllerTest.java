@@ -65,6 +65,7 @@ public class OIDCControllerTest {
     private static final String SAMPLE_LOCAL_URI = "https://lti.one.lumenlearning.com";
     private static final String SAMPLE_TARGET_URI = "https://lti.one.lumenlearning.com/lti3";
     private static final String SAMPLE_TARGET_ALTDOMAIN_URI = "https://lti-sunymar.one.lumenlearning.com/lti3";
+    private static final String SAMPLE_TARGET_WILDCARD_URI = "https://sunymar.lti.one.lumenlearning.com/lti3";
     private static final String SAMPLE_LTI_MESSAGE_HINT = "sample-message-hint-from-platform";
     private static final String SAMPLE_ISS = "https://platform-lms.com";
     private static final String SAMPLE_CLIENT_ID = "sample-client-id";
@@ -73,6 +74,7 @@ public class OIDCControllerTest {
     private static final String SAMPLE_OIDC_ENDPOINT = "https://platform-lms.com/oidc";
     private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti.one.lumenlearning.com%2Flti3%2F";
     private static final String SAMPLE_ENCODED_REDIRECT_ALTDOMAIN_URI = "https%3A%2F%2Flti-sunymar.one.lumenlearning.com%2Flti3%2F";
+    private static final String SAMPLE_ENCODED_REDIRECT_WILDCARD_URI = "https%3A%2F%2Fsunymar.lti.one.lumenlearning.com%2Flti3%2F";
 
 
 
@@ -160,7 +162,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
     }
 
     @Test
@@ -185,7 +187,32 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, true);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, true, false);
+    }
+
+    @Test
+    public void testLoginInitiationWithIssuerAndClientIdAndDeploymentIdOneConfigWildcardDomain() {
+        when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
+        when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
+        when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(req.getParameter(OIDC_TARGET_LINK_URI)).thenReturn(SAMPLE_TARGET_WILDCARD_URI);
+        when(req.getParameter(OIDC_LTI_MESSAGE_HINT)).thenReturn(SAMPLE_LTI_MESSAGE_HINT);
+        when(req.getParameter(OIDC_LOGIN_HINT)).thenReturn(SAMPLE_LOGIN_HINT);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class)))
+                .thenReturn(onePlatformDeployment);
+
+        String response = oidcController.loginInitiations(req, res, model);
+
+        Mockito.verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
+        Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
+        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService).getOwnPrivateKey();
+        ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
+        Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
+        validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, true);
     }
 
     @Test
@@ -210,7 +237,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
     }
 
     @Test
@@ -235,7 +262,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
     }
 
     @Test
@@ -260,7 +287,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, null, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, null, SAMPLE_ISS, false, false);
     }
 
     @Test
@@ -285,7 +312,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
 
     }
 
@@ -311,7 +338,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, null, null, SAMPLE_ISS, false);
+        validateOAuthResponse(response, null, null, SAMPLE_ISS, false, false);
 
     }
 
@@ -337,7 +364,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
 
     }
 
@@ -363,7 +390,7 @@ public class OIDCControllerTest {
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
         validateStateAndNonceCookies(cookieArgument.getAllValues(), response);
-        validateOAuthResponse(response, null, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false);
+        validateOAuthResponse(response, null, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS, false, false);
 
     }
 
@@ -411,7 +438,7 @@ public class OIDCControllerTest {
         assertEquals(TextConstants.LTI3ERROR, response);
     }
 
-    private void validateOAuthResponse(String response, String clientId, String deploymentId, String iss, boolean alt) {
+    private void validateOAuthResponse(String response, String clientId, String deploymentId, String iss, boolean alt, boolean wildcard) {
         UriComponents responseUri = UriComponentsBuilder.fromUriString(response.substring("redirect:".length())).build();
         assertEquals(SAMPLE_OIDC_ENDPOINT, responseUri.getScheme() + "://" + responseUri.getHost() + responseUri.getPath());
         MultiValueMap<String, String> parameters = responseUri.getQueryParams();
@@ -424,10 +451,12 @@ public class OIDCControllerTest {
         assertEquals(SAMPLE_LOGIN_HINT, parameters.get("login_hint").get(0));
         assertEquals(SAMPLE_LTI_MESSAGE_HINT, parameters.get("lti_message_hint").get(0));
         assertEquals(OIDC_NONE, parameters.get("prompt").get(0));
-        if (!alt) {
-            assertEquals(SAMPLE_ENCODED_REDIRECT_URI, parameters.get("redirect_uri").get(0));
-        } else {
+        if (alt) {
             assertEquals(SAMPLE_ENCODED_REDIRECT_ALTDOMAIN_URI, parameters.get("redirect_uri").get(0));
+        } else if (wildcard) {
+            assertEquals(SAMPLE_ENCODED_REDIRECT_WILDCARD_URI, parameters.get("redirect_uri").get(0));
+        } else {
+            assertEquals(SAMPLE_ENCODED_REDIRECT_URI, parameters.get("redirect_uri").get(0));
         }
         assertEquals(OIDC_FORM_POST, parameters.get("response_mode").get(0));
         assertEquals(OIDC_ID_TOKEN, parameters.get("response_type").get(0));
@@ -446,10 +475,12 @@ public class OIDCControllerTest {
         assertEquals(iss, finalClaims.getBody().get("original_iss"));
         assertEquals(SAMPLE_LOGIN_HINT, finalClaims.getBody().get("loginHint"));
         assertEquals(SAMPLE_LTI_MESSAGE_HINT, finalClaims.getBody().get("ltiMessageHint"));
-        if (!alt){
-            assertEquals(SAMPLE_TARGET_URI, finalClaims.getBody().get("targetLinkUri"));
-        } else {
+        if (alt){
             assertEquals(SAMPLE_TARGET_ALTDOMAIN_URI, finalClaims.getBody().get("targetLinkUri"));
+        } else if (wildcard) {
+            assertEquals(SAMPLE_TARGET_WILDCARD_URI, finalClaims.getBody().get("targetLinkUri"));
+        } else {
+            assertEquals(SAMPLE_TARGET_URI, finalClaims.getBody().get("targetLinkUri"));
         }
         assertEquals("/oidc/login_initiations", finalClaims.getBody().get("controller"));
         assertEquals(clientId, finalClaims.getBody().get("clientId"));

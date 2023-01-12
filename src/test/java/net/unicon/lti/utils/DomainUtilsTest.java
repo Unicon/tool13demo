@@ -94,8 +94,21 @@ class DomainUtilsTest {
         assertEquals("https://goldilocks-dev-sunymar.ludev.team", DomainUtils.insertDomain("sunymar", "https://goldilocks-dev.ludev.team"));
     }
 
+    @Test
+    public void isWildcard() {
+        assertTrue(DomainUtils.isWildcardDomain("http://anythinghere.home.one.lumenlearning.com/lti3", "http://home.one.lumenlearning.com" ));
+        assertFalse(DomainUtils.isWildcardDomain("http://home-sunymar.one.lumenlearning.com/lti3", "http://home.one.lumenlearning.com" ));
+        assertFalse(DomainUtils.isWildcardDomain("http://home.one.lumenlearning.com/lti3", "http://home.one.lumenlearning.com" ));
+    }
 
+    @Test
+    public void insertWildcard() {
+        assertEquals("https://sunymar.lti.one.lumenlearning.com", DomainUtils.insertWildcardDomain("sunymar", "https://lti.one.lumenlearning.com"));
+    }
 
-
+    @Test
+    public void extractAltDomainIfWildcard() {
+        assertEquals("sunymar", DomainUtils.extractWildcardDomain("https://sunymar.lti.one.lumenlearning.com"));
+    }
 
 }

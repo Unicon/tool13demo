@@ -271,6 +271,9 @@ If using dynamic registration, ensure that the `domain.url` in the `.properties`
 
 Adding an altDomain path parameter in the registration url will register the tool with alternative `name`, `localURL` and `domainURL` and optionally `description` and `menuLabel`
 
+The configuration property `allow.flexible.urls` with a default value of false, if set to true will allow urls like following this pattern `*.application.url` and `*.home.url` to be accepted meanwhile there is an entry in the configuration database for the value that * represents.
+ It will use the altDomain attribute during the Dynamic Registration to allow custom dynamic registration urls.
+
 ## Deploying to the Dev/Staging Environment
 
 1. Push changes to the branch that you want to push to the dev environment (e.g. L3-66-integration-testing)

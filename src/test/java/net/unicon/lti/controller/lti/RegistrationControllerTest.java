@@ -95,12 +95,12 @@ public class RegistrationControllerTest {
 
         try {
             when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn("test-success");
-            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null), eq(false))).thenReturn(new ToolRegistrationDTO());
 
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null), eq(false));
             verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
@@ -123,12 +123,41 @@ public class RegistrationControllerTest {
 
         try {
             when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn("test-success");
-            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING))).thenReturn(new ToolRegistrationDTO());
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING), eq(false))).thenReturn(new ToolRegistrationDTO());
 
             String registrationOutput = registrationController.registration(TEST_ALT_DOMAIN_STRING, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING), eq(false));
+            verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
+            verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
+            verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
+            verify(session).setAttribute(eq(LtiStrings.TOOL_CONFIGURATION), any(ToolRegistrationDTO.class));
+            assertEquals("registrationConfirmation", registrationOutput);
+        } catch (ConnectionException | NoExistingDomainException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testRegistrationWithWildcardAltDomain() {
+        PlatformRegistrationDTO platformRegistration = new PlatformRegistrationDTO();
+        platformRegistration.setClaims_supported(LtiStrings.LTI_OPTIONAL_CLAIMS);
+        platformRegistration.setScopes_supported(TEST_SCOPES);
+        platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
+        platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
+        registrationController.setWildcard(true);
+        ResponseEntity<PlatformRegistrationDTO> responseEntity = new ResponseEntity<>(platformRegistration, HttpStatus.OK);
+        when(restTemplate.exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class))).thenReturn(responseEntity);
+
+        try {
+            when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn("test-success");
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING), eq(true))).thenReturn(new ToolRegistrationDTO());
+
+            String registrationOutput = registrationController.registration(TEST_ALT_DOMAIN_STRING, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
+
+            verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(TEST_ALT_DOMAIN_STRING), eq(true));
             verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
@@ -148,7 +177,7 @@ public class RegistrationControllerTest {
         ResponseEntity<PlatformRegistrationDTO> responseEntity = new ResponseEntity<>(platformRegistration, HttpStatus.OK);
         when(restTemplate.exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class))).thenReturn(responseEntity);
         try {
-        when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+        when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null), eq(false))).thenReturn(new ToolRegistrationDTO());
         } catch (NoExistingDomainException e) {
             fail();
         }
@@ -156,7 +185,7 @@ public class RegistrationControllerTest {
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null), eq(false));
             verify(registrationService, never()).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
@@ -240,12 +269,12 @@ public class RegistrationControllerTest {
         try {
             when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT)))
                     .thenThrow(new ConnectionException(D2L_DUPLICATE_REGISTRATION_ERROR));
-            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null), eq(false))).thenReturn(new ToolRegistrationDTO());
 
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null), eq(false));
             verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
@@ -270,12 +299,12 @@ public class RegistrationControllerTest {
         try {
             when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT)))
                     .thenThrow(new ConnectionException(HttpStatus.INTERNAL_SERVER_ERROR.toString()));
-            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null), eq(false))).thenReturn(new ToolRegistrationDTO());
 
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null), eq(false));
             verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
@@ -300,12 +329,12 @@ public class RegistrationControllerTest {
         try (MockedStatic<URLDecoder> urlDecoder = Mockito.mockStatic(URLDecoder.class)) {
             urlDecoder.when(() -> URLDecoder.decode(TEST_PLATFORM_ISSUER, StandardCharsets.UTF_8.name())).thenAnswer(invocation -> {throw new UnsupportedEncodingException();});
             when(registrationService.callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT))).thenReturn("test-response");
-            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null))).thenReturn(new ToolRegistrationDTO());
+            when(registrationService.generateToolConfiguration(eq(platformRegistration), eq(null), eq(false))).thenReturn(new ToolRegistrationDTO());
 
             String registrationOutput = registrationController.registration(null, TEST_OPENID_CONFIGURATION_URL, TEST_REGISTRATION_TOKEN, req, model);
 
             verify(restTemplate).exchange(eq(TEST_OPENID_CONFIGURATION_URL), eq(HttpMethod.GET), any(HttpEntity.class), eq(PlatformRegistrationDTO.class));
-            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null));
+            verify(registrationService).generateToolConfiguration(eq(platformRegistration), eq(null), eq(false));
             verify(registrationService).callDynamicRegistration(eq(TEST_REGISTRATION_TOKEN), any(ToolRegistrationDTO.class), eq(TEST_REGISTRATION_ENDPOINT));
             verify(session).setAttribute(eq(LtiStrings.REGISTRATION_TOKEN), eq(TEST_REGISTRATION_TOKEN));
             verify(session).setAttribute(eq(LtiStrings.PLATFORM_CONFIGURATION), eq(platformRegistration));
