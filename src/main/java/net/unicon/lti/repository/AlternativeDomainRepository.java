@@ -10,16 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.unicon.lti.repository;
 
-package net.unicon.lti.utils;
+import net.unicon.lti.model.AlternativeDomain;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
-/* Enum all the LTI system error codes */
-/* The react frontend has similar values in the 'LtiSystemErrors.js' file */
-public enum LtiSystemErrorEnum {
+import java.util.List;
 
-      LINEITEMS_SYNCING_ERROR,
-      DYNAMIC_REGISTRATION_DUPLICATE_ERROR,
-      DYNAMIC_REGISTRATION_GENERAL_ERROR,
-      DYNAMIC_REGISTRATION_NO_DOMAIN_ERROR
+@Transactional
+public interface AlternativeDomainRepository extends JpaRepository<AlternativeDomain, String> {
+
+    List<AlternativeDomain> findByName(String Name);
 
 }

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.NoExistingDomainException;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -35,6 +36,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,6 +76,9 @@ public class RegistrationController {
     @Value("${lti13.demoMode}")
     private boolean demoMode;
 
+    @Value("${allow.flexible.urls}")
+    private boolean wildcard;
+
 
     /**
      * This will receive the request to start the dynamic registration process and prepare the answer.
@@ -87,8 +92,8 @@ public class RegistrationController {
      * @param model
      * @return
      */
-    @RequestMapping(value = {"", "/"}, method = RequestMethod.GET)
-    public String registration(@RequestParam("openid_configuration") String openidConfiguration, @RequestParam(name = LtiStrings.REGISTRATION_TOKEN, required = false) String registrationToken, HttpServletRequest req, Model model) {
+    @RequestMapping(value = {"", "/", "/{altDomain}"}, method = RequestMethod.GET)
+    public String registration(@PathVariable(name = "altDomain", required = false) String altDomain, @RequestParam(name = "openid_configuration") String openidConfiguration, @RequestParam(name = LtiStrings.REGISTRATION_TOKEN, required = false) String registrationToken, HttpServletRequest req, Model model) {
         // We need to call the configuration endpoint recevied in the registration inititaion message and
         // call it to get all the information about the platform
         HttpSession session = req.getSession();
@@ -124,7 +129,7 @@ public class RegistrationController {
             }
 
             session.setAttribute(LtiStrings.PLATFORM_CONFIGURATION, platformRegistrationDTO);
-            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody());
+            ToolRegistrationDTO toolRegistrationDTO = registrationService.generateToolConfiguration(platformConfiguration.getBody(), altDomain, wildcard);
             session.setAttribute(LtiStrings.TOOL_CONFIGURATION, toolRegistrationDTO);
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
@@ -145,7 +150,14 @@ public class RegistrationController {
             model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_GENERAL_ERROR.ordinal());
             // This redirects to the REACT UI which is a secondary set of templates.
             return TextConstants.REACT_UI_TEMPLATE;
+        } catch (NoExistingDomainException ex) {
+            log.error("Error while doing dynamic registration: {}", ex.getMessage());
+            // When there's an no domain error with dynamic registration the frontend will display a specific error.
+            model.addAttribute(TextConstants.LTI_SYSTEM_ERROR, LtiSystemErrorEnum.DYNAMIC_REGISTRATION_NO_DOMAIN_ERROR.ordinal());
+            // This redirects to the REACT UI which is a secondary set of templates.
+            return TextConstants.REACT_UI_TEMPLATE;
         }
+
     }
 
     @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -193,4 +205,8 @@ public class RegistrationController {
         }
     }
 
+    //For testing purposes
+    public void setWildcard(boolean wildcard) {
+        this.wildcard = wildcard;
+    }
 }
