@@ -24,10 +24,8 @@ import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.RequestEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.Cookie;
@@ -171,6 +169,9 @@ public class OIDCController {
         String altLocalUrl = ltiDataService.getLocalUrl();
         if (altDomain!=null){
             altLocalUrl = DomainUtils.insertDomain(altDomain, altLocalUrl);
+        } else if (DomainUtils.isWildcardDomain(loginInitiationDTO.getTargetLinkUri(),altLocalUrl)) {
+            String wildcardDomain = DomainUtils.extractWildcardDomain(loginInitiationDTO.getTargetLinkUri());
+            altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, altLocalUrl);
         }
         authRequestMap.put("redirect_uri", altLocalUrl + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
