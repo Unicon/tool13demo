@@ -157,7 +157,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -182,7 +182,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -207,7 +207,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -232,7 +232,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -257,7 +257,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -282,7 +282,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -307,7 +307,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -333,7 +333,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -359,7 +359,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());
@@ -385,7 +385,7 @@ public class OIDCControllerTest {
         Mockito.verify(platformDeploymentRepository, never()).findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID));
         Mockito.verify(platformDeploymentRepository).findByIssAndDeploymentId(eq(SAMPLE_ISS), eq(SAMPLE_DEPLOYMENT_ID));
         Mockito.verify(platformDeploymentRepository, never()).findByIss(eq(SAMPLE_ISS));
-        Mockito.verify(ltiDataService).getLocalUrl();
+        Mockito.verify(ltiDataService, times(2)).getLocalUrl();
         Mockito.verify(ltiDataService).getOwnPrivateKey();
         ArgumentCaptor<Cookie> cookieArgument = ArgumentCaptor.forClass(Cookie.class);
         Mockito.verify(res, times(2)).addCookie(cookieArgument.capture());

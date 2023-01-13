@@ -32,6 +32,10 @@ public interface LTIDataService {
 
     void setLocalUrl(String localUrl);
 
+    String getDomainUrl();
+
+    void setDomainUrl(String domainUrl);
+
     String getOwnPrivateKey();
 
     void setOwnPrivateKey(String ownPrivateKey);

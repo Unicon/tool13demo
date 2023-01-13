@@ -100,7 +100,11 @@ public class LTI3Controller {
         String link = req.getParameter("link");
         String altDomain = req.getHeader("x-formated-host");
         if (StringUtils.isNotBlank(altDomain)){
-            altDomain = DomainUtils.extractDomain(altDomain);
+            String extractedDomain = DomainUtils.extractDomain(altDomain);
+            if (extractedDomain == null && DomainUtils.isWildcardDomain(altDomain, ltiDataService.getLocalUrl())) {
+                extractedDomain = DomainUtils.extractWildcardDomain(altDomain);
+            }
+            altDomain = extractedDomain;
         } else {
             altDomain = null;
         }
