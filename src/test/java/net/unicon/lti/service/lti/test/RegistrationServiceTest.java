@@ -1,11 +1,14 @@
 package net.unicon.lti.service.lti.test;
 
 import net.unicon.lti.exceptions.ConnectionException;
+import net.unicon.lti.exceptions.NoExistingDomainException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
+import net.unicon.lti.model.AlternativeDomain;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
 import net.unicon.lti.model.lti.dto.ToolMessagesSupportedDTO;
 import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
+import net.unicon.lti.repository.AlternativeDomainRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.service.lti.impl.RegistrationServiceImpl;
 import net.unicon.lti.utils.RestUtils;
@@ -29,6 +32,7 @@ import org.springframework.web.util.UriTemplateHandler;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static net.unicon.lti.utils.LtiStrings.LTI_OPTIONAL_CLAIMS;
 import static net.unicon.lti.utils.TextConstants.LTI3_SUFFIX;
@@ -42,22 +46,28 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 public class RegistrationServiceTest {
     private static final String TEST_PLATFORM_ISSUER = "https://platform.com";
     private static final List TEST_SCOPES = Arrays.asList("example-scope1", "example-scope2");
     private static final String TEST_REGISTRATION_ENDPOINT = "https://platform.com/register-tool";
     private static final String LOCAL_URL = "localUrl";
-    private static final String SAMPLE_LOCAL_URL = "https://tool.com";
+    private static final String SAMPLE_LOCAL_URL = "https://lti.tool.com";
     private static final String DOMAIN_URL = "domainUrl";
-    private static final String SAMPLE_DOMAIN_URL = "https://domain.tool.com";
+    private static final String SAMPLE_DOMAIN_URL = "https://something.tool.com";
     private static final String CLIENT_NAME = "clientName";
     private static final String SAMPLE_CLIENT_NAME = "Tool Name";
+    private static final String SAMPLE_ALT_CLIENT_NAME = "The Alternative Name";
     private static final String DESCRIPTION = "description";
     private static final String SAMPLE_DESCRIPTION = "LTI 1.3 Tool Description";
+    private static final String SAMPLE_ALT_DESCRIPTION = "LTI 1.3 Alternative Tool Description";
     private static final String DEEP_LINKING_MENU_LABEL = "deepLinkingMenuLabel";
     private static final String SAMPLE_DEEP_LINKING_MENU_LABEL = "Tool Content Selector";
     private static final String ENABLE_DEEP_LINKING = "enableDeepLinking";
+    private static final String ALT_DOMAIN = "domain1";
+    private static final String TEST_DOMAIN = "https://something-domain1.tool.com";
+    private static final String TEST_WILDCARD_DOMAIN = "https://domain1.something.tool.com";
+    private static final String TEST_LOCAL = "https://lti-domain1.tool.com";
+    private static final String TEST_WILDCARD_LOCAL = "https://domain1.lti.tool.com";
     private static final boolean SAMPLE_ENABLE_DEEP_LINKING = true;
 
     @InjectMocks
@@ -68,6 +78,9 @@ public class RegistrationServiceTest {
 
     @Mock
     private RestTemplate restTemplate;
+
+    @Mock
+    private AlternativeDomainRepository alternativeDomainRepository;
 
     private MockedStatic<RestUtils> restUtilsMockedStatic;
 
@@ -157,40 +170,44 @@ public class RegistrationServiceTest {
         platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
         platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
 
-        ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration);
+        try{
+            ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration, null, false);
 
-        // Validate required constants set
-        assertEquals("web", toolRegistration.getApplication_type());
-        assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
-        assertEquals("id_token", toolRegistration.getResponse_types().get(0));
-        assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
+            // Validate required constants set
+            assertEquals("web", toolRegistration.getApplication_type());
+            assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
+            assertEquals("id_token", toolRegistration.getResponse_types().get(0));
+            assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
 
-        // Validate tool urls/data set
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
-        assertEquals(SAMPLE_LOCAL_URL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
-        assertEquals(SAMPLE_CLIENT_NAME, toolRegistration.getClient_name());
-        assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
-        ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
-        assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
-        assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
+            // Validate tool urls/data set
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
+            assertEquals(SAMPLE_LOCAL_URL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
+            assertEquals(SAMPLE_CLIENT_NAME, toolRegistration.getClient_name());
+            assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
+            ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
+            assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
+            assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
 
-        // Validate tool supports Deep Linking
-        List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
-        ToolMessagesSupportedDTO deepLinkingMessageSupported = toolMessagesSupportedList.get(0);
-        assertEquals("LtiDeepLinkingRequest", deepLinkingMessageSupported.getType());
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, deepLinkingMessageSupported.getTarget_link_uri());
-        assertEquals(SAMPLE_DEEP_LINKING_MENU_LABEL, deepLinkingMessageSupported.getLabel());
+            // Validate tool supports Deep Linking
+            List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
+            ToolMessagesSupportedDTO deepLinkingMessageSupported = toolMessagesSupportedList.get(0);
+            assertEquals("LtiDeepLinkingRequest", deepLinkingMessageSupported.getType());
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, deepLinkingMessageSupported.getTarget_link_uri());
+            assertEquals(SAMPLE_DEEP_LINKING_MENU_LABEL, deepLinkingMessageSupported.getLabel());
 
-        // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
-        ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(1);
-        assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
+            // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
+            ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(1);
+            assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
 
-        // Validate tool accepts the claims and scopes from the platform
-        assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
-        assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
-        assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+            // Validate tool accepts the claims and scopes from the platform
+            assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
+            assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
+            assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+        } catch (NoExistingDomainException ex) {
+            fail("Error during registration");
+        }
     }
 
     @Test
@@ -203,35 +220,133 @@ public class RegistrationServiceTest {
         platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
         platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
 
-        ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration);
+        try {
+            ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration, null, false);
 
-        // Validate required constants set
-        assertEquals("web", toolRegistration.getApplication_type());
-        assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
-        assertEquals("id_token", toolRegistration.getResponse_types().get(0));
-        assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
+            // Validate required constants set
+            assertEquals("web", toolRegistration.getApplication_type());
+            assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
+            assertEquals("id_token", toolRegistration.getResponse_types().get(0));
+            assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
 
-        // Validate tool urls/data set
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
-        assertEquals(SAMPLE_LOCAL_URL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
-        assertEquals(SAMPLE_CLIENT_NAME, toolRegistration.getClient_name());
-        assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
-        ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
-        assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
-        assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
+            // Validate tool urls/data set
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
+            assertEquals(SAMPLE_LOCAL_URL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
+            assertEquals(SAMPLE_CLIENT_NAME, toolRegistration.getClient_name());
+            assertEquals(SAMPLE_LOCAL_URL + "/jwks/jwk", toolRegistration.getJwks_uri());
+            ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
+            assertEquals(SAMPLE_DOMAIN_URL, toolConfiguration.getDomain());
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
+            assertEquals(SAMPLE_DESCRIPTION, toolConfiguration.getDescription());
 
-        // Validate message types supported
-        List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
+            // Validate message types supported
+            List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
 
-        // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
-        ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(0);
-        assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
-        assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
+            // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
+            ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(0);
+            assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
+            assertEquals(SAMPLE_LOCAL_URL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
 
-        // Validate tool accepts the claims and scopes from the platform
-        assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
-        assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
-        assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+            // Validate tool accepts the claims and scopes from the platform
+            assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
+            assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
+            assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+        } catch (NoExistingDomainException ex) {
+            fail("Error during registration");
+        }
+    }
+
+    @Test
+    public void testGenerateToolConfigurationGoldilocksAltDomain() {
+        ReflectionTestUtils.setField(registrationService, ENABLE_DEEP_LINKING, !SAMPLE_ENABLE_DEEP_LINKING);
+        PlatformRegistrationDTO platformRegistration = new PlatformRegistrationDTO();
+        List<String> customClaims = List.of("custom-claim-1", "custom-claim-2");
+        platformRegistration.setClaims_supported(customClaims);
+        platformRegistration.setScopes_supported(TEST_SCOPES);
+        platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
+        platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
+        AlternativeDomain alternativeDomain = new AlternativeDomain(ALT_DOMAIN, SAMPLE_ALT_CLIENT_NAME, SAMPLE_ALT_DESCRIPTION, null, null, null);
+        when(alternativeDomainRepository.findById(any(String.class))).thenReturn(Optional.of(alternativeDomain));
+        try{
+            ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration, ALT_DOMAIN, false);
+
+            // Validate required constants set
+            assertEquals("web", toolRegistration.getApplication_type());
+            assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
+            assertEquals("id_token", toolRegistration.getResponse_types().get(0));
+            assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
+
+            // Validate tool urls/data set
+            assertEquals(TEST_LOCAL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
+            assertEquals(TEST_LOCAL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
+            assertEquals(SAMPLE_ALT_CLIENT_NAME, toolRegistration.getClient_name());
+            assertEquals(TEST_LOCAL + "/jwks/jwk", toolRegistration.getJwks_uri());
+            ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
+            assertEquals(TEST_DOMAIN, toolConfiguration.getDomain());
+            assertEquals(TEST_LOCAL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
+            assertEquals(SAMPLE_ALT_DESCRIPTION, toolConfiguration.getDescription());
+
+            // Validate message types supported
+            List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
+
+            // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
+            ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(0);
+            assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
+            assertEquals(TEST_LOCAL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
+
+            // Validate tool accepts the claims and scopes from the platform
+            assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
+            assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
+            assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+        } catch (NoExistingDomainException ex) {
+            fail("Error during registration");
+        }
+    }
+
+    @Test
+    public void testGenerateToolConfigurationGoldilocksWildcardAltDomain() {
+        ReflectionTestUtils.setField(registrationService, ENABLE_DEEP_LINKING, !SAMPLE_ENABLE_DEEP_LINKING);
+        PlatformRegistrationDTO platformRegistration = new PlatformRegistrationDTO();
+        List<String> customClaims = List.of("custom-claim-1", "custom-claim-2");
+        platformRegistration.setClaims_supported(customClaims);
+        platformRegistration.setScopes_supported(TEST_SCOPES);
+        platformRegistration.setRegistration_endpoint(TEST_REGISTRATION_ENDPOINT);
+        platformRegistration.setIssuer(TEST_PLATFORM_ISSUER);
+        AlternativeDomain alternativeDomain = new AlternativeDomain(ALT_DOMAIN, SAMPLE_ALT_CLIENT_NAME, SAMPLE_ALT_DESCRIPTION, null, null, null);
+        when(alternativeDomainRepository.findById(any(String.class))).thenReturn(Optional.of(alternativeDomain));
+        try{
+            ToolRegistrationDTO toolRegistration = registrationService.generateToolConfiguration(platformRegistration, ALT_DOMAIN, true);
+
+            // Validate required constants set
+            assertEquals("web", toolRegistration.getApplication_type());
+            assertTrue(toolRegistration.getGrant_types().containsAll(List.of("implicit", "client_credentials")));
+            assertEquals("id_token", toolRegistration.getResponse_types().get(0));
+            assertEquals("private_key_jwt", toolRegistration.getToken_endpoint_auth_method());
+
+            // Validate tool urls/data set
+            assertEquals(TEST_WILDCARD_LOCAL + LTI3_SUFFIX, toolRegistration.getRedirect_uris().get(0));
+            assertEquals(TEST_WILDCARD_LOCAL + "/oidc/login_initiations", toolRegistration.getInitiate_login_uri());
+            assertEquals(SAMPLE_ALT_CLIENT_NAME, toolRegistration.getClient_name());
+            assertEquals(TEST_WILDCARD_LOCAL + "/jwks/jwk", toolRegistration.getJwks_uri());
+            ToolConfigurationDTO toolConfiguration = toolRegistration.getToolConfiguration();
+            assertEquals(TEST_WILDCARD_DOMAIN, toolConfiguration.getDomain());
+            assertEquals(TEST_WILDCARD_LOCAL + LTI3_SUFFIX, toolConfiguration.getTarget_link_uri());
+            assertEquals(SAMPLE_ALT_DESCRIPTION, toolConfiguration.getDescription());
+
+            // Validate message types supported
+            List<ToolMessagesSupportedDTO> toolMessagesSupportedList = toolConfiguration.getMessages_supported();
+
+            // Validate tool supports LTI Core SSO Standard Launch (aka LtiResourceLinkRequest)
+            ToolMessagesSupportedDTO resourceLinkMessageSupported = toolMessagesSupportedList.get(0);
+            assertEquals("LtiResourceLinkRequest", resourceLinkMessageSupported.getType());
+            assertEquals(TEST_WILDCARD_LOCAL + LTI3_SUFFIX, resourceLinkMessageSupported.getTarget_link_uri());
+
+            // Validate tool accepts the claims and scopes from the platform
+            assertTrue(toolConfiguration.getClaims().containsAll(LTI_OPTIONAL_CLAIMS));
+            assertTrue(toolConfiguration.getClaims().containsAll(customClaims));
+            assertEquals("example-scope1 example-scope2", toolRegistration.getScope());
+        } catch (NoExistingDomainException ex) {
+            fail("Error during registration");
+        }
     }
 }

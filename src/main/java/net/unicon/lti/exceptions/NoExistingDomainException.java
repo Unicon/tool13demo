@@ -10,16 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package net.unicon.lti.exceptions;
 
-package net.unicon.lti.utils;
+public class NoExistingDomainException extends Exception {
 
-/* Enum all the LTI system error codes */
-/* The react frontend has similar values in the 'LtiSystemErrors.js' file */
-public enum LtiSystemErrorEnum {
-
-      LINEITEMS_SYNCING_ERROR,
-      DYNAMIC_REGISTRATION_DUPLICATE_ERROR,
-      DYNAMIC_REGISTRATION_GENERAL_ERROR,
-      DYNAMIC_REGISTRATION_NO_DOMAIN_ERROR
-
+    public NoExistingDomainException(String message) {
+        super(message);
+    }
 }

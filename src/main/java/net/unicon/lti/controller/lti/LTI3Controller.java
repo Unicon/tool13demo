@@ -30,6 +30,7 @@ import net.unicon.lti.service.harmony.HarmonyService;
 import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
+import net.unicon.lti.utils.DomainUtils;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.LtiSystemErrorEnum;
 import net.unicon.lti.utils.TextConstants;
@@ -97,6 +98,12 @@ public class LTI3Controller {
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
+        String altDomain = req.getHeader("x-formated-host");
+        if (StringUtils.isNotBlank(altDomain)){
+            altDomain = DomainUtils.extractDomain(altDomain);
+        } else {
+            altDomain = null;
+        }
 
         try {
             Jws<Claims> claims = ltijwtService.validateState(state);
@@ -113,7 +120,9 @@ public class LTI3Controller {
             if (deploymentIdFromState != null && !deploymentIdFromState.equals(lti3Request.getLtiDeploymentId())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid deployment_id");
             }
-
+            if (altDomain!=null){
+                lti3Request.getLtiCustom().put("alt_domain", altDomain);
+            }
             // Convert id_token to be signed by middleware so that Harmony can validate it
             String middlewareIdToken = LtiOidcUtils.generateLtiToken(lti3Request, ltiDataService);
 

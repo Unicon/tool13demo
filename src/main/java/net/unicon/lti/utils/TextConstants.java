@@ -13,6 +13,10 @@
 
 package net.unicon.lti.utils;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class TextConstants {
 
     private TextConstants() {
@@ -29,6 +33,7 @@ public class TextConstants {
     public static final String ERROR = "Error";
     public static final String HTML_CONTENT = "htmlContent";
     public static final String LTI3_SUFFIX = "/lti3/";
+
     public static final String DEFAULT_KID = "OWNKEY";
     public static final String BEARER = "Bearer ";
     public static final String ERROR_DEEP_RESPONSE = "Error creating the DeepLinking Response";
@@ -41,5 +46,7 @@ public class TextConstants {
     public static final String RESULTS_TYPE = "application/vnd.ims.lis.v2.resultcontainer+json";
     public static final String REACT_UI_TEMPLATE = "index";
     public static final String LTI_SYSTEM_ERROR = "lti_system_error";
+
+    public static final Set<String> FILTERED_DOMAINS = new HashSet<>(Arrays.asList("staging", "stage", "develop", "dev", "demo"));
 
 }
