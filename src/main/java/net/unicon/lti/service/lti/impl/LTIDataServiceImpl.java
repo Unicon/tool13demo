@@ -45,6 +45,10 @@ public class LTIDataServiceImpl implements LTIDataService {
     @Value("${application.url}")
     private String localUrl;
 
+    // this is so that domain can be checked for wildcard urls in oidc controller
+    @Value("${domain.url}")
+    private String domainUrl;
+
     @Value("${oicd.privatekey}")
     private String ownPrivateKey;
 
@@ -350,6 +354,16 @@ public class LTIDataServiceImpl implements LTIDataService {
     @Override
     public void setLocalUrl(String localUrl) {
         this.localUrl = localUrl;
+    }
+
+    @Override
+    public String getDomainUrl() {
+        return this.domainUrl;
+    }
+
+    @Override
+    public void setDomainUrl(String domainUrl) {
+        this.domainUrl = domainUrl;
     }
 
     @Override
