@@ -251,10 +251,16 @@ public class LTI3Request {
             @Override
             public Key resolveSigningKey(JwsHeader header, Claims claims) {
 
+                // Check if aud is an array (for Schoology) and remove brackets if it is.
+                // Note: this fix will need to be refactored in the event multiple audiences are expected.
+                String aud = claims.getAudience();
+                if (aud.startsWith("[") && aud.endsWith("]")) {
+                    aud = aud.substring(1, aud.length() -1);
+                }
+                PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(), aud).get(0);
+
                 // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
                 // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                PlatformDeployment platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientId(claims.getIssuer(), claims.getAudience()).get(0);
-
                 if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                     try {
                         JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
@@ -301,6 +307,13 @@ public class LTI3Request {
         // Validate deployment
         String iss = jws.getBody().getIssuer();
         String clientId = jws.getBody().getAudience();
+
+        // Check if clientId is an array (for Schoology) and remove brackets if it is.
+        // Note: this fix will need to be refactored in the event multiple audiences are expected.
+        if (clientId.startsWith("[") && clientId.endsWith("]")) {
+            clientId = clientId.substring(1, clientId.length() -1);
+        }
+
         String deploymentId = String.valueOf(jws.getBody().get(LtiStrings.LTI_DEPLOYMENT_ID));
         List<PlatformDeployment> platformDeploymentList = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, deploymentId);
         if (platformDeploymentList.size() != 1) {
@@ -355,7 +368,14 @@ public class LTI3Request {
         //LTI3 CORE
 
         iss = jws.getBody().getIssuer();
+
+        // Check if aud is an array (for Schoology) and remove brackets if it is.
+        // Note: this fix will need to be refactored in the event multiple audiences are expected.
         aud = jws.getBody().getAudience();
+        if (aud.startsWith("[") && aud.endsWith("]")) {
+            aud = aud.substring(1, aud.length() -1);
+        }
+
         iat = jws.getBody().getIssuedAt();
         exp = jws.getBody().getExpiration();
         sub = jws.getBody().getSubject();
