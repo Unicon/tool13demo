@@ -66,7 +66,7 @@ public class AdvantageMembershipServiceImpl implements AdvantageMembershipServic
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
-            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken);
+            HttpEntity request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, "application/vnd.ims.lti-nrps.v2.membershipcontainer+json"); // Note: Schoology requires correct accept type
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
             final String GET_MEMBERSHIP = context.getContext_memberships_url();

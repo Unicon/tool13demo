@@ -24,7 +24,7 @@ public class Score {
     @JsonProperty("scoreGiven")
     private String scoreGiven;
     @JsonProperty("comment")
-    private String comment;
+    private String comment; // NOTE: Schoology requires this to be a non-null value. It may be whitespace.
     @JsonProperty("activityProgress")
     private String activityProgress;
     @JsonProperty("gradingProgress")
