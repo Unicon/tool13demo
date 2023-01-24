@@ -151,20 +151,22 @@ public class LTIDataServiceImpl implements LTIDataService {
         if (lti.getContext() == null && lti.getLtiDeploymentId() != null) {
             //Context is not in the lti request at this moment. Let's see if it exists:
             LtiContextEntity ltiContextEntity = repos.contexts.findByContextKeyAndPlatformDeployment(lti.getLtiContextId(), platformDeployment);
-            if (ltiContextEntity == null) {
-                LtiContextEntity newContext = new LtiContextEntity(lti.getLtiContextId(), lti.getKey(), lti.getLtiContextTitle(), lti.getLtiNamesRoleServiceContextMembershipsUrl(), lti.getLtiEndpointLineItems(), null);
-                lti.setContext(repos.contexts.save(newContext));
-                inserts++;
-                log.info("LTIupdate: Inserted context id=" + lti.getLtiContextId());
-            } else {
-                //Update values from the request.
-                ltiContextEntity.setTitle(lti.getLtiContextTitle());
-                ltiContextEntity.setContext_memberships_url(lti.getLtiNamesRoleServiceContextMembershipsUrl());
-                ltiContextEntity.setLineitems(lti.getLtiEndpointLineItems());
-                lti.setContext(ltiContextEntity);
-                repos.entityManager.merge(lti.getContext()); // reconnect object for this transaction
-                lti.setLtiContextId(lti.getContext().getContextKey());
-                log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
+            if (lti.getLtiContextId() != null && lti.getLtiContextTitle() != null && lti.getLtiNamesRoleServiceContextMembershipsUrl() != null && lti.getLtiEndpointLineItems() != null) {
+                if (ltiContextEntity == null) {
+                    LtiContextEntity newContext = new LtiContextEntity(lti.getLtiContextId(), lti.getKey(), lti.getLtiContextTitle(), lti.getLtiNamesRoleServiceContextMembershipsUrl(), lti.getLtiEndpointLineItems(), null);
+                    lti.setContext(repos.contexts.save(newContext));
+                    inserts++;
+                    log.info("LTIupdate: Inserted context id=" + lti.getLtiContextId());
+                } else {
+                    //Update values from the request.
+                    ltiContextEntity.setTitle(lti.getLtiContextTitle());
+                    ltiContextEntity.setContext_memberships_url(lti.getLtiNamesRoleServiceContextMembershipsUrl());
+                    ltiContextEntity.setLineitems(lti.getLtiEndpointLineItems());
+                    lti.setContext(ltiContextEntity);
+                    repos.entityManager.merge(lti.getContext()); // reconnect object for this transaction
+                    lti.setLtiContextId(lti.getContext().getContextKey());
+                    log.info("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
+                }
             }
         } else if (lti.getContext() != null) {
             lti.getContext().setTitle(lti.getLtiContextTitle());
@@ -176,7 +178,7 @@ public class LTIDataServiceImpl implements LTIDataService {
         }
 
         //If we are getting a link in the url we do this, if not we skip it.
-        if (lti.getLink() == null && lti.getLtiLinkId() != null) {
+        if (lti.getLink() == null && lti.getLtiLinkId() != null && lti.getContext() != null) {
             //Link is not in the lti request at this moment. Let's see if it exists:
             List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link, lti.getContext());
             if (ltiLinkEntityList.size() == 0) {
@@ -298,12 +300,17 @@ public class LTIDataServiceImpl implements LTIDataService {
         }
 
         LtiMembershipEntity membership = lti.getMembership();
-        if (lti.getLtiRoles() != null && lti.getUserRoleNumber() != membership.getRole()) {
+        if (lti.getLtiRoles() != null && membership != null && lti.getUserRoleNumber() != membership.getRole()) {
             membership.setRole(lti.getUserRoleNumber());
             lti.setMembership(repos.members.save(membership));
             updates++;
-            log.info("LTIupdate: Updated membership (id=" + lti.getMembership().getMembershipId() + ", user=" + lti.getSub() + ", context="
-                    + lti.getLtiContextId() + ") roles=" + lti.getLtiRoles() + ", role=" + lti.getUserRoleNumber());
+            if (lti.getLtiContextId() != null) {
+                log.info("LTIupdate: Updated membership (id=" + lti.getMembership().getMembershipId() + ", user=" + lti.getSub() + ", context="
+                        + lti.getLtiContextId() + ") roles=" + lti.getLtiRoles() + ", role=" + lti.getUserRoleNumber());
+            } else {
+                log.info("LTIupdate: Updated membership (id=" + lti.getMembership().getMembershipId() + ", user=" + lti.getSub() + ", context="
+                        + lti.getLtiContextId() + ") roles=" + lti.getLtiRoles() + ", role=" + lti.getUserRoleNumber());
+            }
         }
 
         // need to recheck and see if we are complete now
