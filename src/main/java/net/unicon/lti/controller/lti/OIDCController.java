@@ -19,6 +19,7 @@ import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,28 +121,41 @@ public class OIDCController {
                 model.addAttribute("client_id_received", clientIdValue);
                 model.addAttribute("deployment_id_received", deploymentIdValue);
             }
-            // This can be implemented in different ways, on this case, we are storing the state and nonce in
-            // the httpsession, so we can compare later if they are valid states and nonces.
-            HttpSession session = req.getSession();
-            List<String> stateList = session.getAttribute("lti_state") != null ?
-                    (List) session.getAttribute("lti_state") :
-                    new ArrayList<>();
-            String state = parameters.get("state");
 
-            // We will keep several states and nonces, and we should delete them once we use them.
-            if (!stateList.contains(state)) {
-                stateList.add(state);
-            }
-            session.setAttribute("lti_state", stateList);
 
-            List<String> nonceList = session.getAttribute("lti_nonce") != null ?
-                    (List) session.getAttribute("lti_nonce") :
-                    new ArrayList<>();
-            String nonce = parameters.get("nonce");
-            if (!nonceList.contains(nonce)) {
-                nonceList.add(nonce);
+            //TODO: Here is were we need to start the process for the cookies.
+            //First, we need to know if the cookie solution is enabled for the LMS.
+            //That will happen looking at the lti_storage_target in the loginInitiationDTO. If not null, we will use
+            //the "no cookies" solution.  If null, we will need to use the old code
+
+            if (StringUtils.isNotBlank(loginInitiationDTO.getLtiStorageTarget())){
+                //Use the storage... we will need to tell the front end to do it
+                model.addAttribute("lti_storage_target", loginInitiationDTO.getLtiStorageTarget());
+            } else {
+                // We are storing the state and nonce in
+                // the httpsession (as cookies), so we can compare later if they are valid states and nonces.
+                String state = parameters.get("state");
+                String nonce = parameters.get("nonce");
+                HttpSession session = req.getSession();
+                List<String> stateList = session.getAttribute("lti_state") != null ?
+                        (List) session.getAttribute("lti_state") :
+                        new ArrayList<>();
+
+                // We will keep several states and nonces, and we should delete them once we use them.
+                if (!stateList.contains(state)) {
+                    stateList.add(state);
+                }
+                session.setAttribute("lti_state", stateList);
+
+                List<String> nonceList = session.getAttribute("lti_nonce") != null ?
+                        (List) session.getAttribute("lti_nonce") :
+                        new ArrayList<>();
+
+                if (!nonceList.contains(nonce)) {
+                    nonceList.add(nonce);
+                }
+                session.setAttribute("lti_nonce", nonceList);
             }
-            session.setAttribute("lti_nonce", nonceList);
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
                 return "redirect:" + parameters.get("oidcEndpointComplete");
