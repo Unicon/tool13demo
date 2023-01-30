@@ -25,6 +25,15 @@
 </head>
 <body>
 
+<script th:inline="javascript">
+var state = [[${state}]];
+var nonce = [[${nonce}]];
+var target = [[${initiation_dto.ltiStorageTarget}]];
+window.onload = function () {
+    postStateAndNonce(state, nonce, target);
+}
+</script>
+
 <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
 <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled completely on the back end, so the user will never see this page/information as they will be sent directly to the tool's landing page (the next UI page).</h5>
 
@@ -57,6 +66,10 @@
             <li class="list-group-item list-group-item-primary">
                 <label>lti_deployment_id (received):</label>
                 <span th:text="${deployment_id_received}"/>
+            </li>
+            <li class="list-group-item list-group-item-primary">
+                <label>lti_storage_target:</label>
+                <span th:text="${initiation_dto.ltiStorageTarget}"/>
             </li>
         </ul>
     </div>
@@ -128,6 +141,7 @@
 </div>
 <a th:href="${oidcEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step 2</a>
 
+<script type="text/javascript" th:src="@{/js/posts.js}"></script>
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>
 </html>
