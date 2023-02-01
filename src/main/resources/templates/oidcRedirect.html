@@ -26,12 +26,10 @@
 <body>
 
 <script th:inline="javascript">
-var state = [[${state}]];
-var nonce = [[${nonce}]];
-var target = [[${initiation_dto.ltiStorageTarget}]];
-window.onload = function () {
-    postStateAndNonce(state, nonce, target);
-}
+const state = [[${state}]];
+const nonce = [[${nonce}]];
+const target = [[${initiation_dto.ltiStorageTarget}]];
+const oidcAuthorizationUri = [[${oidc_authorization_uri}]];
 </script>
 
 <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>

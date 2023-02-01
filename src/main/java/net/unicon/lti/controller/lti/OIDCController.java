@@ -122,15 +122,17 @@ public class OIDCController {
                 model.addAttribute("deployment_id_received", deploymentIdValue);
             }
 
-
+            
+            
             //TODO: Here is were we need to start the process for the cookies.
             //First, we need to know if the cookie solution is enabled for the LMS.
             //That will happen looking at the lti_storage_target in the loginInitiationDTO. If not null, we will use
             //the "no cookies" solution.  If null, we will need to use the old code
-
+            
             if (StringUtils.isNotBlank(loginInitiationDTO.getLtiStorageTarget())){
                 //Use the storage... we will need to tell the front end to do it
                 model.addAttribute("lti_storage_target", loginInitiationDTO.getLtiStorageTarget());
+                model.addAttribute("oidc_authorization_uri", platformDeployment.getOidcEndpoint());
             } else {
                 // We are storing the state and nonce in
                 // the httpsession (as cookies), so we can compare later if they are valid states and nonces.
