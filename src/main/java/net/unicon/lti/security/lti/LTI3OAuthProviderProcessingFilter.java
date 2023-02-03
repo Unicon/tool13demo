@@ -38,7 +38,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static net.unicon.lti.utils.TextConstants.LTI_STATE_COOKIE_NAME;
-
+import static java.util.stream.Collectors.toList;
 /**
  * LTI3 Redirect calls will be filtered on this class. We will check if the JWT is valid and then extract all the needed data.
  */
@@ -81,7 +81,7 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 log.debug("Request URL in OAuthFilter: {}", httpServletRequest.getRequestURL().toString());
                 log.debug("Request URI in OAuthFilter: {}", httpServletRequest.getRequestURI());
                 log.debug("Request Method in OAuthFilter: {}", httpServletRequest.getMethod());
-                log.debug("Request Cookies in OAuthFilter: {}", httpServletRequest.getCookies() != null ? Arrays.stream(httpServletRequest.getCookies()).toList().toString() : null);
+                log.debug("Request Cookies in OAuthFilter: {}", httpServletRequest.getCookies() != null ? Arrays.asList(httpServletRequest.getCookies()).toString() : null);
                 Cookie[] cookies = httpServletRequest.getCookies();
                 if (cookies != null) {
                     for (Cookie cookie : cookies) {
@@ -91,28 +91,30 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 }
             }
 
-            // First we validate that the state is a good state.
-
             // First, we make sure that the query has a state
             String state = httpServletRequest.getParameter("state");
             String link = httpServletRequest.getParameter("link");
 
-            // Second, we make sure the browser has a state cookie
-            if (httpServletRequest.getCookies() == null) {
-                throw new IllegalStateException("LTI request doesn't contain any cookies");
-            }
-            Optional<Cookie> ltiStateCookie = Arrays.stream(httpServletRequest.getCookies())
-                    .filter(e -> LTI_STATE_COOKIE_NAME.equals(e.getName())).findAny();
-            if (ltiStateCookie.isEmpty()) {
-                throw new IllegalStateException("LTI state could not be found");
+            // Verify if lti_storage_target is present. If not, we want to use the cookie path
+            if (StringUtils.isBlank(httpServletRequest.getParameter("lti_storage_target"))) {
+                // Second, we make sure the browser has a state cookie
+                if (httpServletRequest.getCookies() == null) {
+                    throw new IllegalStateException("LTI request doesn't contain any cookies");
+                }
+                Optional<Cookie> ltiStateCookie = Arrays.stream(httpServletRequest.getCookies())
+                        .filter(e -> LTI_STATE_COOKIE_NAME.equals(e.getName())).findAny();
+                if (ltiStateCookie.isEmpty()) {
+                    throw new IllegalStateException("LTI state could not be found");
+                }
+
+                // Third, check that the state from the LMS matches the state we created
+                if (!StringUtils.equals(ltiStateCookie.get().getValue(), state)) {
+                    log.debug("State from request was {}", state);
+                    log.debug("State in cookie was {}", ltiStateCookie.get().getValue());
+                    throw new IllegalStateException("LTI request doesn't contain the expected state");
+                }
             }
 
-            // Third, check that the state from the LMS matches the state we created
-            if (!StringUtils.equals(ltiStateCookie.get().getValue(), state)) {
-                log.debug("State from request was {}", state);
-                log.debug("State in cookie was {}", ltiStateCookie.get().getValue());
-                throw new IllegalStateException("LTI request doesn't contain the expected state");
-            }
             // Fourth, we validate the state to be sure that is correct
             Jws<Claims> stateClaims = ltijwtService.validateState(state);
             if (stateClaims == null) {
