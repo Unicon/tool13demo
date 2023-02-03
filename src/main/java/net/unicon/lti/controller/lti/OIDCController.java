@@ -15,6 +15,7 @@ package net.unicon.lti.controller.lti;
 import com.google.common.hash.Hashing;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
+import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
@@ -37,6 +38,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +130,16 @@ public class OIDCController {
             //First, we need to know if the cookie solution is enabled for the LMS.
             //That will happen looking at the lti_storage_target in the loginInitiationDTO. If not null, we will use
             //the "no cookies" solution.  If null, we will need to use the old code
-            
+            String stateHash = parameters.get("state");
+            String nonce = parameters.get("nonce");
+            String stateNoHash = parameters.get("state_no_hash");
+            // We store the state and nonce in the database, so we can check later if they are valid states and nonces.
+            NonceState nonceState = new NonceState(nonce, stateHash, stateNoHash, loginInitiationDTO.getLtiStorageTarget());
+            ltiDataService.getRepos().nonceStateRepository.save(nonceState);
+            // Deleting the old nonceStates (just for maintenance)
+            ltiDataService.getRepos().nonceStateRepository.deleteByCreatedAtBefore(new Date(System.currentTimeMillis() - 1000 * 60 * 24));
+            parameters.remove("state_no_hash"); //We don't need to send this to the front end.
+
             if (StringUtils.isNotBlank(loginInitiationDTO.getLtiStorageTarget())){
                 //Use the storage... we will need to tell the front end to do it
                 model.addAttribute("lti_storage_target", loginInitiationDTO.getLtiStorageTarget());
@@ -136,16 +147,15 @@ public class OIDCController {
             } else {
                 // We are storing the state and nonce in
                 // the httpsession (as cookies), so we can compare later if they are valid states and nonces.
-                String state = parameters.get("state");
-                String nonce = parameters.get("nonce");
+                // We need to store the state and nonce in the session, so we can check later if they are valid states and nonces.
                 HttpSession session = req.getSession();
                 List<String> stateList = session.getAttribute("lti_state") != null ?
                         (List) session.getAttribute("lti_state") :
                         new ArrayList<>();
 
                 // We will keep several states and nonces, and we should delete them once we use them.
-                if (!stateList.contains(state)) {
-                    stateList.add(state);
+                if (!stateList.contains(stateHash)) {
+                    stateList.add(stateHash);
                 }
                 session.setAttribute("lti_state", stateList);
 
@@ -194,7 +204,11 @@ public class OIDCController {
         // The state is something that we can create and add anything we want on it.
         // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
         String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
-        authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OIDC request.
+        String state_hash = Hashing.sha256()
+                .hashString(state, StandardCharsets.UTF_8)
+                .toString();
+        authRequestMap.put("state", state_hash); //The state (hash) we use later to retrieve some useful information about the OIDC request.
+        authRequestMap.put("state_no_hash", state); //The state we use later to retrieve some useful information about the OIDC request. No hashed.
         authRequestMap.put("oidcEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OIDC requests
         authRequestMap.put("oidcEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
         return authRequestMap;

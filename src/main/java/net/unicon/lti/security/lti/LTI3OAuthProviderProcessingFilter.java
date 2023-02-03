@@ -16,10 +16,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
-import net.unicon.lti.exceptions.DataServiceException;
+import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
-import net.unicon.lti.utils.lti.LTI3Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -70,59 +69,20 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
         }
 
         try {
-
-            // This is just for logging.
             HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-            Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
-            log.info("-------------------------------------------------------------------------------------------------------");
-            while (sessionAttributes.hasMoreElements()) {
-                String attName = sessionAttributes.nextElement();
-                log.info(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
-
-            }
-            log.info("-------------------------------------------------------------------------------------------------------");
-
-            // First we validate that the state is a good state.
-
-            //First, we make sure that the query has an state
             String state = httpServletRequest.getParameter("state");
-            String link = httpServletRequest.getParameter("link");
-            if (httpServletRequest.getSession().getAttribute("lti_state") == null) {
-                throw new IllegalStateException("LTI request doesn't contains the expected state");
-            }
-            //Second, as the state is something that we have created, it should be in our list of states.
-            List<String> ltiState = (List<String>) httpServletRequest.getSession().getAttribute("lti_state");
-            if (!ltiState.contains(state)) {
-                throw new IllegalStateException("LTI request doesn't contains the expected state");
-            }
-            //Third, we validate the state to be sure that is correct
-            Jws<Claims> stateClaims = ltijwtService.validateState(state);
 
-            // Once we have the state validated we need the key to check the JWT signature from the id_token,
-            // and extract all the values in the LTI3Request object.
-            // Most of the platforms will provide a JWK repo URL and we will have it stored in configuration,
-            // where they store the public keys
-            // With that URL and the "kid" in the header of the jwt id_token, we can get the public key too.
-            // In our tool we have included a alternative mechanism for those platforms without JWK endpoint
-            // The state provides us the way to find that key in our repo. This is not a requirement in LTI, it is just a way to do it that we've implemented, but each one can use the
-            // state in a different way.
-            String jwt = httpServletRequest.getParameter("id_token");
-            if (StringUtils.hasText(jwt)) {
-                //Now we validate the JWT token
-                Jws<Claims> jws = ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
-                if (jws != null) {
-                    //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
-                    //ready and will be able to use it.
-                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, link, null); // IllegalStateException if invalid
-                    httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one
-                    httpServletRequest.setAttribute("lti3_valid", lti3Request.isLoaded() && lti3Request.isComplete()); // is LTI3 request totally valid and complete
-                    httpServletRequest.setAttribute("lti3_message_type", lti3Request.getLtiMessageType()); // is LTI3 request totally valid and complete
-                    httpServletRequest.setAttribute(LTI3Request.class.getName(), lti3Request); // make the LTI3 data accessible later in the request if needed
+            NonceState nonceState = ltiDataService.getRepos().nonceStateRepository.findByStateHash(state);
+            if (nonceState != null) {
+                Jws<Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
+                String nonce = stateClaims.getBody().getId();
+                if (!nonceState.getNonce().equals(nonce)) {
+                    throw new IllegalStateException("LTI request doesn't contains the expected state/nonce");
                 }
+            }else{
+                throw new IllegalStateException("LTI request doesn't contains a valid state");
             }
-
             filterChain.doFilter(servletRequest, servletResponse);
-
             this.resetAuthenticationAfterRequest();
         } catch (ExpiredJwtException eje) {
             log.info("Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
@@ -132,8 +92,10 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             log.info("Invalid JWT signature: {0}", ex.getMessage());
             log.debug("Exception " + ex.getMessage(), ex);
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        } catch (DataServiceException e) {
-            log.error("Error in the Data Service", e);
+        } catch (Exception e) {
+            log.info("Error filtering the request", e.getMessage());
+            log.debug("Exception " + e.getMessage(), e);
+            ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
 

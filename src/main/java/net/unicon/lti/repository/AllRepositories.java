@@ -52,6 +52,9 @@ public class AllRepositories {
     @Autowired
     public ApiOneUseTokenRepository apiOneUseTokenRepository;
 
+    @Autowired
+    public NonceStateRepository nonceStateRepository;
+
     @PersistenceContext
     public EntityManager entityManager;
 

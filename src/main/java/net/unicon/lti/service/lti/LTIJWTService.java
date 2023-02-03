@@ -11,7 +11,11 @@ public interface LTIJWTService {
     //Here we could add other checks like expiration of the state (not implemented)
     Jws<Claims> validateState(String state);
 
+    Jws<Claims> validateNonceState(String state);
+
     Jws<Claims> validateJWT(String jwt, String clientId);
 
     String generateStateOrClientAssertionJWT(PlatformDeployment platformDeployment) throws GeneralSecurityException, IOException;
+
+    String generateStateNonceTokenJWT(String hash) throws GeneralSecurityException, IOException;
 }

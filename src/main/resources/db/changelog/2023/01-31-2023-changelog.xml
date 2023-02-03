@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="20230131-01" author="ddelblanco (generated)">
+        <createTable tableName="nonce_state">
+            <column name="nonce" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_API_NONCE_STATE"/>
+            </column>
+            <column name="state_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="state" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
