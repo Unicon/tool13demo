@@ -66,8 +66,6 @@ public class LtiOidcUtilsTest {
             when(platformDeployment.getIss()).thenReturn("test-iss");
             when(platformDeployment.getClientId()).thenReturn("client-id");
             when(loginInitiationDTO.getIss()).thenReturn("test-iss");
-            when(loginInitiationDTO.getLoginHint()).thenReturn("login-hint");
-            when(loginInitiationDTO.getLtiMessageHint()).thenReturn("lti-message-hint");
             when(loginInitiationDTO.getTargetLinkUri()).thenReturn("target-link-uri");
             Map<String, String> authRequestMap = Collections.singletonMap("nonce", "nonce-value");
             topDateTimeUtilMock.when(() -> LocalDateTime.now(ZoneId.of("Z"))).thenReturn(currentLocalDate);
@@ -84,8 +82,6 @@ public class LtiOidcUtilsTest {
             assertEquals("client-id", ltiTokenClaims.getAudience());
             assertEquals("nonce-value", ltiTokenClaims.getId());
             assertEquals("test-iss", ltiTokenClaims.get("original_iss"));
-            assertEquals("login-hint", ltiTokenClaims.get("loginHint"));
-            assertEquals("lti-message-hint", ltiTokenClaims.get("ltiMessageHint"));
             assertEquals("target-link-uri", ltiTokenClaims.get("targetLinkUri"));
             assertEquals("client-id", ltiTokenClaims.get("clientId"));
             assertEquals("deployment-id", ltiTokenClaims.get("ltiDeploymentId"));

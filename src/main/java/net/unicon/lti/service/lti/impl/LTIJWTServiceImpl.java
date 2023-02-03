@@ -84,6 +84,32 @@ public class LTIJWTServiceImpl implements LTIJWTService {
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
+    /**
+     * This will check that the nonce state token has been signed by us .
+     */
+    //Here we could add other checks like expiration of the state (not implemented)
+    @Override
+    public Jws<Claims> validateNonceState(String nonceStateToken) {
+        return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
+            // This is done because each state is signed with a different key based on the issuer... so
+            // we don't know the key and we need to check it pre-extracting the claims and finding the kid
+            @Override
+            public Key resolveSigningKey(JwsHeader header, Claims claims) {
+                PublicKey toolPublicKey;
+                try {
+                    // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
+                    // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
+                    toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
+                } catch (GeneralSecurityException ex) {
+                    log.error("Error validating the state. Error generating the tool public key", ex);
+                    return null;
+                }
+                return toolPublicKey;
+            }
+        }).parseClaimsJws(nonceStateToken);
+        // If we are on this point, then the state signature has been validated. We can start other tasks now.
+    }
+
 
     /**
      * We will just check that it is a valid signed JWT from the issuer. The logic later will decide if we
@@ -159,6 +185,31 @@ public class LTIJWTServiceImpl implements LTIJWTService {
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
                 .compact();
         log.debug("Client Assertion JWT/State: \n {} \n", state);
+        return state;
+    }
+
+    /**
+     * This JWT will contain the hash for the nonce state check
+     */
+    @Override
+    public String generateStateNonceTokenJWT(String hash) throws GeneralSecurityException, IOException {
+
+        Date date = new Date();
+        Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+        String ourOwnTool = "Our own tool";
+        String state = Jwts.builder()
+                .setHeaderParam("kid", TextConstants.DEFAULT_KID)
+                .setHeaderParam("typ", "JWT")
+                .setIssuer(ourOwnTool)
+                .setSubject(ourOwnTool) // The clientId
+                .setAudience(ourOwnTool)  //We send here the authToken url.
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setNotBefore(date) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim("expected_hash", hash)  //This is an specific claim to ask for tokens.
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it with our own private key. The platform has the public one.
+                .compact();
+        log.debug("JWT State Nonce Hash: \n {} \n", state);
         return state;
     }
 

@@ -160,7 +160,7 @@ public class LTI3RequestTest {
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
         verify(claims).get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class));
         verify(claims).get(eq(LtiStrings.LTI_NONCE), eq(String.class));
-        assertEquals("Nonce error: Nonce = null in the JWT or in the session.", exception.getMessage());
+        assertEquals("Nonce error: Nonce = null in the session.", exception.getMessage());
     }
 
     @Test

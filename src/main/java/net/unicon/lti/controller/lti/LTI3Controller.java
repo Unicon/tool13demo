@@ -12,12 +12,14 @@
  */
 package net.unicon.lti.controller.lti;
 
+import com.google.common.hash.Hashing;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.SignatureException;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiLinkEntity;
+import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
 import net.unicon.lti.service.app.APIJWTService;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.util.List;
@@ -70,10 +73,65 @@ public class LTI3Controller {
     @RequestMapping({"", "/"})
     public String lti3(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
 
-        //First we will get the state, validate it
+        //We need to pass to the model the LTI3 request, the state and the nonce and link, and a JWT with the hash of all of them.
         String state = req.getParameter("state");
-        //We will use this link to find the content to display.
+        String id_token = req.getParameter("id_token");
         String link = req.getParameter("link");
+
+        NonceState nonceState = ltiDataService.getRepos().nonceStateRepository.findByStateHash(state);
+        if (nonceState != null) {
+            Jws<Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
+            String nonce = stateClaims.getBody().getId();
+            String tohash = id_token + state + nonce + link;
+            String expected_hash = Hashing.sha256()
+                    .hashString(tohash, StandardCharsets.UTF_8)
+                    .toString();
+            model.addAttribute("expected_state", state);
+            model.addAttribute("expected_nonce", nonce);
+            try {
+                String token = ltijwtService.generateStateNonceTokenJWT(expected_hash);
+                model.addAttribute("token", token);
+            } catch (GeneralSecurityException | IOException e) {
+                log.error("Error generating JWT", e);
+                model.addAttribute(TextConstants.ERROR, "Error generating JWT");
+                return TextConstants.LTI3ERROR;
+            }
+            model.addAttribute("id_token", id_token);
+            model.addAttribute("link", link);
+            model.addAttribute("ltiStorageTarget", nonceState.getLtiStorageTarget());
+
+        }else{
+            model.addAttribute(TextConstants.ERROR, "State was not expected");
+            return TextConstants.LTI3ERROR;
+        }
+        return "nonceStateCheck";
+    }
+
+    @RequestMapping({"", "/after"})
+    public String lti3checked(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
+        //We validate the hash.
+        String state = req.getParameter("state");
+        String nonce = req.getParameter("nonce");
+        String token = req.getParameter("token");
+        String id_token = req.getParameter("id_token");
+        String expected_state = req.getParameter("expected_state");
+        String expected_nonce = req.getParameter("expected_nonce");
+        String link = req.getParameter("link");
+
+        String tohash = id_token + expected_state + expected_nonce + link;
+        String expected_hash = Hashing.sha256()
+                .hashString(tohash, StandardCharsets.UTF_8)
+                .toString();
+
+        Jws<Claims> claims_token = ltijwtService.validateNonceState(token);
+
+        if (!claims_token.getBody().get("expected_hash").equals(expected_hash)){
+            log.error("Hashes don't match");
+            model.addAttribute(TextConstants.ERROR, "Token hashes don't match");
+            return TextConstants.LTI3ERROR;
+        }
+
+        //We will use this link to find the content to display.
         try {
             Jws<Claims> claims = ltijwtService.validateState(state);
             LTI3Request lti3Request = LTI3Request.getInstance(link);

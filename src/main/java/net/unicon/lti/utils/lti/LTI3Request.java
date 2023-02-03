@@ -32,6 +32,7 @@ import net.unicon.lti.model.LtiMembershipEntity;
 import net.unicon.lti.model.LtiResultEntity;
 import net.unicon.lti.model.LtiUserEntity;
 import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.impl.LTIDataServiceImpl;
 import net.unicon.lti.utils.LtiStrings;
@@ -472,6 +473,7 @@ public class LTI3Request {
 
 
         // A sample that shows how we can store some of this in the session
+        //TODO, find alternatives to this.
         HttpSession session = this.httpServletRequest.getSession();
         session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
         session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
@@ -740,33 +742,45 @@ public class LTI3Request {
      */
     public String checkNonce(Jws<Claims> jws) {
 
-        //We get all the nonces from the session, and compare.
-        List<String> ltiNonce = (List) httpServletRequest.getSession().getAttribute("lti_nonce");
-        List<String> ltiNonceNew = new ArrayList<>();
-        boolean found = false;
         String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE, String.class);
-        if (nonceToCheck == null || ListUtils.isEmpty(ltiNonce)) {
+        if (nonceToCheck == null) {
             return "Nonce = null in the JWT or in the session.";
-        } else {
-            // Really, we send the hash of the nonce to the platform.
-            for (String nonceStored : ltiNonce) {
-                String nonceHash = Hashing.sha256()
-                        .hashString(nonceStored, StandardCharsets.UTF_8)
-                        .toString();
-                if (nonceToCheck.equals(nonceHash)) {
-                    found = true;
-                } else { //If not found, we add it to another list... so we keep the unused nonces.
-                    ltiNonceNew.add(nonceStored);
-                }
-            }
-            if (found) {
-                httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
-                return "true";
-            } else {
-                return "Unknown or already used nonce.";
-            }
-
         }
+        //We get all the nonces from the session, and compare.
+        if (httpServletRequest.getSession().getAttribute("lti_nonce") != null) {
+            List<String> ltiNonce = (List) httpServletRequest.getSession().getAttribute("lti_nonce");
+            List<String> ltiNonceNew = new ArrayList<>();
+            boolean found = false;
+            if (ListUtils.isEmpty(ltiNonce)) {
+                return "Nonce = null in the session.";
+            }
+             else {
+                // Really, we send the hash of the nonce to the platform.
+                for (String nonceStored : ltiNonce) {
+                    String nonceHash = Hashing.sha256()
+                            .hashString(nonceStored, StandardCharsets.UTF_8)
+                            .toString();
+                    if (nonceToCheck.equals(nonceHash)) {
+                        found = true;
+                    } else { //If not found, we add it to another list... so we keep the unused nonces.
+                        ltiNonceNew.add(nonceStored);
+                    }
+                }
+                if (found) {
+                    httpServletRequest.getSession().setAttribute("lti_nonce", ltiNonceNew);
+                } else {
+                    return "Unknown or already used nonce.";
+                }
+
+            }
+        }
+        NonceState nonceState = ltiDataService.getRepos().nonceStateRepository.findByNonce(nonceToCheck);
+        if (nonceState != null) {
+            return "true";
+        } else {
+            return "Nonce not found in the database.";
+        }
+
     }
 
     /**
