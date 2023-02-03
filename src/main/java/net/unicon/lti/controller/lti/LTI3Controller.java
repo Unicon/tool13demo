@@ -131,9 +131,17 @@ public class LTI3Controller {
             return TextConstants.LTI3ERROR;
         }
 
+        if (!state.equals(expected_hash)){
+            log.error("Hashes don't match");
+            model.addAttribute(TextConstants.ERROR, "Token hashes don't match");
+            return TextConstants.LTI3ERROR;
+        }
+
         //We will use this link to find the content to display.
+        NonceState nonceState = ltiDataService.getRepos().nonceStateRepository.findByStateHash(state);
+
         try {
-            Jws<Claims> claims = ltijwtService.validateState(state);
+            Jws<Claims> claims = ltijwtService.validateState(nonceState.getState());
             LTI3Request lti3Request = LTI3Request.getInstance(link);
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the clientId in the state (if sent in OIDC initiation request) matches the one coming with the ltiRequest.
