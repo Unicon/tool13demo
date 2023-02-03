@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -41,11 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_FORM_POST;
-import static net.unicon.lti.utils.LtiStrings.OIDC_ID_TOKEN;
-import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
-import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
+import static net.unicon.lti.utils.LtiStrings.*;
 import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
 import static net.unicon.lti.utils.TextConstants.LTI_STATE_COOKIE_NAME;
 
@@ -109,9 +106,9 @@ public class OIDCController {
             }
         }
 
-        //This checks the user-agent on the request and will render an error page for Safari users
+        //This checks the user-agent and lti_storage_target on the request and will render an error page for Safari users
         String userAgent = req.getHeader("User-Agent");
-        if (userAgent != null && userAgent.contains("Safari") && !userAgent.contains("Chrome")) {
+        if (userAgent != null && userAgent.contains("Safari") && !userAgent.contains("Chrome") && StringUtils.isBlank(loginInitiationDTO.getLtiStorageTarget())) {
             return "lti3safarierror";
         }
 
@@ -130,12 +127,21 @@ public class OIDCController {
 
             // This can be implemented in different ways. In this case, we are storing the state and nonce in
             // cookies, so we can compare later if they are valid.
-            res.addCookie(generateLtiOidcCookie(LTI_STATE_COOKIE_NAME, parameters.get("state")));
-            res.addCookie(generateLtiOidcCookie(LTI_NONCE_COOKIE_NAME, parameters.get("nonce")));
+            if (StringUtils.isBlank(parameters.get("ltiStorageTarget"))) {
+                res.addCookie(generateLtiOidcCookie(LTI_STATE_COOKIE_NAME, parameters.get("state")));
+                res.addCookie(generateLtiOidcCookie(LTI_NONCE_COOKIE_NAME, parameters.get("nonce")));
+            }
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
-                return "redirect:" + parameters.get("oicdEndpointComplete");
+                if (StringUtils.isBlank(parameters.get("ltiStorageTarget"))){
+                    return "redirect:" + parameters.get("oicdEndpointComplete");
+                } else {
+                    model.addAttribute("state", parameters.get("state"));
+                    model.addAttribute("lti_storage_target", parameters.get("ltiStorageTarget"));
+                    model.addAttribute("oidc_endpoint_complete", parameters.get("oicdEndpointComplete"));
+                    return "oidcLtiStorage";
+                }
             } else {
                 return "oicdRedirect";
             }
@@ -191,6 +197,7 @@ public class OIDCController {
         authRequestMap.put("state", state); //The state we use later to retrieve some useful information about the OICD request.
         authRequestMap.put("oicdEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OICD requests
         authRequestMap.put("oicdEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
+        authRequestMap.put("ltiStorageTarget", loginInitiationDTO.getLtiStorageTarget());
         log.debug("Authorization Request Payload = " + authRequestMap);
         return authRequestMap;
     }

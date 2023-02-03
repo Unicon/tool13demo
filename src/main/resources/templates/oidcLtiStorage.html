@@ -19,12 +19,6 @@
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
       xml:lang="en">
 <body>
-    <form name="redirectForm" th:action="${target}" method="post">
-        <input name="id_token" type="hidden" th:value="${id_token}" />
-    </form>
 
-    <script type="text/javascript">
-        document.redirectForm.submit();
-    </script>
 </body>
 </html>
