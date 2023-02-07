@@ -51,4 +51,8 @@ public interface LTIDataService {
     boolean getDeepLinkingEnabled();
 
     void setDeepLinkingEnabled(boolean deepLinkingEnabled);
+
+    boolean getEnableMockValkyrie();
+
+    void setEnableMockValkyrie(boolean enableMockValkyrie);
 }

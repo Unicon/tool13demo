@@ -171,22 +171,24 @@ public class OIDCController {
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
         //Getting the right redirect url based on the target url.
-        String altDomain = DomainUtils.extractDomain(loginInitiationDTO.getTargetLinkUri());
         String altLocalUrl = ltiDataService.getLocalUrl();
-        log.debug("local url = " + ltiDataService.getLocalUrl() + "; domain = " + ltiDataService.getDomainUrl() + "; alt domain = " + loginInitiationDTO.getTargetLinkUri());
-        if (altDomain!=null){
-            altLocalUrl = DomainUtils.insertDomain(altDomain, altLocalUrl);
-        } else if (DomainUtils.isWildcardDomain(loginInitiationDTO.getTargetLinkUri(),altLocalUrl)) {
-            log.debug("Wildcard detected against local url");
-            String wildcardDomain = DomainUtils.extractWildcardDomain(loginInitiationDTO.getTargetLinkUri());
-            altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, altLocalUrl);
-        } else if (DomainUtils.isWildcardDomain(loginInitiationDTO.getTargetLinkUri(), ltiDataService.getDomainUrl())) {
-            log.debug("Wildcard detected against domain url");
-            String wildcardDomain = DomainUtils.extractWildcardDomain(loginInitiationDTO.getTargetLinkUri());
+        if (!ltiDataService.getEnableMockValkyrie()) {
+            String altDomain = DomainUtils.extractDomain(loginInitiationDTO.getTargetLinkUri());
+            log.debug("local url = " + ltiDataService.getLocalUrl() + "; domain = " + ltiDataService.getDomainUrl() + "; alt domain = " + loginInitiationDTO.getTargetLinkUri());
+            if (altDomain != null) {
+                altLocalUrl = DomainUtils.insertDomain(altDomain, altLocalUrl);
+            } else if (DomainUtils.isWildcardDomain(loginInitiationDTO.getTargetLinkUri(), altLocalUrl)) {
+                log.debug("Wildcard detected against local url");
+                String wildcardDomain = DomainUtils.extractWildcardDomain(loginInitiationDTO.getTargetLinkUri());
+                altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, altLocalUrl);
+            } else if (DomainUtils.isWildcardDomain(loginInitiationDTO.getTargetLinkUri(), ltiDataService.getDomainUrl())) {
+                log.debug("Wildcard detected against domain url");
+                String wildcardDomain = DomainUtils.extractWildcardDomain(loginInitiationDTO.getTargetLinkUri());
 //            altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, ltiDataService.getDomainUrl());
-            altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, altLocalUrl);
+                altLocalUrl = DomainUtils.insertWildcardDomain(wildcardDomain, altLocalUrl);
+            }
+            log.debug("altLocalUrl = " + altLocalUrl);
         }
-        log .debug("altLocalUrl = " + altLocalUrl);
         authRequestMap.put("redirect_uri", altLocalUrl + TextConstants.LTI3_SUFFIX);  // One of the valid redirect uris.
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.

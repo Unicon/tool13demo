@@ -61,6 +61,9 @@ public class LTIDataServiceImpl implements LTIDataService {
     @Value("${lti13.enableDeepLinking}")
     private boolean deepLinkingEnabled;
 
+    @Value("${lti13.enableMockValkyrie}")
+    private boolean enableMockValkyrie;
+
 
     /**
      * Allows convenient access to the DAO repositories which manage the stored LTI data
@@ -404,5 +407,15 @@ public class LTIDataServiceImpl implements LTIDataService {
     @Override
     public void setDeepLinkingEnabled(boolean deepLinkingEnabled) {
         this.deepLinkingEnabled = deepLinkingEnabled;
+    }
+
+    @Override
+    public boolean getEnableMockValkyrie() {
+        return enableMockValkyrie;
+    }
+
+    @Override
+    public void setEnableMockValkyrie(boolean enableMockValkyrie) {
+        this.enableMockValkyrie = enableMockValkyrie;
     }
 }
