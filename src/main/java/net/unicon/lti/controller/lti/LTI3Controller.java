@@ -196,6 +196,7 @@ public class LTI3Controller {
                 model.addAttribute("id_token", middlewareIdToken);
                 model.addAttribute("state", state);
                 model.addAttribute("platform_family_code", lti3Request.getLtiToolPlatformFamilyCode());
+                model.addAttribute("ltiServiceUrl", ltiDataService.getLocalUrl());
             } else {
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
                 return "lti3Redirect";
@@ -210,6 +211,7 @@ public class LTI3Controller {
                     model.addAttribute("iss", lti3Request.getIss());
                     model.addAttribute("context", lti3Request.getLtiContextId());
                     model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
+                    model.addAttribute("ltiServiceUrl", ltiDataService.getLocalUrl());
                     log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
                             lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());
 
@@ -282,6 +284,21 @@ public class LTI3Controller {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Deep Linking Disabled");
         }
         return "lti3Result";
+    }
+
+    @PostMapping("/error")
+    public String error(HttpServletRequest req) {
+        if (StringUtils.isNotBlank(req.getParameter("lmsTimedOut"))) {
+            log.debug("Timeout has occurred.");
+            log.debug("middlewareState: " + req.getParameter("middlewareState"));
+            log.debug("lmsTimedOut: " + req.getParameter("lmsTimedOut"));
+            return "lti3safarierror";
+        } else {
+            log.debug("lmsState and middlewareState do not match.");
+            log.debug("lmsState: " + req.getParameter("lmsState"));
+            log.debug("middlewareState: " + req.getParameter("middlewareState"));
+            return "lti3safarierror";
+        }
     }
 
 }
