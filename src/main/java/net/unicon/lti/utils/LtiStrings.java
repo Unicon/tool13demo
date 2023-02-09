@@ -35,6 +35,7 @@ public class LtiStrings {
     public static final String OIDC_TARGET_LINK_URI = "target_link_uri";
     public static final String OIDC_CLIENT_ID = "client_id";
     public static final String OIDC_DEPLOYMENT_ID = "lti_deployment_id";
+    public static final String OIDC_LTI_STORAGE_TARGET = "lti_storage_target";
 
     //Those are used by the session.
     public static final String LTI_SESSION_USER_ID = "user_id";

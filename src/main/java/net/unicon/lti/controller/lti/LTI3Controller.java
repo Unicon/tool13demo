@@ -198,6 +198,8 @@ public class LTI3Controller {
                 model.addAttribute("platform_family_code", lti3Request.getLtiToolPlatformFamilyCode());
                 model.addAttribute("ltiServiceUrl", ltiDataService.getLocalUrl());
             } else {
+                model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
+                model.addAttribute("state", state);
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
                 return "lti3Redirect";
             }
@@ -212,6 +214,9 @@ public class LTI3Controller {
                     model.addAttribute("context", lti3Request.getLtiContextId());
                     model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
                     model.addAttribute("ltiServiceUrl", ltiDataService.getLocalUrl());
+                    model.addAttribute("state", state);
+                    model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
+
                     log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
                             lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());
 
@@ -222,6 +227,8 @@ public class LTI3Controller {
                 }
             }
 
+            model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
+            model.addAttribute("state", state);
             return "lti3Redirect";
 
         } catch (SignatureException e) {

@@ -78,7 +78,33 @@ public class LTI3OAuthProviderProcessingFilterTest {
     }
 
     @Test
+    public void testDoFilterWithStorageTarget() {
+        req.setParameter("lti_storage_target", "_parent");
+        Cookie[] cookies = req.getCookies();
+        try {
+
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(1024);
+            kp = kpg.generateKeyPair();
+            Base64.Encoder encoder = Base64.getEncoder();
+            String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";
+            when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKey);
+            String validState = LtiOidcUtils.generateState(ltiDataService, Collections.singletonMap("nonce", "nonce-value"), loginInitiationDTO, "client-id", "deployment-id");
+            req.setParameter("state", validState);
+            Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(validState);
+            when(ltijwtService.validateState(validState)).thenReturn(finalClaims);
+
+            lti3OAuthFilter.doFilter(req, res, mockChain);
+        } catch (GeneralSecurityException | ServletException | IOException e) {
+            e.printStackTrace();
+        }
+        assertEquals(cookies, null); // because we have lti_storage_target, cookies being null should not throw an error.
+    }
+
+    @Test
     public void testDoFilterWithoutCookies() {
+        req.setParameter("lti_storage_target");
+
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
                 () -> {lti3OAuthFilter.doFilter(req, res, mockChain);}

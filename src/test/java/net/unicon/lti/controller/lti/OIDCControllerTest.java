@@ -36,16 +36,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
-import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_DEPLOYMENT_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_FORM_POST;
-import static net.unicon.lti.utils.LtiStrings.OIDC_ID_TOKEN;
-import static net.unicon.lti.utils.LtiStrings.OIDC_ISS;
-import static net.unicon.lti.utils.LtiStrings.OIDC_LOGIN_HINT;
-import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_MESSAGE_HINT;
-import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
-import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
+import static net.unicon.lti.utils.LtiStrings.*;
 import static net.unicon.lti.utils.TextConstants.LTI_NONCE_COOKIE_NAME;
 import static net.unicon.lti.utils.TextConstants.LTI_STATE_COOKIE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,7 +66,7 @@ public class OIDCControllerTest {
     private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti.one.lumenlearning.com%2Flti3%2F";
     private static final String SAMPLE_ENCODED_REDIRECT_ALTDOMAIN_URI = "https%3A%2F%2Flti-sunymar.one.lumenlearning.com%2Flti3%2F";
     private static final String SAMPLE_ENCODED_REDIRECT_WILDCARD_URI = "https%3A%2F%2Fsunymar.lti.one.lumenlearning.com%2Flti3%2F";
-
+    private static final String SAMPLE_LTI_STORAGE_TARGET = "_parent";
 
 
     @InjectMocks
@@ -291,6 +282,27 @@ public class OIDCControllerTest {
     }
 
     @Test
+    public void testLtiStorageTarget() {
+        when(req.getParameter(OIDC_LTI_STORAGE_TARGET)).thenReturn(SAMPLE_LTI_STORAGE_TARGET);
+        when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
+        when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
+        when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
+        when(req.getParameter(OIDC_TARGET_LINK_URI)).thenReturn(SAMPLE_TARGET_URI);
+        when(req.getParameter(OIDC_LTI_MESSAGE_HINT)).thenReturn(SAMPLE_LTI_MESSAGE_HINT);
+        when(req.getParameter(OIDC_LOGIN_HINT)).thenReturn(SAMPLE_LOGIN_HINT);
+        when(platformDeploymentRepository.findByIssAndClientId(eq(SAMPLE_ISS), eq(SAMPLE_CLIENT_ID)))
+                .thenReturn(onePlatformDeployment);
+
+        String response = oidcController.loginInitiations(req, res, model);
+        assertEquals(response, "oidcLtiStorage");
+        assertTrue(model.containsAttribute("state"));
+        assertTrue(model.containsAttribute("lti_storage_target"));
+        assertTrue(model.containsAttribute("oidc_endpoint_complete"));
+
+
+    }
+
+    @Test
     public void testLoginInitiationWithIssuerOneConfig() {
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
@@ -438,6 +450,7 @@ public class OIDCControllerTest {
         assertEquals(TextConstants.LTI3ERROR, response);
     }
 
+    // lti_storage_target not passed in
     private void validateOAuthResponse(String response, String clientId, String deploymentId, String iss, boolean alt, boolean wildcard) {
         UriComponents responseUri = UriComponentsBuilder.fromUriString(response.substring("redirect:".length())).build();
         assertEquals(SAMPLE_OIDC_ENDPOINT, responseUri.getScheme() + "://" + responseUri.getHost() + responseUri.getPath());
