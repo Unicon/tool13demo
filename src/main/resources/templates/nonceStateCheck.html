@@ -14,45 +14,65 @@
 -->
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+
 <head>
     <title>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
 </head>
+
 <body>
 
-<script th:inline="javascript">
-const state = [[${state}]];
-const nonce = [[${nonce}]];
-const target = [[${ltiStorageTarget}]];
-</script>
+    <script th:inline="javascript">
+        window.addEventListener('load', () => {
+            getStateAndNonce(
+                [[${ expected_state }]],
+                [[${ expected_nonce }]],
+                [[${ ltiStorageTarget }]],
+                "https://unicon.instructure.com/api/lti/authorize"
+            )
+        });
+    </script>
 
-<h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes - Step 1)</h4>
-<h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled without any user interaction, so the user will never see this page/information except maybe for some milliseconds or in case of error.</h5>
+    <form id="endpoint-form" action="/lti3/checked" method="POST">
+        <input id="pmState" name="state" type="text" value="" />
+        <input id="pmNonce" name="nonce" type="text" value="" />
+        <input id="pmExpected_state" name="expected_state" type="text" value="" />
+        <input id="pmExpected_nonce" name="expected_nonce" type="text" value="" />
+        <input id="pmId_token" name="id_token" type="text" value="" />
+        <input id="pmToken" name="token" type="text" value="" />
+        <input id="pmLink" name="link" type="text" value="" />
+    </form>
 
-<div class="alert alert-info">
-    <p>
-        The LTI tool is using the <code>target</code> to retrieve the <code>nonce</code> and <code>state</code> from the storage.
-        We have these values:
-    </p>
+    <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes - Step 1)</h4>
+    <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
+        without any user interaction, so the user will never see this page/information except maybe for some
+        milliseconds or in case of error.</h5>
 
-    <ul>
-        <li><code>token</code>: <code th:text="${token}"></code></li>
-        <li><code>id_token</code>: <code th:text="${id_token}"></code></li>
-        <li><code>link</code>: <code th:text="${link}"></code></li>
-        <li><code>ltiStorageTarget</code>: <code th:text="${ltiStorageTarget}"></code></li>
-        <li><code>expected_state</code>: <code th:text="${expected_state}"></code></li>
-        <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
-    </ul>
+    <div class="alert alert-info">
+        <p>
+            The LTI tool is using the <code>target</code> to retrieve the <code>nonce</code> and <code>state</code> from
+            the storage.
+            We have these values:
+        </p>
+
+        <ul>
+            <li><code>token</code>: <code th:text="${token}"></code></li>
+            <li><code>id_token</code>: <code th:text="${id_token}"></code></li>
+            <li><code>link</code>: <code th:text="${link}"></code></li>
+            <li><code>ltiStorageTarget</code>: <code th:text="${ltiStorageTarget}"></code></li>
+            <li><code>expected_state</code>: <code th:text="${expected_state}"></code></li>
+            <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
+        </ul>
 
 
-    <!--WE NEED HERE TO ADD THE CODE TO RETRIEVE THE NONCE AND STATE FROM THE STORAGE-->
+        <!--WE NEED HERE TO ADD THE CODE TO RETRIEVE THE NONCE AND STATE FROM THE STORAGE-->
 
-<script type="text/javascript" th:src="@{/js/posts.js}"></script>
-<script type="text/javascript" th:src="@{/js/utils.js}"></script>
+        <script type="text/javascript" th:src="@{/js/posts.js}"></script>
+        <script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>
+
 </html>
