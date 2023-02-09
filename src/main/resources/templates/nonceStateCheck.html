@@ -32,7 +32,7 @@
                 [[${ expected_state }]],
                 [[${ expected_nonce }]],
                 [[${ ltiStorageTarget }]],
-                "https://unicon.instructure.com/api/lti/authorize"
+                [[${ oidc_authorization_uri }]]
             )
         });
     </script>
@@ -66,6 +66,7 @@
             <li><code>ltiStorageTarget</code>: <code th:text="${ltiStorageTarget}"></code></li>
             <li><code>expected_state</code>: <code th:text="${expected_state}"></code></li>
             <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
+            <li><code>oidc_authorization_uri</code>: <code th:text="${oidc_authorization_uri}"></code></li>
         </ul>
 
 

@@ -19,6 +19,7 @@ import io.jsonwebtoken.SignatureException;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiLinkEntity;
+import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
@@ -100,6 +101,20 @@ public class LTI3Controller {
             model.addAttribute("link", link);
             model.addAttribute("ltiStorageTarget", nonceState.getLtiStorageTarget());
 
+
+            //We need to get the PlatformDeployment based on the iss, clientId and ltiDeploymentId
+            String iss = stateClaims.getBody().get("original_iss", String.class);
+            String clientId = stateClaims.getBody().get("clientId", String.class);
+            String ltiDeploymentId = stateClaims.getBody().get("ltiDeploymentId", String.class);
+
+            List<PlatformDeployment> platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, ltiDeploymentId);
+            if (!platformDeployment.isEmpty()) {
+                model.addAttribute("oidc_authorization_uri", platformDeployment.get(0).getOidcEndpoint());
+            } else {
+                log.error("Error getting PlatformDeployment");
+                model.addAttribute(TextConstants.ERROR, "Error getting oidc_authorization_uri from the PlatformDeployment");
+                return TextConstants.LTI3ERROR;
+            }
         }else{
             model.addAttribute(TextConstants.ERROR, "State was not expected");
             return TextConstants.LTI3ERROR;
