@@ -15,10 +15,27 @@
 <!DOCTYPE html>
 <!--suppress CheckEmptyScriptTag -->
 <!-- state, lti_storage_target have been added to the list of attributes accessible from this page -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+
 <body>
 
+    <script type="text/javascript" th:src="@{/js/ltistorage.js}"></script>
+    <script th:inline="javascript">
+        let PlatformOidcLoginUrl = [[${ oicdEndpoint }]];
+        let OidcLoginData = {
+            state: [[${ state }]],
+            nonce: [[${ nonce }]],
+            client_id: [[${ client_id }]],
+            login_hint: [[${ login_hint }]],
+            lti_message_hint: [[${ lti_message_hint }]],
+            redirect_uri: PlatformOidcLoginUrl
+        }
+        let hasLTIStorage = [[${ lti_storage_target }]] ? true : false;
+
+        window.ltiStorage = new LtiStorage().initToolLogin(PlatformOidcLoginUrl, OidcLoginData, window, hasLTIStorage)
+
+    </script>
 </body>
+
 </html>
