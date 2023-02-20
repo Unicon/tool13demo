@@ -72,8 +72,8 @@ class LtiStorage {
       oidcLoginData,
       launchFrame,
       hasPlatformStorage
-    );
-    //.then(this.doLoginInitiationRedirect); //TODO: when do we redirect? where to redirect? will send a post request as a form
+    )
+    .then(this.doLoginInitiationRedirect);
   }
   async setStateAndNonce(
     platformOidcLoginUrl,
@@ -394,6 +394,7 @@ class LtiPostMessage {
       subject: "lti.put_data",
       key: key,
       value: value,
+      message_id: "123456",
     };
   }
 
@@ -401,6 +402,7 @@ class LtiPostMessage {
     return this.sendPostMessageIfCapable({
       subject: "lti.get_data",
       key: key,
+      message_id: "123456"
     }).then((response) => {
       return response.value;
     });
