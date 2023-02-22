@@ -29,7 +29,7 @@
             client_id: [[${ client_id }]],
             login_hint: [[${ login_hint }]],
             lti_message_hint: [[${ lti_message_hint }]],
-            redirect_uri: PlatformOidcLoginUrl
+            redirect_uri: [[${ oidc_endpoint_complete }]]
         }
         let hasLTIStorage = [[${ lti_storage_target }]] ? true : false;
 
