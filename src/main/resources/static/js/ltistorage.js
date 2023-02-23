@@ -247,6 +247,7 @@ class LtiPostMessage {
     this._targetOrigin = targetOrigin;
     this._launchFrame = launchFrame || window;
   }
+
   async sendPostMessage(data, targetWindow, originOverride, targetFrameName) {
     return new Promise((resolve, reject) => {
       let log = new LtiPostMessageLog(
@@ -254,7 +255,6 @@ class LtiPostMessage {
       );
       let timeout;
       let targetOrigin = originOverride || this._targetOrigin.origin;
-      data.message_id = "message-" + LtiPostMessage.secureRandom(15);
       let targetFrame;
       try {
         targetFrame = __classPrivateFieldGet(
@@ -390,11 +390,16 @@ class LtiPostMessage {
     });
   }
   async putData(key, value) {
+    function secureRandom(length) {
+      let random = new Uint8Array(length||63);
+      crypto.getRandomValues(random);
+      return btoa(String.fromCharCode(...random)).replace(/\//g, '_').replace(/\+/g, '-');
+    }
     return {
       subject: "lti.put_data",
       key: key,
       value: value,
-      message_id: "123456",
+      message_id: 'message-' + secureRandom(15)
     };
   }
 
@@ -402,7 +407,6 @@ class LtiPostMessage {
     return this.sendPostMessageIfCapable({
       subject: "lti.get_data",
       key: key,
-      message_id: "123456"
     }).then((response) => {
       return response.value;
     });
@@ -432,6 +436,7 @@ class LtiPostMessageLog {
     this._start_time = Date.now();
     __classPrivateFieldSet(this, _LtiPostMessageLog_debug, debug, "f");
   }
+
   request(targetFrameName, data, targetOrigin) {
     this._request = {
       timestamp: Date.now(),
