@@ -202,6 +202,7 @@ public class LTI3Request implements ApplicationContextAware {
 
     Map<String, List<String>> deepLinkJwts;
 
+    private boolean forceNonceCheck = true;
 
     /**
      * @return the current LTI3Request object if there is one available, null if there isn't one and this is not a valid LTI3 based request
@@ -237,7 +238,7 @@ public class LTI3Request implements ApplicationContextAware {
             }
             try {
                 if (ltiDataService != null) {
-                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId, null);
+                    ltiRequest = new LTI3Request(req, ltiDataService, true, linkId, null, null);
                 } else { //THIS SHOULD NOT HAPPEN
                     throw new IllegalStateException("Error internal, no Dataservice available: " + req);
                 }
@@ -291,9 +292,12 @@ public class LTI3Request implements ApplicationContextAware {
      * @param request an http servlet request
      * @param ltiDataService   the service used for accessing LTI data
      * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
+     * @param linkId
+     * @param jwsClaims
+     * @param ltiStorageTarget
      * @throws IllegalStateException if this is not an LTI request
      */
-    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims) throws DataServiceException {
+    public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims, String ltiStorageTarget) throws DataServiceException {
         if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
@@ -311,7 +315,7 @@ public class LTI3Request implements ApplicationContextAware {
             log.info("-------------------------------------------------------------------------------------------------------");
         }
 
-        validateIdToken(jws);
+        validateIdToken(jws, ltiStorageTarget);
 
         //Here we will populate the LTI3Request object
         processRequestParameters(request, jws);
@@ -328,12 +332,12 @@ public class LTI3Request implements ApplicationContextAware {
      * @param update  if true then update (or insert) the DB records for this request (else skip DB updating)
      * @param jwt id_token string
      */
-    public LTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt) throws DataServiceException {
+    public LTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt, String ltiStorageTarget) throws DataServiceException {
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
         this.jws = validateAndRetrieveJWTClaims(ltiDataService, jwt);
 
-        validateIdToken(jws);
+        validateIdToken(jws, ltiStorageTarget);
 
         //Here we will populate the LTI3Request object
         processRequestParameters(jws);
@@ -345,7 +349,25 @@ public class LTI3Request implements ApplicationContextAware {
         }
     }
 
-    private void validateIdToken(Jws<Claims> jws) {
+    public LTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt, boolean forceNonceCheck) throws DataServiceException {
+        if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
+        this.forceNonceCheck = forceNonceCheck;
+        this.ltiDataService = ltiDataService;
+        this.jws = validateAndRetrieveJWTClaims(ltiDataService, jwt);
+
+        validateIdToken(jws, null);
+
+        //Here we will populate the LTI3Request object
+        processRequestParameters(jws);
+
+        // We update the database in case we have new values. (New users, new resources...etc)
+        // Load data from DB related with this request and update it if needed with the new values.
+        if (update) {
+            updateLTIDataInDB(jws, linkId);
+        }
+    }
+
+    private void validateIdToken(Jws<Claims> jws, String ltiStorageTarget) {
         // Validate deployment
         String iss = jws.getBody().getIssuer();
         String clientId = jws.getBody().getAudience();
@@ -360,10 +382,17 @@ public class LTI3Request implements ApplicationContextAware {
         if (!(isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK) || isLTI3Request.equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING))) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
         }
-        //Now we are going to check the if the nonce is valid.
-        String checkNonce = checkNonce(jws);
-        if (!checkNonce.equals("true")) {
-            throw new IllegalStateException("Nonce error: " + checkNonce);
+
+        log.debug("ltiStorageTarget in LTI3Request");
+        log.debug(ltiStorageTarget);
+
+        // If forceNonceCheck is true and there is no ltiStorageTarget value then we check the nonce here for the cookie flow
+        if (forceNonceCheck && StringUtils.isBlank(ltiStorageTarget)) {
+            //Now we are going to check the if the nonce is valid.
+            String checkNonce = checkNonce(jws);
+            if (!checkNonce.equals("true")) {
+                throw new IllegalStateException("Nonce error: " + checkNonce);
+            }
         }
     }
 
@@ -860,8 +889,8 @@ public class LTI3Request implements ApplicationContextAware {
         return roleNum;
     }
 
-    public static LTI3Request makeLTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt) throws DataServiceException {
-        return new LTI3Request(ltiDataService, update, linkId, jwt);
+    public static LTI3Request makeLTI3Request(LTIDataService ltiDataService, boolean update, String linkId, String jwt, String ltiStorageTarget) throws DataServiceException {
+        return new LTI3Request(ltiDataService, update, linkId, jwt, ltiStorageTarget);
     }
 
     @Override

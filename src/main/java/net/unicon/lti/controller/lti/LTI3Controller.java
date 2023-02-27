@@ -98,6 +98,9 @@ public class LTI3Controller {
         String state = req.getParameter("state");
         //We will use this link to find the content to display.
         String link = req.getParameter("link");
+        String ltiStorageTarget = req.getParameter("lti_storage_target");
+        log.debug("ltiStorageTarget in LTI3Controller (1)");
+        log.debug(ltiStorageTarget);
         String altDomain = req.getHeader("x-formated-host");
         if (StringUtils.isNotBlank(altDomain)){
             String extractedDomain = DomainUtils.extractDomain(altDomain);
@@ -215,7 +218,10 @@ public class LTI3Controller {
                     model.addAttribute("root_outcome_guid", ltiContext.getRootOutcomeGuid());
                     model.addAttribute("ltiServiceUrl", ltiDataService.getLocalUrl());
                     model.addAttribute("state", state);
-                    model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
+                    model.addAttribute("lti_storage_target", ltiStorageTarget);
+
+                    log.debug("ltiStorageTarget in LTI3Controller (2)");
+                    log.debug(ltiStorageTarget);
 
                     log.debug("Deep Linking menu opening for iss: {}, client_id: {}, deployment_id: {}, context: {}, and root_outcome_guid: {}",
                             lti3Request.getIss(), clientIdFromState, deploymentIdFromState, lti3Request.getLtiContextId(), ltiContext.getRootOutcomeGuid());

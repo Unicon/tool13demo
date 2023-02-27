@@ -95,6 +95,9 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             String state = httpServletRequest.getParameter("state");
             String link = httpServletRequest.getParameter("link");
 
+            log.debug("LTI3OAuthProcessingFilter logging for lti_storage_target:");
+            log.debug(httpServletRequest.getParameter("lti_storage_target"));
+
             // Verify if lti_storage_target is present. If not, we want to use the cookie path
             if (StringUtils.isBlank(httpServletRequest.getParameter("lti_storage_target"))) {
                 // Second, we make sure the browser has a state cookie
@@ -130,13 +133,14 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
             // The state provides us the way to find that key in our repo. This is not a requirement in LTI, it is just a way to do it that we've implemented, but each one can use the
             // state in a different way.
             String jwt = httpServletRequest.getParameter("id_token");
+            String ltiStorageTarget = httpServletRequest.getParameter("lti_storage_target");
             if (StringUtils.isNotBlank(jwt)) {
                 //Now we validate the JWT token
                 Jws<Claims> jws = ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
                 if (jws != null) {
                     //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
-                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, link, null); // IllegalStateException if invalid
+                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, link, null, ltiStorageTarget); // IllegalStateException if invalid
                     httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one
                     httpServletRequest.setAttribute("lti3_valid", lti3Request.isLoaded() && lti3Request.isComplete()); // is LTI3 request totally valid and complete
                     httpServletRequest.setAttribute("lti3_message_type", lti3Request.getLtiMessageType()); // is LTI3 request totally valid and complete

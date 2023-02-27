@@ -109,7 +109,7 @@ public class LTI3RequestTest {
     public void testLTI3RequestWithoutRequest() {
         AssertionError exception = Assertions.assertThrows(
                 AssertionError.class,
-                () -> {new LTI3Request(null, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(null, ltiDataService, false, "1234", jwsClaims, null);}
         );
         assertEquals(exception.getMessage(), "cannot make an LtiRequest without a request");
     }
@@ -120,7 +120,7 @@ public class LTI3RequestTest {
 
         IllegalArgumentException e = Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientId(any(String.class), any(String.class));
         assertEquals("A signing key must be specified if the specified JWT is digitally signed.", e.getMessage());
@@ -135,7 +135,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("PlatformDeployment does not exist or is duplicated for issuer: https://platform-lms.com, clientId: sample-client-id, and deploymentId: sample-deployment-id", e.getMessage());
@@ -150,7 +150,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not a valid LTI3 request: LTI Message Type = null. ", e.getMessage());
@@ -165,7 +165,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("No ServletRequestAttributes can be found, cannot validate the request.", e.getMessage());
@@ -187,7 +187,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Nonce error: Nonce = null in the JWT or in the session.", e.getMessage());
@@ -208,7 +208,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Nonce error: Nonce = null in the JWT or in the session.", e.getMessage());
@@ -230,7 +230,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Nonce error: Unknown or already used nonce.", e.getMessage());
@@ -256,7 +256,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -284,7 +284,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -312,7 +312,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -341,7 +341,7 @@ public class LTI3RequestTest {
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
                     () -> {
-                        new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);
+                        new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);
                     }
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
@@ -370,7 +370,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -394,7 +394,7 @@ public class LTI3RequestTest {
             when(claims.get(LtiStrings.LTI_NONCE, String.class)).thenReturn(SAMPLE_NONCE_HASH);
             prepareIdTokenForFinalValidations(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
 
-            LTI3Request lti3Request = new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);
+            LTI3Request lti3Request = new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals(SAMPLE_TOOL_PLATFORM_GUID, lti3Request.getLtiToolPlatformGuid());
 
@@ -423,7 +423,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -461,7 +461,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -496,7 +496,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -531,7 +531,7 @@ public class LTI3RequestTest {
 
             IllegalStateException e = Assertions.assertThrows(
                     IllegalStateException.class,
-                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);}
+                    () -> {new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);}
             );
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals("Request is not complete and correct: \n" +
@@ -564,7 +564,7 @@ public class LTI3RequestTest {
             when(claims.get(LtiStrings.DEEP_LINKING_SETTINGS, Map.class)).thenReturn(deepLinkingSettings);
             when(ltiDataService.getDemoMode()).thenReturn(false);
 
-            LTI3Request lti3Request = new LTI3Request(ltiDataService, false, "1234", ID_TOKEN);
+            LTI3Request lti3Request = new LTI3Request(ltiDataService, false, "1234", ID_TOKEN, null);
             verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
             assertEquals(SAMPLE_TOOL_PLATFORM_GUID, lti3Request.getLtiToolPlatformGuid());
 
@@ -578,7 +578,7 @@ public class LTI3RequestTest {
     public void testLTI3RequestWithoutDataService() {
         AssertionError exception = Assertions.assertThrows(
                 AssertionError.class,
-                () -> {new LTI3Request(req, null, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, null, false, "1234", jwsClaims, null);}
         );
         assertEquals(exception.getMessage(), "LTIDataService cannot be null");
     }
@@ -591,7 +591,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         assertEquals("PlatformDeployment does not exist or is duplicated for issuer: https://platform-lms.com, clientId: sample-client-id, and deploymentId: sample-deployment-id", exception.getMessage());
@@ -605,7 +605,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         assertEquals("PlatformDeployment does not exist or is duplicated for issuer: https://platform-lms.com, clientId: sample-client-id, and deploymentId: sample-deployment-id", exception.getMessage());
@@ -618,7 +618,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -636,7 +636,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -654,7 +654,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -673,7 +673,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -692,7 +692,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -711,7 +711,7 @@ public class LTI3RequestTest {
 
         IllegalStateException exception = Assertions.assertThrows(
                 IllegalStateException.class,
-                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);}
+                () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);}
         );
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
@@ -728,7 +728,7 @@ public class LTI3RequestTest {
         when(req.getCookies()).thenReturn(cookies);
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn(SAMPLE_NONCE_HASH);
 
-        Assertions.assertThrows(NullPointerException.class, () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);});
+        Assertions.assertThrows(NullPointerException.class, () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims, null);});
 
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));

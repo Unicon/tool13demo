@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class LtiContextController {
     HarmonyService harmonyService;
 
     @PutMapping
-    ResponseEntity<Object> prepareDeepLinkingResponse(@RequestBody HarmonyFetchDeepLinksBody harmonyFetchDeepLinksBody) {
+    ResponseEntity<Object> prepareDeepLinkingResponse(@RequestBody HarmonyFetchDeepLinksBody harmonyFetchDeepLinksBody, @RequestParam(required = false, value = "lti_storage_target") String ltiStorageTarget) {
         try {
             if (StringUtils.isEmpty(harmonyFetchDeepLinksBody.getRootOutcomeGuid())) {
                 log.error("Root outcome guid cannot be null when preparing deep linking response");
@@ -57,7 +58,7 @@ public class LtiContextController {
             }
 
             // validate id_token, including proving existence of single platformDeployment, generate id_token object
-            LTI3Request lti3Request = LTI3Request.makeLTI3Request(ltiDataService, true, null, harmonyFetchDeepLinksBody.getIdToken());
+            LTI3Request lti3Request = LTI3Request.makeLTI3Request(ltiDataService, true, null, harmonyFetchDeepLinksBody.getIdToken(), ltiStorageTarget);
 
             // Retrieve LMS config from db to be used to find the right context
             List<PlatformDeployment> platformDeploymentList = platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(lti3Request.getIss(), lti3Request.getAud(), lti3Request.getLtiDeploymentId());

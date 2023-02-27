@@ -96,11 +96,13 @@ export const selectState = (state) => state.state;
 export const selectTarget = (state) => state.target;
 export const selectRootOutcomeGuid = (state) => state.root_outcome_guid;
 export const selectLtiSystemError = (state) => state.lti_system_error;
+export const selectLtiStorageTarget = (state) => state.ltiStorageTarget;
 
 // This function fetches the courses from the backend, it should be invoked when loading the application.
 export const fetchCourses = (page) => (dispatch, getState) => {
-  // Get the id_token from the state, thunks already have access to getState as the second argument.
+  // Get the id_token and lti_storage_target from the state, we already have access to getState as the second argument.
   const idToken = getState().id_token;
+  const lti_storage_target =  getState().ltiStorageTarget;
   // Get the previous selection, if this has a value is because it has been sent from the backend, exists an association.
   const root_outcome_guid = getState().root_outcome_guid;
   // If no specific page is requested, request the first one.
@@ -108,7 +110,9 @@ export const fetchCourses = (page) => (dispatch, getState) => {
   // We must display an spinner when loading courses from the backend
   dispatch(setLoading(true));
   dispatch(setErrorFetchingCourses(false));
-  fetch(`/harmony/courses?page=${requestedPage}`, {
+  // We pass the 'lti_storage_target' over as a param to the /courses endpoint in the HarmonyRestController
+  // This is currently not getting used as we decided to bypass all secondary cookie based nonce checks that occur in the HarmonyRestController
+  fetch(`/harmony/courses?page=${requestedPage}&lti_storage_target=${lti_storage_target}`, {
     method: 'GET',
     headers: {'lti-id-token': idToken}
   })
@@ -135,7 +139,7 @@ export const fetchCourses = (page) => (dispatch, getState) => {
   }).finally(() => {
     // If a previous course selection has been made we must load the course from the backend.
     if (root_outcome_guid) {
-      dispatch(fetchSingleCourse(root_outcome_guid));
+      dispatch(fetchSingleCourse(root_outcome_guid, lti_storage_target));
     } else {
       // Remove the spinner once the request has been resolved.
       dispatch(setLoading(false));
@@ -144,13 +148,15 @@ export const fetchCourses = (page) => (dispatch, getState) => {
 };
 
 // This function fetches a single course from the backend, it should be invoked when a course has been paired with the LMS course.
-export const fetchSingleCourse = (rootOutcomeGuid) => (dispatch, getState) => {
+export const fetchSingleCourse = (rootOutcomeGuid, ltiStorageTarget) => (dispatch, getState) => {
   // Get the id_token from the state, thunks already have access to getState as the second argument.
   const idToken = getState().id_token;
   // We must display an spinner when loading courses from the backend
   dispatch(setLoading(true));
   dispatch(setErrorAssociatingCourse(false));
-  fetch(`/harmony/courses?root_outcome_guid=${rootOutcomeGuid}`, {
+  // We pass the 'lti_storage_target' over as a param to the /courses endpoint in the HarmonyRestController
+  // This is currently not getting used as we decided to bypass all secondary cookie based nonce checks that occur in the HarmonyRestController
+  fetch(`/harmony/courses?root_outcome_guid=${rootOutcomeGuid}&lti_storage_target=${ltiStorageTarget}`, {
     method: 'GET',
     headers: {'lti-id-token': idToken}
   })
