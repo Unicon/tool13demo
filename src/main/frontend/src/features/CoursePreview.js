@@ -13,7 +13,8 @@ import {
   selectSelectedModules,
   selectState,
   selectTarget,
-  setIsFetchingDeepLinks
+  setIsFetchingDeepLinks,
+  selectLtiStorageTarget
 } from '../app/appSlice';
 
 import { parseCourseCoverImage } from '../util/Utils.js';
@@ -39,6 +40,7 @@ function CoursePreview(props) {
   const state = useSelector(selectState);
   const rootOutcomeGuid = useSelector(selectRootOutcomeGuid);
   const selectedModules = useSelector(selectSelectedModules);
+  const ltiStorageTarget = useSelector(selectLtiStorageTarget);
 
   // Check if the user has selected any module, the Add button must be disabled if there's no selection.
   const hasSelectedModules = Array.isArray(selectedModules) && selectedModules.length > 0;
@@ -80,7 +82,6 @@ function CoursePreview(props) {
   }
 
   const addCourseToLMS = () => {
-
       // The window will never notice if the user is browsing in long contents or not, should always scroll to top when fetching items.
       window.scrollTo(0, 0);
 
@@ -109,7 +110,7 @@ function CoursePreview(props) {
         "module_ids": moduleIdList
       }
 
-      fetch(contextAPIUrl + "?state=" + state, {
+      fetch(contextAPIUrl + "?state=" + state + "&lti_storage_target=" + ltiStorageTarget, {
         method: 'PUT',
         headers: {
             'Content-Type':'application/json'
