@@ -24,14 +24,19 @@
     </form>
     <script type="text/javascript" th:src="@{/js/ltistorage.js}"></script>
     <script th:inline="javascript">
-        let state = [[${ state }]]
-        let nonce = "${id_token}"
-        let platformOrigin = [[${ lti_storage_target }]]
-        console.log("lti3Redirect is hit")
+        let state = "made up string"
+        let nonceStorage = JSON.parse(window.localStorage.getItem('nonce'));
+        let nonce = nonceStorage.value;
+        console.log("nonce from storage: ", nonce)
+        let platformOrigin = [[${ iss }]]
 
-        if (new LtiStorage().validateStateAndNonce(state, nonce, platformOrigin, window)) {
-            document.redirectForm.submit();
-        }
+        let motherMayIRedirect = new LtiStorage().validateStateAndNonce(state, nonce, platformOrigin, window)
+        motherMayIRedirect.then(function(result) {
+            console.log(result)
+            if (result === true){
+                document.redirectForm.submit();
+            }
+        });
     </script>
 </body>
 </html>
