@@ -165,7 +165,6 @@ class LtiStorage {
   async validateStateAndNonce(state, nonce, platformOrigin, launchFrame) {
     //TODO: this function is not used - do we need it?
     // Check cookie first
-    console.log("validate state method")
     if (
       document.cookie
         .split("; ")
@@ -175,15 +174,14 @@ class LtiStorage {
         .includes(LtiStorage.cookiePrefix + "_nonce_" + nonce + "=" + nonce)
     ) {
       // Found state in cookie, return true
-      console.log("state found in cookie")
+      return false;
     }
     let platformStorage = this.ltiPostMessage(platformOrigin, launchFrame);
-    console.log(platformStorage)
     return platformStorage
       .getData(LtiStorage.cookiePrefix + "_state_" + state)
       .then((value) => {
         if (!value || state !== value) {
-          console.log("state did not match")
+           return false;
         }
         return platformStorage.getData(
           LtiStorage.cookiePrefix + "_nonce_" + nonce
@@ -191,12 +189,12 @@ class LtiStorage {
       })
       .then((value) => {
         if (!value || nonce !== value) {
-          console.log("nonce didn't match")
+          return false;
         }
-       console.log("compares matched");
+       return true;
       })
       .catch(() => {
-        console.log("didn't work somehow");
+        return false;
       });
   }
   ltiPostMessage(targetOrigin, launchFrame) {
