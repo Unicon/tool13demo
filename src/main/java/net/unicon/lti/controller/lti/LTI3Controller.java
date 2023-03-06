@@ -203,6 +203,8 @@ public class LTI3Controller {
             } else {
                 model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
                 model.addAttribute("state", state);
+                model.addAttribute("iss", lti3Request.getIss());
+                model.addAttribute("nonce", lti3Request.getNonce());
                 model.addAttribute("target", ltiDataService.getLocalUrl() + "/demo?link=" + link);
                 return "lti3Redirect";
             }
@@ -235,6 +237,7 @@ public class LTI3Controller {
 
             model.addAttribute("lti_storage_target", req.getParameter("lti_storage_target"));
             model.addAttribute("state", state);
+            model.addAttribute("nonce", lti3Request.getNonce());
             return "lti3Redirect";
 
         } catch (SignatureException e) {
