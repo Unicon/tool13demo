@@ -404,9 +404,15 @@ class LtiPostMessage {
   }
 
   async getData(key) {
+  function secureRandom(length) {
+        let random = new Uint8Array(length||63);
+        crypto.getRandomValues(random);
+        return btoa(String.fromCharCode(...random)).replace(/\//g, '_').replace(/\+/g, '-');
+      };
     return this.sendPostMessageIfCapable({
       subject: "lti.get_data",
       key: key,
+      message_id: 'message-' + secureRandom(15)
     }).then((response) => {
       return response.value;
     });
