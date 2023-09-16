@@ -129,10 +129,10 @@ public class OIDCController {
             String state = parameters.get("state");
 
             // We will keep several states and nonces, and we should delete them once we use them.
-            if (!stateList.contains(state)) {
-                stateList.add(state);
-            }
-            session.setAttribute("lti_state", stateList);
+//            if (!stateList.contains(state)) {
+//                stateList.add(state);
+//            }
+//            session.setAttribute("lti_state", stateList);
 
             List<String> nonceList = session.getAttribute("lti_nonce") != null ?
                     (List) session.getAttribute("lti_nonce") :
