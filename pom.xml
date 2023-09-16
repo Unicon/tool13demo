@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>net.unicon</groupId>
-    <artifactId>lti13demo</artifactId>
+    <artifactId>lti13demo-scavenger-hunt</artifactId>
     <version>0.2-SNAPSHOT</version>
     <inceptionYear>2021</inceptionYear>
     <name>LTI 1.3 Java Demo</name>
