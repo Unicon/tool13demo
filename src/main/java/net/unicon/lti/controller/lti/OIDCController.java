@@ -123,10 +123,10 @@ public class OIDCController {
             // This can be implemented in different ways, on this case, we are storing the state and nonce in
             // the httpsession, so we can compare later if they are valid states and nonces.
             HttpSession session = req.getSession();
-            List<String> stateList = session.getAttribute("lti_state") != null ?
-                    (List) session.getAttribute("lti_state") :
-                    new ArrayList<>();
-            String state = parameters.get("state");
+//            List<String> stateList = session.getAttribute("lti_state") != null ?
+//                    (List) session.getAttribute("lti_state") :
+//                    new ArrayList<>();
+//            String state = parameters.get("state");
 
             // We will keep several states and nonces, and we should delete them once we use them.
 //            if (!stateList.contains(state)) {
@@ -171,7 +171,8 @@ public class OIDCController {
         authRequestMap.put("nonce", nonce);  //The nonce
         authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
-        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valids reditect uris.
+        authRequestMap.put("redirect_uri", "https://look-down-below.com/lti3/");
+//        authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valids reditect uris.
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
         authRequestMap.put("response_type", OIDC_ID_TOKEN); //Always this value, as specified in the standard.
         authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
