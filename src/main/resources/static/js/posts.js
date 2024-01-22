@@ -25,8 +25,8 @@ const create_UUID = () => {
 //  -------------- CONSTANTS AND PLACEHOLDERS --------------- //
 
 // Defined here so we only have to change them in one place
-const PUT_SUBJECT = "org.imsglobal.lti.put_data";
-const GET_SUBJECT = "org.imsglobal.lti.get_data";
+const PUT_SUBJECT = "lti.put_data";
+const GET_SUBJECT = "lti.get_data";
 
 // Generate a UUID for use in sending and verifying responses
 const uuid = create_UUID();
@@ -83,7 +83,7 @@ const validateResponseConditions = (origin, data) => {
     // Message ID we sent needs to match response
     data.message_id === uuid &&
     // Origin of the response should match the oidc auth URI origin
-    origin === platformOrigin &&
+//    origin === platformOrigin &&
     // verify data.subject = lti.put/get_data.response
     data.subject === subjectResponse
   ) {
@@ -109,7 +109,7 @@ const putStateAndNonce = (state, nonce, target, oidcAuthorizationUri) => {
 
     // get the target frame/window to send the postmessage to
     const parent = window.parent || window.opener;
-    const targetFrame = target === "_parent" ? parent : parent.frames[target];
+    const targetFrame = target === '_parent' || target === 'post_message_forwarding' ? parent : parent.frames[target]
 
     console.log(`↖️ Sending ${messageType} postMessages`);
     // send postMessage to set the state
@@ -120,7 +120,8 @@ const putStateAndNonce = (state, nonce, target, oidcAuthorizationUri) => {
         value: state,
         message_id: uuid,
       },
-      platformOrigin
+      //platformOrigin
+      "*"
     );
 
     // send postMessage to set the nonce
@@ -131,7 +132,8 @@ const putStateAndNonce = (state, nonce, target, oidcAuthorizationUri) => {
         value: nonce,
         message_id: uuid,
       },
-      platformOrigin
+      //platformOrigin
+      "*"
     );
   }
 };
@@ -156,7 +158,7 @@ const getStateAndNonce = (
 
     // get the target frame/window to send the postmessage to
     let parent = window.parent || window.opener;
-    let targetFrame = target === "_parent" ? parent : parent.frames[target];
+    const targetFrame = target === '_parent' || target === 'post_message_forwarding' ? parent : parent.frames[target]
 
     console.log(`↖️ Sending ${messageType} postMessages`);
     // send postMessage to get the state
@@ -166,7 +168,8 @@ const getStateAndNonce = (
         key: "nonce" + expectedNonce,
         message_id: uuid,
       },
-      platformOrigin
+      //platformOrigin
+      "*"
     );
     // send postMessage to get the state
     targetFrame.postMessage(
@@ -175,7 +178,8 @@ const getStateAndNonce = (
         key: "state" + expectedState,
         message_id: uuid,
       },
-      platformOrigin
+      //platformOrigin
+      "*"
     );
   }
 };
@@ -220,6 +224,7 @@ const handleGetResponse = () => {
 
 // Handler for receiving PostMessages
 const handlePostMessageResponse = ({ origin, data }) => {
+    console.log("handling PostMessage response");
   // handle errors first and formost
   if (data.error) {
     // handle errors
@@ -255,6 +260,8 @@ const handlePostMessageResponse = ({ origin, data }) => {
       // hits on step 1
       handlePutResponse();
     }
+  } else {
+    window.addEventListener("message", (event) => handlePostMessageResponse(event));
   }
 
   // This isn't a message we're expecting

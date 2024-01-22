@@ -28,6 +28,7 @@
 
     <script th:inline="javascript">
         window.addEventListener('load', () => {
+            window.addEventListener("message", (event) => handlePostMessageResponse(event));
             getStateAndNonce(
                 [[${ expected_state }]],
                 [[${ expected_nonce }]],
@@ -74,6 +75,7 @@
 
         <script type="text/javascript" th:src="@{/js/posts.js}"></script>
         <script type="text/javascript" th:src="@{/js/utils.js}"></script>
+    </div>
 </body>
 
 </html>
