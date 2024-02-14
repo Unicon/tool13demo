@@ -54,6 +54,7 @@
             document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
             document.getElementById('pmId_token').value = [[${ id_token }]];
             document.getElementById('pmToken').value = [[${ token }]];
+            document.getElementById("post_button").disabled = false;
           } else {
             console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
           }
@@ -158,22 +159,19 @@
     </script>
 
     <form id="endpoint-form" action="/lti3/after" method="POST">
-        <input id="pmState" name="state" type="text" value="" />
-        <input id="pmNonce" name="nonce" type="text" value="" />
-        <input id="pmExpected_state" name="expected_state" type="text" value="" />
-        <input id="pmExpected_nonce" name="expected_nonce" type="text" value="" />
-        <input id="pmId_token" name="id_token" type="text" value="" />
-        <input id="pmToken" name="token" type="text" value="" />
-        <input type="submit" value="Submit POST" class="btn btn-primary">
+        <code>State retrieved</code><input id="pmState" name="state" type="text" value="" /></br>
+        <code>Nonce retrieved</code><input id="pmNonce" name="nonce" type="text" value="" /></br>
+        <code>Expected_state</code><input id="pmExpected_state" name="expected_state" type="text" value="" /></br>
+        <code>Expected_nonce</code><input id="pmExpected_nonce" name="expected_nonce" type="text" value="" /></br>
+        <code>Id_token</code><input id="pmId_token" name="id_token" type="text" value="" /></br>
+        <code>Security Token</code><input id="pmToken" name="token" type="text" value="" /></br>
+        <input type="submit" id="post_button" value="Submit POST" class="btn btn-primary" disabled="disabled">
     </form>
-
-    <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes - Step 1)</h4>
-    <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
-        without any user interaction, so the user will never see this page/information except maybe for some
-        milliseconds or in case of error.</h5>
-
     <div th:if="${ltiStorageTarget}">
-
+        <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes - Step 1)</h4>
+        <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
+            without any user interaction, so the user will never see this page/information except maybe for some
+            milliseconds or in case of error.</h5>
 
         <div class="alert alert-info">
             <p>

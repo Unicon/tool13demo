@@ -50,6 +50,8 @@
           if (stateValid && nonceValid) {
             console.info('State and Nonce are validated 🤘🏽');
             stateNonceValid = true;
+            document.getElementById("get_button").classList.remove('disabled');
+            document.getElementById("post_button").disabled = false;
           } else {
             console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
           }
@@ -136,6 +138,8 @@
         if ([[${initiation_dto.ltiStorageTarget }]]) {
             nonceStateCheck();
         } else {
+            document.getElementById("get_button").classList.remove('disable');
+            document.getElementById("post_button").disabled = false;
             console.info('Not using post messages, just cookies');
         }
     </script>
@@ -242,7 +246,7 @@
                 <label for="state">state:</label>
                 <input type="text" id="state" class="form-control" name="state" th:value="${state}" />
             </div>
-            <input type="submit" value="Submit POST" class="btn btn-primary">
+            <input id="post_button" type="submit" value="Submit POST" class="btn btn-primary" disabled="disabled">
         </form>
     </div>
 
@@ -254,7 +258,7 @@
     <div class="panel">
         <div class="alert alert-primary">GET URL: <span th:text="${oidcEndpointComplete}" /></div>
     </div>
-    <a th:href="${oidcEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step
+    <a th:href="${oidcEndpointComplete}"  id="get_button" class="btn btn-primary disabled" role="button" aria-pressed="true">Perform GET as Step
         2</a>
 
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>
