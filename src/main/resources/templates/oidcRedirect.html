@@ -25,21 +25,124 @@
 </head>
 
 <body>
+<script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
 
     <script th:inline="javascript">
-        window.addEventListener('load', () => {
-            putStateAndNonce(
-                [[${ state }]],
-                [[${ nonce }]],
-                [[${ initiation_dto.ltiStorageTarget }]],
-                [[${ oidc_authorization_uri }]],
-                [[${ oidcEndpointComplete }]]
+
+        const nonceStateCheck = async () => {
+
+        // placeholder for state and nonce validations
+        let stateValid = false, nonceValid = false, stateNonceValid = false;
+
+        // state and nonce values. These should be generated on the server side
+        const stateHash = [[${ state }]];
+        const nonce = [[${ nonce }]];
+
+        // origin of the LTI launch. Currently, * is the only value the LMS appears to accept
+        // let origin = 'https://unicon.instructure.com';
+        let origin = '*';
+
+        // Create an instance of LTIPostMessage
+        let ltiPostMessage = new LTIPostMessage([[${ initiation_dto.ltiStorageTarget }]]);
+
+        const verifyStateAndNonce = () => {
+          // Verify the state and nonce
+          if (stateValid && nonceValid) {
+            console.info('State and Nonce are validated 🤘🏽');
+            stateNonceValid = true;
+          } else {
+            console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
+          }
+        }
+
+        const setAutoRedirectUrl = (address) => {
+            redirectUrl = address;
+        };
+
+        const verifyAnswer = (uuid, expected_value, data) => {
+          // Verify the state and nonce
+          if (
+            // verify `data` is an object
+            typeof data === "object" &&
+            // Message ID we sent needs to match response
+            data.message_id === uuid &&
+            // verify data.subject = lti.put/get_data.response
+            data.subject === 'lti.put_data.response'
+            )
+            {
+                console.log(
+                    `✅ ${
+                    data.key.includes("state") ? "State" : "Nonce"
+                    } passed ${data.value}`
+                );
+                return true;
+            }
+            console.log(
+                `✅ ${
+                data.key.includes("state") ? "State" : "Nonce"
+                } failure ${data} response`
             );
+            return false;
+        }
+
+        // Function to send both state and nonce to LMS
+        const sendStateAndNonce = async () => {
+          // send state message
+          const state_uuid = await ltiPostMessage.create_UUID();
+          await ltiPostMessage.sendMessage({
+            subject: 'lti.put_data',
+            key: `state${stateHash}`,
+            value: stateHash,
+            message_id: state_uuid // an ID that we can reference on the LTI page
+          }, origin).then(function (response) {
+            console.info('State response from LMS', response);
+            stateValid = verifyAnswer(state_uuid,stateHash,response);
+            verifyStateAndNonce();
+          }).catch(function (error) {
+            console.error('Error sending state message to LMS', error);
+          });
+          const nonce_uuid = await ltiPostMessage.create_UUID();
+          // send nonce message
+          await ltiPostMessage.sendMessage({
+            subject: 'lti.put_data',
+            key: `nonce${nonce}`,
+            value: nonce,
+            message_id: nonce_uuid // and ID that we can reference on the LTI page
+          }, origin).then(function (response) {
+            console.info('Nonce response from LMS', response);
+            nonceValid = verifyAnswer(nonce_uuid,nonce,response);
+            verifyStateAndNonce();
+          }).catch(function (error) {
+            console.error('Error sending nonce message to LMS', error);
+          });
+        }
+
+        // send state and nonce
+        sendStateAndNonce();
+        if (stateNonceValid){
             setAutoRedirectUrl(
-                [[${ oidcEndpointComplete }]]
+               [[${ oidcEndpointComplete }]]
             );
+        } else {
+            setAutoRedirectUrl('ltiError.html');
+        }
+
+        // Optional: Cleanup if needed when the page is unloaded
+        window.addEventListener('unload', function () {
+          // or call this method directly when postMessage service isn't needed anymore
+          ltiPostMessage.destroy();
         });
+        }
+        if ([[${initiation_dto.ltiStorageTarget }]]) {
+            nonceStateCheck();
+        } else {
+            console.info('Not using post messages, just cookies');
+        }
     </script>
+
+
+
+
 
     <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
     <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
@@ -110,7 +213,7 @@
             </div>
             <div class="form-group">
                 <label for="nonce">nonce:</label>
-                <input type="text" id="nonce" name="nonce" th:value="${nonce_hash}" class="form-control" />
+                <input type="text" id="nonce" name="nonce" th:value="${nonce}" class="form-control" />
             </div>
             <div class="form-group">
                 <label for="prompt">prompt:</label>
@@ -154,8 +257,7 @@
     <a th:href="${oidcEndpointComplete}" class="btn btn-primary" role="button" aria-pressed="true">Perform GET as Step
         2</a>
 
-    <script type="text/javascript" th:src="@{/js/posts.js}"></script>
-    <script type="text/javascript" th:src="@{/js/utils.js}"></script>
+<script type="text/javascript" th:src="@{/js/utils.js}"></script>
 </body>
 
 </html>

@@ -77,13 +77,13 @@ public class LTI3Controller {
         //We need to pass to the model the LTI3 request, the state and the nonce and link, and a JWT with the hash of all of them.
         String state = req.getParameter("state");
         String id_token = req.getParameter("id_token");
-        String link = req.getParameter("link");
+
 
         NonceState nonceState = ltiDataService.getRepos().nonceStateRepository.findByStateHash(state);
         if (nonceState != null) {
             Jws<Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
             String nonce = stateClaims.getBody().getId();
-            String tohash = id_token + state + nonce + link;
+            String tohash = id_token + state + nonce;
             String expected_hash = Hashing.sha256()
                     .hashString(tohash, StandardCharsets.UTF_8)
                     .toString();
@@ -98,7 +98,6 @@ public class LTI3Controller {
                 return TextConstants.LTI3ERROR;
             }
             model.addAttribute("id_token", id_token);
-            model.addAttribute("link", link);
             model.addAttribute("ltiStorageTarget", nonceState.getLtiStorageTarget());
 
 
@@ -131,9 +130,8 @@ public class LTI3Controller {
         String id_token = req.getParameter("id_token");
         String expected_state = req.getParameter("expected_state");
         String expected_nonce = req.getParameter("expected_nonce");
-        String link = req.getParameter("link");
 
-        String tohash = id_token + expected_state + expected_nonce + link;
+        String tohash = id_token + expected_state + expected_nonce;
         String expected_hash = Hashing.sha256()
                 .hashString(tohash, StandardCharsets.UTF_8)
                 .toString();
@@ -146,9 +144,15 @@ public class LTI3Controller {
             return TextConstants.LTI3ERROR;
         }
 
-        if (!state.equals(expected_hash)){
-            log.error("Hashes don't match");
-            model.addAttribute(TextConstants.ERROR, "Token hashes don't match");
+        if (!state.equals(expected_state)){
+            log.error("States don't match");
+            model.addAttribute(TextConstants.ERROR, "State retrieved and the expected state don't match");
+            return TextConstants.LTI3ERROR;
+        }
+
+        if (!nonce.equals(expected_nonce)){
+            log.error("Nonces don't match");
+            model.addAttribute(TextConstants.ERROR, "Nonce retrieved and the expected nonce don't match");
             return TextConstants.LTI3ERROR;
         }
 
@@ -157,7 +161,7 @@ public class LTI3Controller {
 
         try {
             Jws<Claims> claims = ltijwtService.validateState(nonceState.getState());
-            LTI3Request lti3Request = LTI3Request.getInstance(link);
+            LTI3Request lti3Request = LTI3Request.getInstance(null);
             // This is just an extra check that we have added, but it is not necessary.
             // Checking that the clientId in the state (if sent in OIDC initiation request) matches the one coming with the ltiRequest.
             String clientIdFromState = claims.getBody().get("clientId") != null ? claims.getBody().get("clientId").toString() : null;
@@ -176,9 +180,7 @@ public class LTI3Controller {
             // processing it here to generate the right answer.
             if (ltiDataService.getDemoMode()) {
                 model.addAttribute("lTI3Request", lti3Request);
-                if (link == null) {
-                    link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
-                }
+                String link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
                 if (StringUtils.isNotBlank(link)) {
                     List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
                     log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());

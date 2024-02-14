@@ -43,7 +43,7 @@ public class LtiOidcUtils {
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.
      */
-    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException {
+    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue, String nonce) throws GeneralSecurityException {
         Date date = new Date();
         Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String state = Jwts.builder()
@@ -62,6 +62,7 @@ public class LtiOidcUtils {
                 .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
                 .claim("clientId", clientIdValue)
                 .claim("ltiDeploymentId", deploymentIdValue)
+                .claim("nonce", nonce)
                 .claim("controller", "/oidc/login_initiations")
                 .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
                 .compact();

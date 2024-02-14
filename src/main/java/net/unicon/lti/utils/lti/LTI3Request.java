@@ -755,12 +755,8 @@ public class LTI3Request {
                 return "Nonce = null in the session.";
             }
              else {
-                // Really, we send the hash of the nonce to the platform.
                 for (String nonceStored : ltiNonce) {
-                    String nonceHash = Hashing.sha256()
-                            .hashString(nonceStored, StandardCharsets.UTF_8)
-                            .toString();
-                    if (nonceToCheck.equals(nonceHash)) {
+                    if (nonceToCheck.equals(nonceStored)) {
                         found = true;
                     } else { //If not found, we add it to another list... so we keep the unused nonces.
                         ltiNonceNew.add(nonceStored);

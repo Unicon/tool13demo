@@ -70,7 +70,7 @@ public class LtiOidcUtilsTest {
             Map<String, String> authRequestMap = Collections.singletonMap("nonce", "nonce-value");
             topDateTimeUtilMock.when(() -> LocalDateTime.now(ZoneId.of("Z"))).thenReturn(currentLocalDate);
 
-            String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id");
+            String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id", "nonce-value");
 
             // validate that ltiToken was signed using private key and contains expected payload
             Jws<Claims> parsedLtiToken = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(state);

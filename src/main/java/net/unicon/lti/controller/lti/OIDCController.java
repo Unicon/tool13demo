@@ -191,11 +191,7 @@ public class OIDCController {
         }        authRequestMap.put("login_hint", loginInitiationDTO.getLoginHint()); //As it came from the Platform
         authRequestMap.put("lti_message_hint", loginInitiationDTO.getLtiMessageHint()); //As it came from the Platform
         String nonce = UUID.randomUUID().toString(); // We generate a nonce to allow this auth request to be used only one time.
-        String nonceHash = Hashing.sha256()
-                .hashString(nonce, StandardCharsets.UTF_8)
-                .toString();
         authRequestMap.put("nonce", nonce);  //The nonce
-        authRequestMap.put("nonce_hash", nonceHash);  //The hash value of the nonce
         authRequestMap.put("prompt", OIDC_NONE);  //Always this value, as specified in the standard.
         authRequestMap.put("redirect_uri", ltiDataService.getLocalUrl() + TextConstants.LTI3_SUFFIX);  // One of the valids reditect uris.
         authRequestMap.put("response_mode", OIDC_FORM_POST); //Always this value, as specified in the standard.
@@ -203,7 +199,7 @@ public class OIDCController {
         authRequestMap.put("scope", OIDC_OPEN_ID);  //Always this value, as specified in the standard.
         // The state is something that we can create and add anything we want on it.
         // On this case, we have decided to create a JWT token with some information that we will use as additional security. But it is not mandatory.
-        String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue);
+        String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, clientIdValue, deploymentIdValue, nonce);
         String state_hash = Hashing.sha256()
                 .hashString(state, StandardCharsets.UTF_8)
                 .toString();
@@ -228,7 +224,7 @@ public class OIDCController {
             getUrl = addParameter(getUrl, "login_hint", model.get("login_hint"), true);
         }
         getUrl = addParameter(getUrl, "lti_message_hint", model.get("lti_message_hint"), false);
-        getUrl = addParameter(getUrl, "nonce", model.get("nonce_hash"), false);
+        getUrl = addParameter(getUrl, "nonce", model.get("nonce"), false);
         getUrl = addParameter(getUrl, "prompt", model.get("prompt"), false);
         getUrl = addParameter(getUrl, "redirect_uri", model.get("redirect_uri"), false);
         getUrl = addParameter(getUrl, "response_mode", model.get("response_mode"), false);

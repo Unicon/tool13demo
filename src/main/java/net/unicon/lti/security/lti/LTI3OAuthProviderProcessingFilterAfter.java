@@ -104,7 +104,7 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
                 if (!expectedNonce.equals(nonce)){
                     throw new IllegalStateException("LTI expected nonce does not match the retrieved nonce");
                 }
-                stateClaims = ltijwtService.validateState(stateHash);
+                stateClaims = ltijwtService.validateState(nonceState.getState());
                 String nonceForClaims = stateClaims.getBody().get("nonce", String.class);
                 if (!expectedNonce.equals(nonceForClaims)){
                     throw new IllegalStateException("LTI expected nonce does not match the nonce in the state");
@@ -148,8 +148,7 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
                 if (jws != null) {
                     //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
-                    String link = httpServletRequest.getParameter("link");
-                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, link, null); // IllegalStateException if invalid
+                    LTI3Request lti3Request = new LTI3Request(httpServletRequest, ltiDataService, true, null, null); // IllegalStateException if invalid
                     httpServletRequest.setAttribute("LTI3", true); // indicate this request is an LTI3 one
                     httpServletRequest.setAttribute("lti3_valid", lti3Request.isLoaded() && lti3Request.isComplete()); // is LTI3 request totally valid and complete
                     httpServletRequest.setAttribute("lti3_message_type", lti3Request.getLtiMessageType()); // is LTI3 request totally valid and complete
