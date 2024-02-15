@@ -77,6 +77,8 @@ public class OIDCController {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
+        //Enable this line to test only cookies
+        //loginInitiationDTO.setLtiStorageTarget(null);
         List<PlatformDeployment> platformDeploymentList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
         String clientIdValue = loginInitiationDTO.getClientId();
