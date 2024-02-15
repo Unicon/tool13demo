@@ -84,16 +84,26 @@ class LTIPostMessage {
    * @param {string} [origin='*'] - The target origin.
    * @returns {Promise<object>} - A promise that resolves with the response or rejects with an error.
    */
-  async sendMessage(message, origin = '*') {
+  async sendMessage(message, platformOrigin = '*') {
     // save the message id and subject for validating the response
+    if (platformOrigin !== '*'){
+        platformOrigin = new URL(platformOrigin).origin;
+    }
     this.mId = message.message_id;
     this.subject = message.subject;
 
     // send the postMessage
-    window.parent.frames[this.target].postMessage(
-      message,
-      origin
-    );
+    if (this.target !== '_parent'){
+        window.parent.frames[this.target].postMessage(
+          message,
+          platformOrigin
+        );
+    }else{
+        window.parent.postMessage(
+          message,
+          platformOrigin
+        );
+    }
     // wait for the validation response to return the data
     return await this.checkErrorAndResponseChanges();
   }

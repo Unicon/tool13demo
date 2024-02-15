@@ -110,8 +110,8 @@
     const nonce = [[${ expected_nonce }]];
 
     // origin of the LTI launch. Currently, * is the only value the LMS appears to accept
-    // let origin = 'https://unicon.instructure.com';
-    let origin = '*';
+    let origin = [[${oidc_authorization_uri }]];
+    //let origin = '*';
 
     // Create an instance of LTIPostMessage
     let ltiPostMessage = new LTIPostMessage([[${ltiStorageTarget }]]);
