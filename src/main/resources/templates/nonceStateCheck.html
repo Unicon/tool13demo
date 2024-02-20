@@ -59,6 +59,7 @@
                     <td>Security Token</td><td><input id="pmToken" name="token" type="text" value="" /></td>
                 </tr>
             </table>
+            <input id="cookies" name="cookies" type="hidden" value="false" />
             <input type="submit" id="post_button" value="Submit POST" class="btn btn-primary" disabled="disabled">
         </form>
 
@@ -94,6 +95,7 @@
             <input id="pmExpected_nonce" name="expected_nonce" type="hidden" value="" />
             <input id="pmId_token" name="id_token" type="hidden" value="" />
             <input id="pmToken" name="token" type="hidden" value="" />
+            <input id="cookies" name="cookies" type="hidden" value="true" />
             <input type="submit" id="post_button" value="Continue" class="btn btn-primary" disabled="disabled">
         </form>
 
@@ -216,7 +218,20 @@
     });
     }
     if ([[${ltiStorageTarget }]]) {
-        nonceStateCheck();
+        if (window.location !== window.parent.location) {
+            nonceStateCheck();
+        } else {
+            document.getElementById('pmExpected_state').value = [[${ expected_state }]];
+            document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
+            document.getElementById('pmId_token').value = [[${ id_token }]];
+            document.getElementById('pmToken').value = [[${ token }]];
+            document.getElementById('pmNonce').value = [[${ expected_nonce }]];
+            document.getElementById('pmState').value = [[${ expected_state }]];
+            document.getElementById('cookies').value = 'true';
+            document.getElementById("post_button").disabled = false;
+            windows.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
+        }
+
     } else {
         console.info('Not using post messages, just cookies');
         document.getElementById('pmExpected_state').value = [[${ expected_state }]];

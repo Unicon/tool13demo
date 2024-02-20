@@ -146,30 +146,31 @@ public class OIDCController {
                 //Use the storage... we will need to tell the front end to do it
                 model.addAttribute("lti_storage_target", loginInitiationDTO.getLtiStorageTarget());
                 model.addAttribute("oidc_authorization_uri", platformDeployment.getOidcEndpoint());
-            } else {
-                // We are storing the state and nonce in
-                // the httpsession (as cookies), so we can compare later if they are valid states and nonces.
-                // We need to store the state and nonce in the session, so we can check later if they are valid states and nonces.
-                HttpSession session = req.getSession();
-                List<String> stateList = session.getAttribute("lti_state") != null ?
-                        (List) session.getAttribute("lti_state") :
-                        new ArrayList<>();
-
-                // We will keep several states and nonces, and we should delete them once we use them.
-                if (!stateList.contains(stateHash)) {
-                    stateList.add(stateHash);
-                }
-                session.setAttribute("lti_state", stateList);
-
-                List<String> nonceList = session.getAttribute("lti_nonce") != null ?
-                        (List) session.getAttribute("lti_nonce") :
-                        new ArrayList<>();
-
-                if (!nonceList.contains(nonce)) {
-                    nonceList.add(nonce);
-                }
-                session.setAttribute("lti_nonce", nonceList);
             }
+
+            // In any case, we will always try to store the cookies... so we can use them if we are in a new tab.
+            // The httpsession (as cookies), so we can compare later if they are valid states and nonces.
+            // We need to store the state and nonce in the session, so we can check later if they are valid states and nonces.
+            HttpSession session = req.getSession();
+            List<String> stateList = session.getAttribute("lti_state") != null ?
+                    (List) session.getAttribute("lti_state") :
+                    new ArrayList<>();
+
+            // We will keep several states and nonces, and we should delete them once we use them.
+            if (!stateList.contains(stateHash)) {
+                stateList.add(stateHash);
+            }
+            session.setAttribute("lti_state", stateList);
+
+            List<String> nonceList = session.getAttribute("lti_nonce") != null ?
+                    (List) session.getAttribute("lti_nonce") :
+                    new ArrayList<>();
+
+            if (!nonceList.contains(nonce)) {
+                nonceList.add(nonce);
+            }
+            session.setAttribute("lti_nonce", nonceList);
+
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
                 return "redirect:" + parameters.get("oidcEndpointComplete");

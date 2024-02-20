@@ -288,6 +288,7 @@ public class LTI3Request {
      * @throws IllegalStateException if this is not an LTI request
      */
     public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims) throws DataServiceException {
+        Boolean cookies = request.getParameter("cookies").equals("true");
         if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
@@ -327,7 +328,7 @@ public class LTI3Request {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + isLTI3Request);
         }
         //Now we are going to check the if the nonce is valid.
-        String checkNonce = checkNonce(jws);
+        String checkNonce = checkNonce(jws, cookies);
         if (!checkNonce.equals("true")) {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
@@ -740,14 +741,14 @@ public class LTI3Request {
      * @param jws the JWT token parsed.
      * @return true if this is a valid LTI request
      */
-    public String checkNonce(Jws<Claims> jws) {
+    public String checkNonce(Jws<Claims> jws, Boolean cookies) {
 
         String nonceToCheck = jws.getBody().get(LtiStrings.LTI_NONCE, String.class);
         if (nonceToCheck == null) {
             return "Nonce = null in the JWT or in the session.";
         }
         //We get all the nonces from the session, and compare.
-        if (httpServletRequest.getSession().getAttribute("lti_nonce") != null) {
+        if (cookies) {
             List<String> ltiNonce = (List) httpServletRequest.getSession().getAttribute("lti_nonce");
             List<String> ltiNonceNew = new ArrayList<>();
             boolean found = false;

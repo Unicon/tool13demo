@@ -13,11 +13,7 @@
 package net.unicon.lti.service.lti.impl;
 
 import net.unicon.lti.exceptions.DataServiceException;
-import net.unicon.lti.model.LtiContextEntity;
-import net.unicon.lti.model.LtiLinkEntity;
-import net.unicon.lti.model.LtiMembershipEntity;
-import net.unicon.lti.model.LtiUserEntity;
-import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.*;
 import net.unicon.lti.repository.AllRepositories;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.LtiStrings;
@@ -31,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.Query;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This manages all the data processing for the LTIRequest (and for LTI in general)
@@ -85,7 +82,7 @@ public class LTIDataServiceImpl implements LTIDataService {
         String sqlDeployment = "SELECT k, c, l, m, u" +
                 " FROM PlatformDeployment k " +
                 "LEFT JOIN k.contexts c ON c.contextKey = :context " + // LtiContextEntity
-                "LEFT JOIN c.links l ON l.linkKey = :link " + // LtiLinkEntity
+                "LEFT JOIN c.links l ON l.toolLink.toolLinkId = :link  AND l.ltiLinkId = : ltiLinkId " + // LtiLinkEntity
                 "LEFT JOIN c.memberships m " + // LtiMembershipEntity
                 "LEFT JOIN m.user u ON u.userKey = :user " +
                 " WHERE k.clientId = :clientId AND k.deploymentId = :deploymentId AND k.iss = :iss AND (m IS NULL OR (m.context = c AND m.user = u))";
@@ -95,6 +92,7 @@ public class LTIDataServiceImpl implements LTIDataService {
         qDeployment.setParameter("deploymentId", lti.getLtiDeploymentId());
         qDeployment.setParameter("context", lti.getLtiContextId());
         qDeployment.setParameter("link", link);
+        qDeployment.setParameter("ltiLinkId", lti.getLtiLinkId());
         qDeployment.setParameter("user", lti.getSub());
         qDeployment.setParameter("iss", lti.getIss());
 
@@ -178,32 +176,25 @@ public class LTIDataServiceImpl implements LTIDataService {
         //If we are getting a link in the url we do this, if not we skip it.
         if (lti.getLink() == null && lti.getLtiLinkId() != null) {
             //Link is not in the lti request at this moment. Let's see if it exists:
-            List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByLinkKeyAndContext(link, lti.getContext());
-            if (ltiLinkEntityList.size() == 0) {
-                //START HARDCODING VALUES
-                //This is hardcoded because our database is not persistent
-                //In a normal case, we would had it created previously and this code wouldn't be needed.
-                String title = lti.getLtiLinkTitle();
-                if (link.equals("1234")) {
-                    title = "My Test Link";
-                } else if (link.equals("4567")) {
-                    title = "Another Link";
+            List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByToolLinkToolLinkIdAndContext(link, lti.getContext());
+            boolean existingLink = false;
+            for (LtiLinkEntity storedLink:ltiLinkEntityList) {
+                if (storedLink.getToolLink().getToolLinkId().equals(link) && storedLink.getLtiLinkId().equals(lti.getLtiLinkId())) {
+                    existingLink = true;
                 }
-                //END HARDCODING VALUES
-                LtiLinkEntity newLink = new LtiLinkEntity(link, lti.getContext(), title);
-                lti.setLink(repos.links.save(newLink));
-                inserts++;
-                log.info("LTIupdate: Inserted link id=" + link);
-            } else {
-                lti.setLink(ltiLinkEntityList.get(0));
-                repos.entityManager.merge(lti.getLink()); // reconnect object for this transaction
-                lti.setLtiLinkId(lti.getLink().getLinkKey());
-                log.info("LTIupdate: Reconnected existing link id=" + link);
             }
-        } else if (lti.getLink() != null) {
-            lti.setLink(repos.entityManager.merge(lti.getLink())); // reconnect object for this transaction
-            lti.setLtiLinkId(lti.getLink().getLinkKey());
-            log.info("LTIupdate: Reconnected existing link id=" + link);
+            Optional<ToolLink> toolLink = repos.toolLinks.findById(link);
+            if (!existingLink) { //Then we need to add it
+                if (toolLink.isPresent()) {
+                    LtiLinkEntity newLink = new LtiLinkEntity(lti.getContext(), toolLink.get());
+                    newLink.setLtiLinkId(lti.getLtiLinkId());
+                    lti.setLink(repos.links.save(newLink));
+                    inserts++;
+                    log.info("LTIupdate: Inserted link id=" + newLink.getLinkId());
+                } else {
+                    log.warn("LTIupdate: Link received does not exist=" + link);
+                }
+            }
         }
 
         if (lti.getUser() == null && lti.getSub() != null) {
@@ -267,13 +258,6 @@ public class LTIDataServiceImpl implements LTIDataService {
             lti.setContext(repos.contexts.save(context));
             updates++;
             log.info("LTIupdate: Updated context (id=" + lti.getContext().getContextId() + ") title=" + lti.getLtiContextTitle());
-        }
-        LtiLinkEntity ltiLink = lti.getLink();
-        if (lti.getLtiLinkTitle() != null && ltiLink != null && !lti.getLtiLinkTitle().equals(ltiLink.getTitle())) {
-            ltiLink.setTitle(lti.getLtiLinkTitle());
-            lti.setLink(repos.links.save(ltiLink));
-            updates++;
-            log.info("LTIupdate: Updated link (id=" + lti.getLink().getLinkKey() + ") title=" + lti.getLtiLinkTitle());
         }
 
         boolean userChanged = false;

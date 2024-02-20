@@ -249,7 +249,14 @@
     });
     }
     if ([[${initiation_dto.ltiStorageTarget }]]) {
-        nonceStateCheck();
+        if (window.location !== window.parent.location) {
+            nonceStateCheck();
+        } else {
+            document.getElementById("get_button").classList.remove('disabled');
+            document.getElementById("post_button").disabled = false;
+            //Maybe send something to our system to "know" this the next time, when receiving the id_token
+            console.info('Not using post messages, just cookies because we are on another tab');
+        }
     } else {
         document.getElementById("get_button").classList.remove('disabled');
         document.getElementById("post_button").disabled = false;

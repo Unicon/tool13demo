@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="20240216-01" author="ddelblanco (generated)">
+        <createTable tableName="tool_link">
+            <column name="tool_link_id" type="VARCHAR(256)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="PK_TOOL_LINK"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP DEFAULT CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="DATETIME"/>
+            <column name="entity_version" type="INT"/>
+            <column name="title" type="VARCHAR(4096)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="CLOB">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_assignment" type="boolean"/>
+
+            <column name="max_grade" type="FLOAT"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="20240216-02" author="ddelblanco (generated)">
+        <dropColumn columnName="link_key"
+                    tableName="lti_link">
+        </dropColumn>
+        <dropColumn columnName="title"
+                    tableName="lti_link">
+        </dropColumn>
+        <addColumn tableName="lti_link">
+            <column name="tool_link_id"  type="VARCHAR(256)"/>
+        </addColumn>
+    </changeSet>
+
+
+
+    <changeSet id="20240216-03" author="ddelblanco (generated)">
+        <addForeignKeyConstraint baseColumnNames="tool_link_id" baseTableName="lti_link"
+                                 constraintName="FK_LTI_LINK_ON_TOOL_LINK" referencedColumnNames="tool_link_id"
+                                 referencedTableName="tool_link"/>
+    </changeSet>
+</databaseChangeLog>

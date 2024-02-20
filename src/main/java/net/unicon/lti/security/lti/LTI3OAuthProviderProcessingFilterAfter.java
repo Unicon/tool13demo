@@ -96,7 +96,7 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
 
             Jws<Claims> stateClaims = null;
 
-            if (httpServletRequest.getSession().getAttribute("lti_state") == null) { //We don't have cookies
+            if (httpServletRequest.getParameter("cookies").equals("false")) { //We don't have cookies
                 //Check again if the state is valid
                 if (!expectedStateHash.equals(stateHash)){
                     throw new IllegalStateException("LTI expected state does not match the retrieved state");

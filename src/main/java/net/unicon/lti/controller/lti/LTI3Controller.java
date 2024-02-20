@@ -20,10 +20,12 @@ import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.LtiLinkEntity;
 import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.lti.dto.DeepLinkDTO;
 import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.LtiLinkRepository;
 import net.unicon.lti.service.app.APIJWTService;
+import net.unicon.lti.service.lti.DeepLinkService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
@@ -42,7 +44,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.Principal;
 import java.util.List;
 
 /**
@@ -67,6 +68,9 @@ public class LTI3Controller {
 
     @Autowired
     LTIDataService ltiDataService;
+
+    @Autowired
+    DeepLinkService deepLinkService;
 
     @Autowired
     LtiContextRepository ltiContextRepository;
@@ -130,6 +134,8 @@ public class LTI3Controller {
         String id_token = req.getParameter("id_token");
         String expected_state = req.getParameter("expected_state");
         String expected_nonce = req.getParameter("expected_nonce");
+        String cookies = req.getParameter("cookies");
+
 
         String tohash = id_token + expected_state + expected_nonce;
         String expected_hash = Hashing.sha256()
@@ -182,7 +188,7 @@ public class LTI3Controller {
                 model.addAttribute("lTI3Request", lti3Request);
                 String link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
                 if (StringUtils.isNotBlank(link)) {
-                    List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLinkKeyAndContext(link, lti3Request.getContext());
+                    List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext(lti3Request.getLtiLinkId(), link, lti3Request.getContext());
                     log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());
                     if (linkEntity.size() > 0) {
                         model.addAttribute(TextConstants.HTML_CONTENT, linkEntity.get(0).createHtmlFromLink());
@@ -193,20 +199,17 @@ public class LTI3Controller {
                     model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
                 }
                 if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
-                    //Let's create the LtiLinkEntity's in our database
-                    //This should be done AFTER the user selects the link in the content selector, and we are doing it before
-                    //just to keep it simple. The ideal process would be, the user selects a link, sends it to the platform and
-                    // we create the LtiLinkEntity in our code after that.
-                    LtiLinkEntity ltiLinkEntity = new LtiLinkEntity("1234", lti3Request.getContext(), "My Test Link");
-                    if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity.getLinkKey(), ltiLinkEntity.getContext()).size() == 0) {
-                        ltiLinkRepository.save(ltiLinkEntity);
-                    }
-                    LtiLinkEntity ltiLinkEntity2 = new LtiLinkEntity("4567", lti3Request.getContext(), "Another Link");
-                    if (ltiLinkRepository.findByLinkKeyAndContext(ltiLinkEntity2.getLinkKey(), ltiLinkEntity2.getContext()).size() == 0) {
-                        ltiLinkRepository.save(ltiLinkEntity2);
-                    }
+
+                    //Let's get the list of links available
+                    List<DeepLinkDTO> deepLinkDTOS = deepLinkService.getDeepLinks();
+                    model.addAttribute("deeplinks", deepLinkDTOS);
+                    model.addAttribute("state_hash", expected_state);
+                    model.addAttribute("nonce", expected_nonce);
+                    model.addAttribute("token", token);
+                    model.addAttribute("id_token", id_token);
                     return "lti3DeepLink";
                 }
+                ltiDataService.getRepos().nonceStateRepository.deleteById(expected_nonce);
                 return "lti3Result";
             } else {
                 String oneTimeToken = apiJWTService.buildJwt(
