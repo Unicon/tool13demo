@@ -38,6 +38,8 @@ public class AllRepositories {
     public LtiLinkRepository links;
 
     @Autowired
+    public ToolLinkRepository toolLinks;
+    @Autowired
     public LtiMembershipRepository members;
 
     @Autowired

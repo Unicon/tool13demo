@@ -30,6 +30,9 @@ http://www.thymeleaf.org "
 <button class="accordion">
     Click to view the Deep Linking data received from the LTI Request
 </button>
+
+
+
 <div class="panel">
     <div>
         <ul class="list-group">
@@ -123,6 +126,72 @@ http://www.thymeleaf.org "
     <p></p>
     </tr>
 </tr>
+
+
+<script>
+    function submitForm() {
+    // Get all checkboxes
+    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+    // Filter checked checkboxes
+    var checkedCheckboxes = Array.from(checkboxes).filter(checkbox => checkbox.checked);
+
+    // Get the IDs of checked checkboxes
+    var selectedIds = checkedCheckboxes.map(checkbox => checkbox.value);
+
+    // Send selectedIds to a specific URL using a POST request
+    var apiUrl = '/deeplink/toJwt';
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ selectedIds: selectedIds,
+        nonce: "[[${ nonce }]]",
+        state_hash: "[[${ state_hash }]]",
+        token: "[[${token}]]",
+        id_token: "[[${id_token}]]"
+        }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Handle the response from the server if needed
+      console.log('Server response:', data);
+      document.getElementById('JWT_manual').value = data.jwtstring;
+      document.getElementById("post_to_lms_button").disabled = false;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+</script>
+
+<form id="checkboxForm2">
+    <ul>
+        <!-- Iterate over the deeplinks and generate checkboxes -->
+        <li th:each="deeplink : ${deeplinks}">
+            <input type="checkbox" th:id="${deeplink.toolLinkId}" th:name="'selectedIds'" th:value="${deeplink.toolLinkId}">
+            <label th:for="${deeplink.toolLinkId}" th:text="${deeplink.title}"></label>
+        </li>
+        <input id="state_hash" name="state_hash" type="hidden" value="${state_hash}" />
+        <input id="nonce" name="nonce" type="hidden" value="${nonce}" />
+        <input id="token" name="token" type="hidden" value="${token}" />
+        <input id="id_token" name="id_token" type="hidden" value="${id_token}" />
+    </ul>
+    <button type="button" onclick="submitForm()">Select</button>
+</form>
+
+<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+    <div class="form-group">
+        <input type="text" id="JWT_manual" name="JWT" class="form-control"/>
+    </div>
+    <input type="submit" id="post_to_lms_button" value="Send to the LMS" class="btn btn-primary" disabled="disabled">
+</form>
 
 <button class="accordion">
     Click to view additional data received from the LTI request

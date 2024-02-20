@@ -36,11 +36,11 @@ public class LtiLinkEntity extends BaseEntity {
     @Column(name = "link_id", nullable = false)
     private long linkId;
     @Basic
-    @Column(name = "link_key", nullable = false, length = 4096)
-    private String linkKey;
-    @Basic
-    @Column(name = "title", length = 4096)
-    private String title;
+    @Column(name = "lti_link_id", length = 256)
+    private String ltiLinkId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "tool_link_id")
+    private ToolLink toolLink;
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "context_id")
     private LtiContextEntity context;
@@ -51,17 +51,14 @@ public class LtiLinkEntity extends BaseEntity {
     }
 
     /**
-     * @param linkKey the external id for this link
+     * @param toolLink the external id for this link
      * @param context the LTI context
-     * @param title   OPTIONAL title of this link (null for none)
      */
-    public LtiLinkEntity(String linkKey, LtiContextEntity context, String title) {
-        if (!StringUtils.isNotBlank(linkKey)) throw new AssertionError();
+    public LtiLinkEntity(LtiContextEntity context, ToolLink toolLink) {
+        if (toolLink == null) throw new AssertionError();
         if (context == null) throw new AssertionError();
-        this.linkKey = linkKey;
         this.context = context;
-        this.title = title;
-
+        this.toolLink = toolLink;
     }
 
     public long getLinkId() {
@@ -72,20 +69,12 @@ public class LtiLinkEntity extends BaseEntity {
         this.linkId = linkId;
     }
 
-    public String getLinkKey() {
-        return linkKey;
+    public ToolLink getToolLink() {
+        return toolLink;
     }
 
-    public void setLinkKey(String linkKey) {
-        this.linkKey = linkKey;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public void setToolLink(ToolLink toolLink) {
+        this.toolLink = toolLink;
     }
 
     public LtiContextEntity getContext() {
@@ -104,13 +93,24 @@ public class LtiLinkEntity extends BaseEntity {
         this.results = results;
     }
 
+    public String getLtiLinkId() {
+        return ltiLinkId;
+    }
+
+    public void setLtiLinkId(String ltiLinkId) {
+        this.ltiLinkId = ltiLinkId;
+    }
 
     public String createHtmlFromLink() {
         return "Link Requested:\n" +
-                "Link Key:" +
-                linkKey +
+                "Tool Link Id:" +
+                toolLink.getToolLinkId() +
                 "\nLink Title:" +
-                title +
+                toolLink.getTitle() +
+                "\nDescription:" +
+                toolLink.getDescription() +
+                "\nLTI Link Id:" +
+                this.getLtiLinkId() +
                 "\n";
     }
 
@@ -122,13 +122,13 @@ public class LtiLinkEntity extends BaseEntity {
         LtiLinkEntity that = (LtiLinkEntity) o;
 
         if (linkId != that.linkId) return false;
-        return Objects.equals(linkKey, that.linkKey);
+        return (Objects.equals(toolLink, that.toolLink) && Objects.equals(getContext().getContextId(), that.getContext().getContextId()));
     }
 
     @Override
     public int hashCode() {
         int result = (int) linkId;
-        result = 31 * result + (linkKey != null ? linkKey.hashCode() : 0);
+        result = 31 * result + (toolLink.getTitle().hashCode()) + getContext().hashCode();
         return result;
     }
 
