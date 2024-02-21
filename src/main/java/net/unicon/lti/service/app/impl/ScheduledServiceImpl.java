@@ -33,7 +33,7 @@ public class ScheduledServiceImpl implements ScheduledService {
     }
 
     @Override
-    @Scheduled(cron = "${scheduled.deleteoldnonces.cron:* * */1 * * ?}")
+    @Scheduled(cron = "${scheduled.deleteoldnonces.cron:0 */5 * * * ?}")
     public void deleteOldNonces(){
         log.info("Deleting Old Nonces :: Starting - {} ", dateTimeFormatter.format(LocalDateTime.now()));
         nonceStateService.deleteOldNonces();
