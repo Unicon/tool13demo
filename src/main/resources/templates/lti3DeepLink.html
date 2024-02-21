@@ -110,23 +110,6 @@ http://www.thymeleaf.org "
 <br/>
 <h4>Content Menu:</h4>
 <div>Select the link(s) you would like to add to your course.</div>
-<tr th:each="instance : ${lTI3Request.deepLinkJwts}">
-    <button class="accordion">
-        <label><strong><span th:text="${instance.key}"/></strong></label>
-    </button>
-    <div class="panel">
-        <span th:text="${instance.value[1]}" style="white-space: pre"/>
-        <form th:action="${lTI3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
-            <div class="form-group">
-                <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
-            </div>
-            <button th:attr="onclick='performActionBeforeSubmit(\'' + ${instance.key} + '\')'" type="button" class="btn btn-primary">Send to the LMS</button>
-        </form>
-    </div>
-    <p></p>
-    </tr>
-</tr>
-
 
 <script>
     function submitForm() {
@@ -193,6 +176,27 @@ http://www.thymeleaf.org "
     </div>
     <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="btn btn-primary disabled">Send to the LMS</button>
 </form>
+
+<div></br></br></div>
+
+<h4>Hardcoded Examples:</h4>
+<div>Select the link(s) you would like to add to your course.</div>
+<tr th:each="instance : ${lTI3Request.deepLinkJwts}">
+    <button class="accordion">
+        <label><strong><span th:text="${instance.key}"/></strong></label>
+    </button>
+    <div class="panel">
+        <span th:text="${instance.value[1]}" style="white-space: pre"/>
+        <form th:action="${lTI3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
+            <div class="form-group">
+                <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
+            </div>
+            <button th:attr="onclick='performActionBeforeSubmit(\'' + ${instance.key} + '\')'" type="button" class="btn btn-primary">Send to the LMS</button>
+        </form>
+    </div>
+    <p></p>
+    </tr>
+</tr>
 
 <script>
     function performActionBeforeSubmit(form) {
