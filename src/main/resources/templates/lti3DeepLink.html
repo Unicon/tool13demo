@@ -116,6 +116,7 @@ http://www.thymeleaf.org "
     // Get all checkboxes
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     document.getElementById("post_to_lms_button").classList.add('disabled');
+    document.getElementById("post_to_lms_button").disabled = true;
     // Filter checked checkboxes
     var checkedCheckboxes = Array.from(checkboxes).filter(checkbox => checkbox.checked);
 
@@ -147,6 +148,7 @@ http://www.thymeleaf.org "
       console.log('Server response:', data);
       document.getElementById('JWT_manual').value = data.jwtstring;
       document.getElementById("post_to_lms_button").classList.remove('disabled');
+      document.getElementById("post_to_lms_button").disabled=false;
     })
     .catch(error => {
       console.error('Error:', error);
@@ -174,7 +176,7 @@ http://www.thymeleaf.org "
     <div class="form-group">
         <input type="text" id="JWT_manual" name="JWT" class="form-control"/>
     </div>
-    <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="btn btn-primary disabled">Send to the LMS</button>
+    <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="btn btn-primary disabled" disabled="true">Send to the LMS</button>
 </form>
 
 <div></br></br></div>
