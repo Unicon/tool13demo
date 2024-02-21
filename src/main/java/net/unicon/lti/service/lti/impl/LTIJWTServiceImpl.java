@@ -80,7 +80,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
                 }
                 return toolPublicKey;
             }
-        }).parseClaimsJws(state);
+        }).build().parseSignedClaims(state);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
@@ -106,7 +106,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
                 }
                 return toolPublicKey;
             }
-        }).parseClaimsJws(nonceStateToken);
+        }).build().parseSignedClaims(nonceStateToken);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
@@ -154,7 +154,7 @@ public class LTIJWTServiceImpl implements LTIJWTService {
                 }
 
             }
-        }).parseClaimsJws(jwt);
+        }).build().parseSignedClaims(jwt);
     }
 
     /**

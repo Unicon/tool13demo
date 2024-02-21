@@ -12,15 +12,17 @@
  */
 package net.unicon.lti.utils.lti;
 
+import com.google.common.collect.Iterables;
 import com.google.common.hash.Hashing;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.AsymmetricJWK;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwe;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SigningKeyResolverAdapter;
 import lombok.Data;
@@ -43,21 +45,15 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * LTI3 Request object holds all the details for a valid LTI3 request
@@ -244,7 +240,7 @@ public class LTI3Request {
     }
 
     protected Jws<Claims> validateAndRetrieveJWTClaims(LTIDataService ltiDataService, String jwt) {
-        JwtParser parser = Jwts.parser();
+        JwtParserBuilder parser = Jwts.parser();
         parser.setSigningKeyResolver(new SigningKeyResolverAdapter() {
 
             // This is done because each state is signed with a different key based on the issuer... so
@@ -254,7 +250,7 @@ public class LTI3Request {
 
                 // Check if aud is an array (for Schoology) and remove brackets if it is.
                 // Note: this fix will need to be refactored in the event multiple audiences are expected.
-                String aud = claims.getAudience();
+                String aud = Iterables.getOnlyElement(claims.getAudience());
                 if (aud.startsWith("[") && aud.endsWith("]")) {
                     aud = aud.substring(1, aud.length() -1);
                 }
@@ -278,7 +274,7 @@ public class LTI3Request {
 
             }
         });
-        return parser.parseClaimsJws(jwt);
+        return parser.build().parseSignedClaims(jwt);
     }
 
     /**
@@ -308,7 +304,7 @@ public class LTI3Request {
 
         // Validate deployment
         String iss = jws.getBody().getIssuer();
-        String clientId = jws.getBody().getAudience();
+        String clientId = Iterables.getOnlyElement(jws.getBody().getAudience());
 
         // Check if clientId is an array (for Schoology) and remove brackets if it is.
         // Note: this fix will need to be refactored in the event multiple audiences are expected.
@@ -373,7 +369,7 @@ public class LTI3Request {
 
         // Check if aud is an array (for Schoology) and remove brackets if it is.
         // Note: this fix will need to be refactored in the event multiple audiences are expected.
-        aud = jws.getBody().getAudience();
+        aud = Iterables.getOnlyElement(jws.getBody().getAudience());
         if (aud.startsWith("[") && aud.endsWith("]")) {
             aud = aud.substring(1, aud.length() -1);
         }

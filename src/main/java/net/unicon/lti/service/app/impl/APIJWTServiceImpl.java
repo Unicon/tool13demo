@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.service.app.impl;
 
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
@@ -39,7 +40,7 @@ import org.springframework.util.MultiValueMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -94,7 +95,7 @@ public class APIJWTServiceImpl implements APIJWTService {
                 }
                 return toolPublicKey;
             }
-        }).parseClaimsJws(token);
+        }).build().parseSignedClaims(token);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
@@ -103,7 +104,7 @@ public class APIJWTServiceImpl implements APIJWTService {
     public Jwt<Header, Claims> unsecureToken(String token){
         int i = token.lastIndexOf('.');
         String withoutSignature = token.substring(0, i+1);
-        return Jwts.parser().parseClaimsJwt(withoutSignature);
+        return Jwts.parser().build().parseUnsecuredClaims(withoutSignature);
     }
 
     @Override
@@ -226,7 +227,7 @@ public class APIJWTServiceImpl implements APIJWTService {
                 .setHeaderParam("typ", "JWT")
                 .setIssuer(tokenClaims.getBody().getIssuer())
                 .setSubject(tokenClaims.getBody().getSubject()) // The clientId
-                .setAudience(tokenClaims.getBody().getAudience())  //We send here the authToken url.
+                .setAudience(Iterables.getOnlyElement(tokenClaims.getBody().getAudience()))  //We send here the authToken url.
                 .setExpiration(DateUtils.addDays(date, length)) //a java.util.Date
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now

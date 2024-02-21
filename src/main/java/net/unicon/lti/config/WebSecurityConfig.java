@@ -23,8 +23,11 @@ import net.unicon.lti.service.lti.LTIJWTService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -35,40 +38,39 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.UUID;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
 @Import(SecurityAutoConfiguration.class)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
 
     @Order(10) // VERY HIGH
-    @Configuration
-    public static class OpenEndpointsConfigurationAdapter extends WebSecurityConfigurerAdapter {
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+    public static class OpenEndpointsConfigurationAdapter {
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             // this is open
-            http.requestMatchers()
-                .antMatchers("/oidc/**")
-                .antMatchers("/registration/**")
-                .antMatchers("/jwks/**")
-                .antMatchers("/deeplink/**")
-                .antMatchers("/ags/**")
-                    .and()
-                .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+            return http.authorizeRequests(authz ->
+               authz
+                  .requestMatchers("/oidc/**", "/registration/**", "/jwks/**", "/deeplink/**", "/ags/**").permitAll()
+                  .anyRequest().permitAll()
+            )
+            .csrf(csrf -> csrf.disable())
+            .headers(frameOptions -> frameOptions.disable()).build();
         }
     }
 
 
     @Order(30) // VERY HIGH
     @Configuration
-    public static class ConfigConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class ConfigConfigurationAdapter {
 
         static final Logger log = LoggerFactory.getLogger(ConfigConfigurationAdapter.class);
 
@@ -98,16 +100,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         }
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/config/**").authorizeRequests().anyRequest().authenticated().and().httpBasic().and().csrf().disable().headers().frameOptions().disable();
+        @Bean
+        public SecurityFilterChain filterChain2(HttpSecurity http) throws Exception {
+            return http.authorizeRequests(authz ->
+                    authz
+                            .requestMatchers("/config/**").authenticated()
+                            .anyRequest().authenticated()
+            ).httpBasic(withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .headers(frameOptions -> frameOptions.disable()).build();
         }
     }
 
     @Configuration
     @Order(35) // HIGH
-    public static class LTI3SecurityConfigurerAdapterAfter extends WebSecurityConfigurerAdapter {
-        private LTI3OAuthProviderProcessingFilterStateNonceChecked lti3oAuthProviderProcessingFilter;
+    public static class LTI3SecurityConfigurerAdapterAfter {
+        private LTI3OAuthProviderProcessingFilterAfter lti3oAuthProviderProcessingFilter;
         @Autowired
         LTIDataService ltiDataService;
         @Autowired
@@ -118,18 +126,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             lti3oAuthProviderProcessingFilter = new LTI3OAuthProviderProcessingFilterStateNonceChecked(ltiDataService, ltijwtService);
         }
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain filterChain3(HttpSecurity http) throws Exception {
             /**/
-            http.requestMatchers().antMatchers("/lti3/stateNonceChecked").and()
+            return http.authorizeRequests(authz ->
+                    authz
+                            .requestMatchers("/lti3/after").permitAll()
+                            .anyRequest().permitAll())
                     .addFilterAfter(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+                    .csrf(csrf -> csrf.disable())
+                    .headers(frameOptions -> frameOptions.disable())
+                    .build();
         }
     }
 
     @Configuration
     @Order(40) // HIGH
-    public static class LTI3SecurityConfigurerAdapterCheck extends WebSecurityConfigurerAdapter {
+    public static class LTI3SecurityConfigurerAdapterCheck {
         private LTI3OAuthProviderProcessingFilter lti3oAuthProviderProcessingFilter;
         @Autowired
         LTIDataService ltiDataService;
@@ -141,18 +154,23 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             lti3oAuthProviderProcessingFilter = new LTI3OAuthProviderProcessingFilter(ltiDataService, ltijwtService);
         }
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain filterChain4(HttpSecurity http) throws Exception {
             /**/
-            http.requestMatchers().antMatchers("/lti3/**").and()
+            return http.authorizeRequests(authz ->
+                            authz
+                                    .requestMatchers("/lti3/**").permitAll()
+                                    .anyRequest().permitAll())
                     .addFilterBefore(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+                    .csrf(csrf -> csrf.disable())
+                    .headers(frameOptions -> frameOptions.disable())
+                    .build();
         }
     }
 
     @Configuration
     @Order(50) // HIGH
-    public static class APISecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public static class APISecurityConfigurerAdapter {
         private APIOAuthProviderProcessingFilter apioAuthProviderProcessingFilter;
         @Autowired
         APIJWTService apiJwtService;
@@ -170,34 +188,44 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         //TODO: this is never called. Modify it to allow this authentication provider
         //to work for these 2 matchers in a way that it sets the roles.
-        @Override
-        public void configure(AuthenticationManagerBuilder builder) throws Exception {
-            builder.authenticationProvider(jwtAuthenticationProvider);
+        @Bean
+        public AuthenticationManager authManager(HttpSecurity http) throws Exception {
+            AuthenticationManagerBuilder authenticationManagerBuilder =
+                    http.getSharedObject(AuthenticationManagerBuilder.class);
+            authenticationManagerBuilder.authenticationProvider(jwtAuthenticationProvider);
+            return authenticationManagerBuilder.build();
         }
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.requestMatchers()
-                    .antMatchers("/api/**")
-                    .and()
+        @Bean
+        public SecurityFilterChain filterChain5(HttpSecurity http) throws Exception {
+            return http.authorizeRequests(authz ->
+                    authz
+                            .requestMatchers("/api/**").permitAll()
+                            .anyRequest().permitAll())
                     .addFilterBefore(new CorsFilter(new CorsConfigurationSourceImpl()), BasicAuthenticationFilter.class)
                     .addFilterBefore(apioAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+                    .csrf(csrf -> csrf.disable())
+                    .headers(frameOptions -> frameOptions.disable())
+                    .build();
         }
     }
 
 
     @Order(80) // LOWEST
     @Configuration
-    public static class NoAuthConfigurationAdapter extends WebSecurityConfigurerAdapter {
+    public static class NoAuthConfigurationAdapter {
 
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain filterChain6(HttpSecurity http) throws Exception {
             // this ensures security context info (Principal, sec:authorize, etc.) is accessible on all paths
-            http.antMatcher("/**").authorizeRequests().anyRequest().permitAll().and().headers().frameOptions().disable();
+            return http.authorizeRequests(authz ->
+                    authz
+                            .requestMatchers("/**").permitAll()
+                            .anyRequest().permitAll())
+                            .csrf(csrf -> csrf.disable())
+                            .headers(frameOptions -> frameOptions.disable())
+                            .build();
         }
     }
-
-
 
 }

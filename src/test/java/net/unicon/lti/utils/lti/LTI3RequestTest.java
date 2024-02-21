@@ -1,6 +1,8 @@
 package net.unicon.lti.utils.lti;
 
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwe;
 import io.jsonwebtoken.Jws;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.NonceState;
@@ -114,7 +116,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(new ArrayList<>());
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -130,7 +132,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(Arrays.asList(platformDeployment, platformDeployment));
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.getAudience()).thenReturn(Collections.singleton(SAMPLE_CLIENT_ID));
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -146,7 +148,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -164,7 +166,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("true");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         mockHttpSession.setAttribute("lti_nonce", new ArrayList<String>());
@@ -187,7 +189,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         mockHttpSession.setAttribute("lti_nonce", new ArrayList<String>());
@@ -209,8 +211,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
-        when(claims.containsKey(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(true);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID), eq(String.class))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.containsKey(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(true);

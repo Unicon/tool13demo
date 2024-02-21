@@ -8,7 +8,7 @@ import net.unicon.lti.exceptions.BadTokenException;
 import net.unicon.lti.model.oauth2.SecuredInfo;
 import net.unicon.lti.utils.lti.LTI3Request;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;

@@ -1,5 +1,6 @@
 package net.unicon.lti.utils.lti;
 
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -73,13 +74,13 @@ public class LtiOidcUtilsTest {
             String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id", "nonce-value");
 
             // validate that ltiToken was signed using private key and contains expected payload
-            Jws<Claims> parsedLtiToken = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(state);
+            Jws<Claims> parsedLtiToken = Jwts.parser().setSigningKey(kp.getPublic()).build().parseSignedClaims(state);
             assertEquals(TextConstants.DEFAULT_KID, parsedLtiToken.getHeader().get("kid"));
             assertEquals("JWT", parsedLtiToken.getHeader().getType());
             Claims ltiTokenClaims = parsedLtiToken.getBody();
             assertEquals("ltiStarter", ltiTokenClaims.getIssuer());
             assertEquals("test-iss", ltiTokenClaims.getSubject());
-            assertEquals("client-id", ltiTokenClaims.getAudience());
+            assertEquals("client-id", Iterables.getOnlyElement(ltiTokenClaims.getAudience()));
             assertEquals("nonce-value", ltiTokenClaims.getId());
             assertEquals("test-iss", ltiTokenClaims.get("original_iss"));
             assertEquals("target-link-uri", ltiTokenClaims.get("targetLinkUri"));
