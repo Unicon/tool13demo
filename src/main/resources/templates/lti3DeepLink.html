@@ -116,11 +116,11 @@ http://www.thymeleaf.org "
     </button>
     <div class="panel">
         <span th:text="${instance.value[1]}" style="white-space: pre"/>
-        <form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+        <form th:action="${lTI3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
             <div class="form-group">
                 <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
             </div>
-            <input type="submit" value="Select" class="btn btn-primary">
+            <button th:attr="onclick='performActionBeforeSubmit(\'' + ${instance.key} + '\')'" type="button" class="btn btn-primary">Send to the LMS</button>
         </form>
     </div>
     <p></p>
@@ -132,7 +132,7 @@ http://www.thymeleaf.org "
     function submitForm() {
     // Get all checkboxes
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
+    document.getElementById("post_to_lms_button").classList.add('disabled');
     // Filter checked checkboxes
     var checkedCheckboxes = Array.from(checkboxes).filter(checkbox => checkbox.checked);
 
@@ -155,7 +155,7 @@ http://www.thymeleaf.org "
     })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok: ' +  response.error + ':' + response.message);
       }
       return response.json();
     })
@@ -163,13 +163,14 @@ http://www.thymeleaf.org "
       // Handle the response from the server if needed
       console.log('Server response:', data);
       document.getElementById('JWT_manual').value = data.jwtstring;
-      document.getElementById("post_to_lms_button").disabled = false;
+      document.getElementById("post_to_lms_button").classList.remove('disabled');
     })
     .catch(error => {
       console.error('Error:', error);
     });
   }
 </script>
+
 
 <form id="checkboxForm2">
     <ul>
@@ -186,12 +187,42 @@ http://www.thymeleaf.org "
     <button type="button" onclick="submitForm()">Select</button>
 </form>
 
-<form th:action="${lTI3Request.deepLinkReturnUrl}" method="POST">
+<form th:action="${lTI3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
     <div class="form-group">
         <input type="text" id="JWT_manual" name="JWT" class="form-control"/>
     </div>
-    <input type="submit" id="post_to_lms_button" value="Send to the LMS" class="btn btn-primary" disabled="disabled">
+    <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="btn btn-primary disabled">Send to the LMS</button>
 </form>
+
+<script>
+    function performActionBeforeSubmit(form) {
+
+    // Perform the POST request using fetch
+    fetch('/deeplink/deleteNonce', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nonce: "[[${ nonce }]]",
+        state_hash: "[[${ state_hash }]]",
+        token: "[[${token}]]",
+        id_token: "[[${id_token}]]"
+        }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok: ' +  response.error + ':' + response.message);
+      }
+      // Continue with the form submission if needed
+      document.getElementById(form).submit();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      // Handle the error as needed
+    });
+  }
+</script>
 
 <button class="accordion">
     Click to view additional data received from the LTI request

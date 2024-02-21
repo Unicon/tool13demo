@@ -71,7 +71,7 @@ public class DeepLinkUtils {
         List<String> jwt1List = new ArrayList<>();
         jwt1List.add(jwt1);
         jwt1List.add("{}");
-        deepLinkJwtMap.put("Link 1 content: EMPTY json", jwt1List);
+        deepLinkJwtMap.put("Example 1: EMPTY json", jwt1List);
 
         //JWT 2: One ltiResourcelink
         List<Map<String, Object>> oneDeepLink = createOneDeepLinkWithGrades(localUrl);
@@ -96,7 +96,7 @@ public class DeepLinkUtils {
         List<String> jwt2List = new ArrayList<>();
         jwt2List.add(jwt2);
         jwt2List.add(listMapToJson(oneDeepLink));
-        deepLinkJwtMap.put("Link 2 content: ONE Standard LTI Core Link (ltiResourceLink)", jwt2List);
+        deepLinkJwtMap.put("Example 2: ONE Standard LTI Core Link (ltiResourceLink)", jwt2List);
 
         //JWT 2b: One link (not ltiResourcelink)
         List<Map<String, Object>> oneDeepLinkNoLti = createOneDeepLinkNoLti();
@@ -121,7 +121,7 @@ public class DeepLinkUtils {
         List<String> jwt2bList = new ArrayList<>();
         jwt2bList.add(jwt2b);
         jwt2bList.add(listMapToJson(oneDeepLinkNoLti));
-        deepLinkJwtMap.put("Link 3 content: ONE External (YouTube) Link (NON ltiResourceLink)", jwt2bList);
+        deepLinkJwtMap.put("Example 3: ONE External (YouTube) Link (NON ltiResourceLink)", jwt2bList);
 
         //JWT 3: More than one link
         List<Map<String, Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
@@ -146,7 +146,7 @@ public class DeepLinkUtils {
         List<String> jwt3List = new ArrayList<>();
         jwt3List.add(jwt3);
         jwt3List.add(listMapToJson(multipleDeepLink));
-        deepLinkJwtMap.put("Link 4 content: TWO Standard LTI Core Links (ltiResourceLinks) and TWO external links", jwt3List);
+        deepLinkJwtMap.put("Example 4: TWO Standard LTI Core Links (ltiResourceLinks) and TWO external links", jwt3List);
 
         //JWT 3b: More than one link but only ltiresourceLinks
         List<Map<String, Object>> multipleDeepLinkOnlyLti = createMultipleDeepLinkOnlyLti(localUrl);
@@ -171,7 +171,7 @@ public class DeepLinkUtils {
         List<String> jwt3bList = new ArrayList<>();
         jwt3bList.add(jwt3b);
         jwt3bList.add(listMapToJson(multipleDeepLinkOnlyLti));
-        deepLinkJwtMap.put("Link 5 content: TWO Standard LTI Core Links (ltiResourceLinks)", jwt3bList);
+        deepLinkJwtMap.put("Example 5: TWO Standard LTI Core Links (ltiResourceLinks)", jwt3bList);
 
         return deepLinkJwtMap;
 
