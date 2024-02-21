@@ -12,6 +12,7 @@
  */
 package net.unicon.lti.security.lti;
 
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
@@ -27,12 +28,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.List;
@@ -144,7 +145,7 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
             String jwt = httpServletRequest.getParameter("id_token");
             if (StringUtils.hasText(jwt)) {
                 //Now we validate the JWT token
-                Jws<Claims> jws = ltijwtService.validateJWT(jwt, stateClaims.getBody().getAudience());
+                Jws<Claims> jws = ltijwtService.validateJWT(jwt, Iterables.getOnlyElement(stateClaims.getBody().getAudience()));
                 if (jws != null) {
                     //Here we create and populate the LTI3Request object and we will add it to the httpServletRequest, so the redirect endpoint will have all that information
                     //ready and will be able to use it.
@@ -176,4 +177,4 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
     }
 
 
-}
+ }

@@ -14,6 +14,7 @@ package net.unicon.lti.service.lti.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -99,7 +100,7 @@ public class DeepLinkServiceImpl implements DeepLinkService {
                 .setHeaderParam(LtiStrings.TYP, LtiStrings.JWT)
                 .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
                 .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
-                .setIssuer(id_token.getBody().getAudience())//Client ID
+                .setIssuer(Iterables.getOnlyElement(id_token.getBody().getAudience()))//Client ID
                 .setAudience(id_token.getBody().getIssuer())
                 .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
                 .setIssuedAt(date) // for example, now

@@ -12,7 +12,7 @@
  */
 package net.unicon.lti.config;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;

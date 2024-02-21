@@ -28,11 +28,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -140,11 +136,11 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
         }
 
         if (reportPostResponse != null) {
-            HttpStatus status = reportPostResponse.getStatusCode();
+            HttpStatusCode status = reportPostResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 ltiToken = reportPostResponse.getBody();
             } else {
-                String exceptionMsg = "Can't get the token: " + status.getReasonPhrase();
+                String exceptionMsg = "Can't get the token: " + status.value();
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);
             }

@@ -1,6 +1,8 @@
 package net.unicon.lti.utils.lti;
 
+import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwe;
 import io.jsonwebtoken.Jws;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.repository.AllRepositories;
@@ -16,9 +18,10 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,7 +98,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(new ArrayList<>());
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -111,7 +114,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(Arrays.asList(platformDeployment, platformDeployment));
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.getAudience()).thenReturn(Collections.singleton(SAMPLE_CLIENT_ID));
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -127,7 +130,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
 
         IllegalStateException exception = Assertions.assertThrows(
@@ -145,7 +148,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
@@ -168,7 +171,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
@@ -191,7 +194,7 @@ public class LTI3RequestTest {
         when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
+        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);

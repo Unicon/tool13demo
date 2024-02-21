@@ -76,7 +76,7 @@
 
 
 <div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>LineItem created/updated on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+    <h4>LineItem created/updated</h4>
     <table class="table table-striped">
         <thead class="thead-dark">
         <tr>
@@ -109,7 +109,7 @@
 
 <div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
 
-    <h4>LineItems on the course <span th:text="${#session.getAttribute('context_id')}"/></h4>
+    <h4>LineItems on the course </h4>
 
     <table class="table table-striped">
         <thead class="thead-dark">
@@ -153,28 +153,7 @@
 <p>&nbsp;</p>
 
 
-<h4>SESSION</h4>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item ">
-            <label><strong>user_id</strong></label>
-            <span th:text="${#session.getAttribute('user_id')}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>user_role</strong></label>
-            <span th:text="${#session.getAttribute('user_role')}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>The Lti context id:</strong></label>
-            <span th:text="${#session.getAttribute('context_id')}"/>
-        </li>
-        <li class="list-group-item ">
-            <label><strong>Our internal deployment key (our id in the database):</strong></label>
-            <span th:text="${#session.getAttribute('deployment_key')}"/>
-        </li>
-    </ul>
-</div>
 
 </body>
 </html>
