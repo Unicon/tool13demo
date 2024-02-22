@@ -20,7 +20,6 @@ import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
