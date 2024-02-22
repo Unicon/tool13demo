@@ -13,7 +13,6 @@
 package net.unicon.lti.config;
 
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
-import net.unicon.lti.security.app.JwtAuthenticationProvider;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilterAfter;
 import net.unicon.lti.service.app.APIDataService;
@@ -65,8 +64,6 @@ public class WebSecurityConfig {
     APIJWTService apiJwtService;
     @Autowired
     APIDataService apiDataService;
-    @Autowired
-    private JwtAuthenticationProvider jwtAuthenticationProvider;
 
     static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 
