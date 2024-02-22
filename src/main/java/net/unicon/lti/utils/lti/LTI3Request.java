@@ -13,13 +13,11 @@
 package net.unicon.lti.utils.lti;
 
 import com.google.common.collect.Iterables;
-import com.google.common.hash.Hashing;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.AsymmetricJWK;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwe;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.JwtParserBuilder;
@@ -46,10 +44,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.thymeleaf.util.ListUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.text.ParseException;
@@ -292,15 +288,6 @@ public class LTI3Request {
         // extract the typical LTI data from the request
         String jwt = httpServletRequest.getParameter("id_token");
         this.jws = jwsClaims != null ? jwsClaims : validateAndRetrieveJWTClaims(ltiDataService, jwt);
-        //This is just for logging.
-        Enumeration<String> sessionAttributes = httpServletRequest.getSession().getAttributeNames();
-        log.info("----------------------BEFORE---------------------------------------------------------------------------------");
-        while (sessionAttributes.hasMoreElements()) {
-            String attName = sessionAttributes.nextElement();
-            log.debug(attName + " : " + httpServletRequest.getSession().getAttribute(attName));
-
-        }
-        log.info("-------------------------------------------------------------------------------------------------------");
 
         // Validate deployment
         String iss = jws.getBody().getIssuer();
@@ -329,8 +316,8 @@ public class LTI3Request {
             throw new IllegalStateException("Nonce error: " + checkNonce);
         }
         //Here we will populate the LTI3Request object
-        String processRequestParameters = processRequestParameters(request, jws);
-        if (!processRequestParameters.equals("true")) {
+        Boolean processRequestParameters = processRequestParameters(request, jws);
+        if (!processRequestParameters) {
             throw new IllegalStateException("Request is not a valid LTI3 request: " + processRequestParameters);
         }
         // We update the database in case we have new values. (New users, new resources...etc)
@@ -353,7 +340,7 @@ public class LTI3Request {
      * @return true if this is a complete and correct LTI request (includes key, context, link, user) OR false otherwise
      */
 
-    public String processRequestParameters(HttpServletRequest request, Jws<Claims> jws) {
+    public Boolean processRequestParameters(HttpServletRequest request, Jws<Claims> jws) {
 
         if (request != null && this.httpServletRequest != request) {
             this.httpServletRequest = request;
@@ -469,23 +456,6 @@ public class LTI3Request {
         deepLinkData = getStringFromLTIRequestMap(deepLinkingSettings, LtiStrings.DEEP_LINK_DATA);
 
 
-        // A sample that shows how we can store some of this in the session
-        //TODO, find alternatives to this.
-        HttpSession session = this.httpServletRequest.getSession();
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ID, sub);
-        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
-        session.setAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID, ltiContextId);
-        try {
-            session.setAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY, ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, aud, ltiDeploymentId).get(0).getKeyId());
-        } catch (Exception e) {
-            log.error("No deployment found");
-        }
-
-        // Surely we need a more elaborated code here based in the huge amount of roles available.
-        // In any case, this is for the session... we still have the full list of roles in the ltiRoles list
-
-        session.setAttribute(LtiStrings.LTI_SESSION_USER_ROLE, getNormalizedRoleName());
-
         // And now we will check that all the mandatory fields are there and are correct
         String isComplete;
         String isCorrect;
@@ -508,17 +478,7 @@ public class LTI3Request {
             }
 
         }
-        // This is an ugly way to display the error... can be improved.
-        if (complete && correct) {
-            return "true";
-        } else {
-            if (complete) {
-                isComplete = "";
-            } else if (correct) {
-                isCorrect = "";
-            }
-            return isComplete + isCorrect;
-        }
+        return (complete && correct);
     }
 
     private String getNormalizedRoleName() {
@@ -603,18 +563,6 @@ public class LTI3Request {
 
 
     /**
-     * Checks if this LTI request object has a complete set of required LTI data,
-     * also sets the #complete variable appropriately
-     *
-     * @param objects if true then check for complete objects, else just check for complete request params
-     * @return true if complete
-     */
-    public boolean checkCompleteLTIRequest(boolean objects) {
-        return objects && key != null && context != null && link != null && user != null;
-    }
-
-
-    /**
      * Checks if this LTI3 request object has a complete set of required LTI3 data,
      * NOTE: this code is not the one I would create for production, it is more a didactic one
      * to understand what is being checked.
@@ -629,7 +577,7 @@ public class LTI3Request {
         if (StringUtils.isEmpty(ltiDeploymentId)) {
             completeStr += " Lti Deployment Id is empty.\n ";
         }
-        if (ltiResourceLink == null || ltiResourceLink.size() == 0) {
+        if (ltiResourceLink == null || ltiResourceLink.isEmpty()) {
             completeStr += " Lti Resource Link is empty.\n ";
         } else {
             if (StringUtils.isEmpty(ltiLinkId)) {
@@ -649,7 +597,7 @@ public class LTI3Request {
             completeStr += " Iat is empty or invalid.\n ";
         }
 
-        if (completeStr.equals("")) {
+        if (completeStr.isEmpty()) {
             return "true";
         } else {
             return completeStr;
