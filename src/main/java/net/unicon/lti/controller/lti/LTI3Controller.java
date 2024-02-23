@@ -97,8 +97,8 @@ public class LTI3Controller {
                 String token = ltijwtService.generateStateNonceTokenJWT(expected_hash);
                 model.addAttribute("token", token);
             } catch (GeneralSecurityException | IOException e) {
-                log.error("Error generating JWT", e);
-                model.addAttribute(TextConstants.ERROR, "Error generating JWT");
+                log.error("Error generating state nonce token JWT", e);
+                model.addAttribute(TextConstants.ERROR, "Error generating state nonce token JWT");
                 return TextConstants.LTI3ERROR;
             }
             model.addAttribute("id_token", id_token);
@@ -119,13 +119,13 @@ public class LTI3Controller {
                 return TextConstants.LTI3ERROR;
             }
         }else{
-            model.addAttribute(TextConstants.ERROR, "State was not expected");
+            model.addAttribute(TextConstants.ERROR, "State was not as expected");
             return TextConstants.LTI3ERROR;
         }
         return "nonceStateCheck";
     }
 
-    @RequestMapping({"", "/after"})
+    @RequestMapping({"", "/stateNonceChecked"})
     public String lti3checked(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
         //We validate the hash.
         String state = req.getParameter("state");

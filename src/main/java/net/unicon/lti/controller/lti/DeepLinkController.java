@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -68,11 +69,11 @@ public class DeepLinkController {
         if (responseEntity != null) {
             return responseEntity;
         }
-        Jws< Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
-        Jws< Claims> idToken = ltijwtService.validateJWT(deeplinksRequested.getId_token(), stateClaims.getBody().get("clientId", String.class));
+        Jws<Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
+        Jws<Claims> idToken = ltijwtService.validateJWT(deeplinksRequested.getId_token(), stateClaims.getBody().get("clientId", String.class));
         if (deeplinksRequested.getSelectedIds().isEmpty()){
             Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Not Items selected");
+            errorResponse.put("error", "Not items selected");
             errorResponse.put("message", "Empty list of items");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
@@ -82,7 +83,7 @@ public class DeepLinkController {
         return ResponseEntity.ok(JSONdeeplink);
     }
 
-    @RequestMapping({"/deleteNonce"})
+    @PostMapping({"/deleteNonce"})
     public ResponseEntity<Object> deleteNonce(@RequestBody DeepLinkRequest deeplinksRequested) throws ConnectionException, GeneralSecurityException, IOException {
         NonceState nonceState = nonceStateService.getNonce(deeplinksRequested.getNonce());
         ResponseEntity<Object> responseEntity = checkAccess(deeplinksRequested, nonceState);

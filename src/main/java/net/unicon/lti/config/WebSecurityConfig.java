@@ -121,7 +121,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             /**/
-            http.requestMatchers().antMatchers("/lti3/after").and()
+            http.requestMatchers().antMatchers("/lti3/stateNonceChecked").and()
                     .addFilterAfter(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
                     .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }

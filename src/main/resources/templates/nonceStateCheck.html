@@ -38,7 +38,7 @@
             without any user interaction, so the user will never see this page/information except maybe for some
             milliseconds or in case of error.</h5>
 
-        <form id="endpoint-form" action="/lti3/after" method="POST">
+        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
             <table>
                 <tr>
                     <td>State retrieved</td><td><input id="pmState" name="state" type="text" value="" /></td>
@@ -90,7 +90,7 @@
     <div th:if="${ltiStorageTarget == null}">
         <p>We are using cookies because the ltiStorageTarget has not been provided, so this step does not need to perform any action. Press the continue button to allow the process to finish.</p>
 
-        <form id="endpoint-form" action="/lti3/after" method="POST">
+        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
             <input id="pmState" name="state" type="hidden" value="" />
             <input id="pmNonce" name="nonce" type="hidden" value="" />
             <input id="pmExpected_state" name="expected_state" type="hidden" value="" />
