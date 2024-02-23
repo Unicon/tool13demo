@@ -109,7 +109,7 @@ public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
                 if (!expectedNonce.equals(nonceForClaims)){
                     throw new IllegalStateException("LTI expected nonce does not match the nonce in the state");
                 }
-                //TODO check if nonce is in the database
+                //check if nonce is in the database
                 if (ltiDataService.getRepos().nonceStateRepository.existsByNonce(nonce)) {
                     NonceState nonceState2 = ltiDataService.getRepos().nonceStateRepository.findByNonce(nonce);
                     if (!nonceState2.getStateHash().equals(stateHash)){

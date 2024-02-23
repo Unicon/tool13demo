@@ -57,8 +57,6 @@ public class LtiOidcUtils {
                 .setIssuedAt(date) // for example, now
                 .setId(authRequestMap.get("nonce")) //just a nonce... we don't use it by the moment, but it could be good if we store information about the requests in DB.
                 .claim("original_iss", loginInitiationDTO.getIss())  //All this claims are the information received in the OIDC initiation and some other useful things.
-                // .claim("loginHint", loginInitiationDTO.getLoginHint())
-                // .claim("ltiMessageHint", loginInitiationDTO.getLtiMessageHint())
                 .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
                 .claim("clientId", clientIdValue)
                 .claim("ltiDeploymentId", deploymentIdValue)

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -68,6 +69,9 @@ public class OIDCController {
     @Autowired
     LTIDataService ltiDataService;
 
+    @Value("${force.cookies:false}")
+    String forceCookies;
+
     /**
      * This will receive the request to start the OIDC process.
      * We receive some parameters (iss, login_hint, target_link_uri, lti_message_hint, and optionally, the deployment_id and the client_id)
@@ -77,8 +81,10 @@ public class OIDCController {
 
         // We need to receive the parameters and search for the deployment of the tool that matches with what we receive.
         LoginInitiationDTO loginInitiationDTO = new LoginInitiationDTO(req);
-        //Enable this line to test only cookies
-        //loginInitiationDTO.setLtiStorageTarget(null);
+        //Enable this line to force only cookies
+        if (forceCookies.equals("true")) {
+            loginInitiationDTO.setLtiStorageTarget(null);
+        }
         List<PlatformDeployment> platformDeploymentList;
         // Getting the client_id (that is optional) and can come in the form or in the URL.
         String clientIdValue = loginInitiationDTO.getClientId();
@@ -115,12 +121,12 @@ public class OIDCController {
 
         try {
             // We are going to create the OIDC request,
-            Map<String, String> parameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
+            Map<String, String> authRequestParameters = generateAuthRequestPayload(loginInitiationDTO, clientIdValue, deploymentIdValue, platformDeployment.getOidcEndpoint());
             // We add that information so the thymeleaf template can display it (and prepare the links)
-            //model.addAllAttributes(parameters);
+            //model.addAllAttributes(authRequestParameters);
             // These 3 are to display what we received from the platform.
             if (ltiDataService.getDemoMode()){
-                model.addAllAttributes(parameters);
+                model.addAllAttributes(authRequestParameters);
                 model.addAttribute("initiation_dto", loginInitiationDTO);
                 model.addAttribute("client_id_received", clientIdValue);
                 model.addAttribute("deployment_id_received", deploymentIdValue);
@@ -128,19 +134,11 @@ public class OIDCController {
 
             
             
-            //TODO: Here is were we need to start the process for the cookies.
             //First, we need to know if the cookie solution is enabled for the LMS.
             //That will happen looking at the lti_storage_target in the loginInitiationDTO. If not null, we will use
             //the "no cookies" solution.  If null, we will need to use the old code
-            String stateHash = parameters.get("state");
-            String nonce = parameters.get("nonce");
-            String stateNoHash = parameters.get("state_no_hash");
-            // We store the state and nonce in the database, so we can check later if they are valid states and nonces.
-            NonceState nonceState = new NonceState(nonce, stateHash, stateNoHash, loginInitiationDTO.getLtiStorageTarget());
-            ltiDataService.getRepos().nonceStateRepository.save(nonceState);
-            // Deleting the old nonceStates (just for maintenance)
-            ltiDataService.getRepos().nonceStateRepository.deleteByCreatedAtBefore(new Date(System.currentTimeMillis() - 1000 * 60 * 24));
-            parameters.remove("state_no_hash"); //We don't need to send this to the front end.
+            String stateHash = authRequestParameters.get("state");
+            String nonce = authRequestParameters.get("nonce");
 
             if (StringUtils.isNotBlank(loginInitiationDTO.getLtiStorageTarget())){
                 //Use the storage... we will need to tell the front end to do it
@@ -173,7 +171,7 @@ public class OIDCController {
 
             // Once all is added to the session, and we have the data ready for the html template, we redirect
             if (!ltiDataService.getDemoMode()) {
-                return "redirect:" + parameters.get("oidcEndpointComplete");
+                return "redirect:" + authRequestParameters.get("oidcEndpointComplete");
             } else {
                 return "oidcRedirect";
             }
@@ -207,9 +205,12 @@ public class OIDCController {
                 .hashString(state, StandardCharsets.UTF_8)
                 .toString();
         authRequestMap.put("state", state_hash); //The state (hash) we use later to retrieve some useful information about the OIDC request.
-        authRequestMap.put("state_no_hash", state); //The state we use later to retrieve some useful information about the OIDC request. No hashed.
         authRequestMap.put("oidcEndpoint", oidcEndpoint);  //We need this in the Thymeleaf template in case we decide to use the POST method. It is the endpoint where the LMS receives the OIDC requests
         authRequestMap.put("oidcEndpointComplete", generateCompleteUrl(authRequestMap));  //This generates the URL to use in case we decide to use the GET method
+        // We store the state and nonce in the database, so we can check later if they are valid states and nonces.
+        NonceState nonceState = new NonceState(nonce, state_hash, state, loginInitiationDTO.getLtiStorageTarget());
+        ltiDataService.getRepos().nonceStateRepository.save(nonceState);
+
         return authRequestMap;
     }
 
