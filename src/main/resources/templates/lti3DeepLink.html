@@ -38,23 +38,23 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>iss:</strong></label>
-                <span th:text="${lTI3Request.iss}"/>
+                <span th:text="${lti3Request.iss}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>aud:</strong></label>
-                <span th:text="${lTI3Request.aud}"/>
+                <span th:text="${lti3Request.aud}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>iat:</strong></label>
-                <span th:text="${lTI3Request.iat}"/>
+                <span th:text="${lti3Request.iat}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>exp:</strong></label>
-                <span th:text="${lTI3Request.exp}"/>
+                <span th:text="${lti3Request.exp}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>sub:</strong></label>
-                <span th:text="${lTI3Request.sub}"/>
+                <span th:text="${lti3Request.sub}"/>
             </li>
         </ul>
     </div>
@@ -65,43 +65,43 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>deepLinkingSettings (a map):</strong></label>
-                <span th:text="${lTI3Request.deepLinkingSettings}"/>
+                <span th:text="${lti3Request.deepLinkingSettings}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkReturnUrl:</strong></label>
-                <span th:text="${lTI3Request.deepLinkReturnUrl}"/>
+                <span th:text="${lti3Request.deepLinkReturnUrl}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkAcceptTypes (a List):</strong></label>
-                <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+                <span th:text="${lti3Request.deepLinkAcceptTypes}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkAcceptMediaTypes:</strong></label>
-                <span th:text="${lTI3Request.deepLinkAcceptTypes}"/>
+                <span th:text="${lti3Request.deepLinkAcceptTypes}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkAcceptPresentationDocumentTargets (a List):</strong></label>
-                <span th:text="${lTI3Request.deepLinkAcceptMediaTypes}"/>
+                <span th:text="${lti3Request.deepLinkAcceptMediaTypes}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkAcceptMultiple:</strong></label>
-                <span th:text="${lTI3Request.deepLinkAcceptMultiple}"/>
+                <span th:text="${lti3Request.deepLinkAcceptMultiple}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkAutoCreate:</strong></label>
-                <span th:text="${lTI3Request.deepLinkAutoCreate}"/>
+                <span th:text="${lti3Request.deepLinkAutoCreate}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkTitle:</strong></label>
-                <span th:text="${lTI3Request.deepLinkTitle}"/>
+                <span th:text="${lti3Request.deepLinkTitle}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkText:</strong></label>
-                <span th:text="${lTI3Request.deepLinkText}"/>
+                <span th:text="${lti3Request.deepLinkText}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>deepLinkData:</strong></label>
-                <span th:text="${lTI3Request.deepLinkData}"/>
+                <span th:text="${lti3Request.deepLinkData}"/>
             </li>
         </ul>
     </div>
@@ -157,7 +157,7 @@ http://www.thymeleaf.org "
 </script>
 
 
-<form id="checkboxForm2">
+<form id="checkboxForm">
     <ul>
         <!-- Iterate over the deeplinks and generate checkboxes -->
         <li th:each="deeplink : ${deeplinks}">
@@ -172,7 +172,7 @@ http://www.thymeleaf.org "
     <button type="button" onclick="submitForm()">Select</button>
 </form>
 
-<form th:action="${lTI3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
+<form th:action="${lti3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
     <div class="form-group">
         <input type="text" id="JWT_manual" name="JWT" class="form-control"/>
     </div>
@@ -183,13 +183,13 @@ http://www.thymeleaf.org "
 
 <h4>Hardcoded Examples:</h4>
 <div>Select the link(s) you would like to add to your course.</div>
-<tr th:each="instance : ${lTI3Request.deepLinkJwts}">
+<tr th:each="instance : ${lti3Request.deepLinkJwts}">
     <button class="accordion">
         <label><strong><span th:text="${instance.key}"/></strong></label>
     </button>
     <div class="panel">
         <span th:text="${instance.value[1]}" style="white-space: pre"/>
-        <form th:action="${lTI3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
+        <form th:action="${lti3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
             <div class="form-group">
                 <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
             </div>
@@ -238,35 +238,35 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiMessageType:</strong></label>
-                <span th:text="${lTI3Request.ltiMessageType}"/>
+                <span th:text="${lti3Request.ltiMessageType}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiVersion:</strong></label>
-                <span th:text="${lTI3Request.ltiVersion}"/>
+                <span th:text="${lti3Request.ltiVersion}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiGivenName:</strong></label>
-                <span th:text="${lTI3Request.ltiGivenName}"/>
+                <span th:text="${lti3Request.ltiGivenName}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiFamilyName:</strong></label>
-                <span th:text="${lTI3Request.ltiFamilyName}"/>
+                <span th:text="${lti3Request.ltiFamilyName}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiMiddleName:</strong></label>
-                <span th:text="${lTI3Request.ltiMiddleName}"/>
+                <span th:text="${lti3Request.ltiMiddleName}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiPicture:</strong></label>
-                <span th:text="${lTI3Request.ltiPicture}"/>
+                <span th:text="${lti3Request.ltiPicture}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiEmail:</strong></label>
-                <span th:text="${lTI3Request.ltiEmail}"/>
+                <span th:text="${lti3Request.ltiEmail}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>locale:</strong></label>
-                <span th:text="${lTI3Request.locale}"/>
+                <span th:text="${lti3Request.locale}"/>
             </li>
         </ul>
     </div>
@@ -276,7 +276,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>nonce</strong></label>
-                <span th:text="${lTI3Request.nonce}"/>
+                <span th:text="${lti3Request.nonce}"/>
             </li>
         </ul>
     </div>
@@ -287,7 +287,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>lti11LegacyUserId</strong></label>
-                <span th:text="${lTI3Request.lti11LegacyUserId}"/>
+                <span th:text="${lti3Request.lti11LegacyUserId}"/>
             </li>
         </ul>
     </div>
@@ -298,7 +298,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiTargetLinkUrl</strong></label>
-                <span th:text="${lTI3Request.ltiTargetLinkUrl}"/>
+                <span th:text="${lti3Request.ltiTargetLinkUrl}"/>
             </li>
         </ul>
     </div>
@@ -308,11 +308,11 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>Roles, is a list:</strong></label>
-                <span th:text="${lTI3Request.ltiRoles}"/>
+                <span th:text="${lti3Request.ltiRoles}"/>
             </li>
             <li class="list-group-item ">
                 <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
-                <span th:text="${lTI3Request.ltiRoleScopeMentor}"/>
+                <span th:text="${lti3Request.ltiRoleScopeMentor}"/>
             </li>
         </ul>
     </div>
@@ -322,7 +322,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiResourceLink, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiResourceLink}"/>
+                <span th:text="${lti3Request.ltiResourceLink}"/>
             </li>
         </ul>
     </div>
@@ -331,7 +331,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiContext, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiContext}"/>
+                <span th:text="${lti3Request.ltiContext}"/>
             </li>
         </ul>
     </div>
@@ -340,7 +340,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiToolPlatform, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiToolPlatform}"/>
+                <span th:text="${lti3Request.ltiToolPlatform}"/>
             </li>
         </ul>
     </div>
@@ -349,7 +349,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiEndpoint, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiEndpoint}"/>
+                <span th:text="${lti3Request.ltiEndpoint}"/>
             </li>
         </ul>
     </div>
@@ -358,7 +358,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiNamesRoleService, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiNamesRoleService}"/>
+                <span th:text="${lti3Request.ltiNamesRoleService}"/>
             </li>
         </ul>
     </div>
@@ -367,7 +367,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiCaliperEndpointService}"/>
+                <span th:text="${lti3Request.ltiCaliperEndpointService}"/>
             </li>
         </ul>
     </div>
@@ -376,7 +376,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiLaunchPresentation, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiLaunchPresentation}"/>
+                <span th:text="${lti3Request.ltiLaunchPresentation}"/>
             </li>
         </ul>
     </div>
@@ -386,7 +386,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiExtension, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiExtension}"/>
+                <span th:text="${lti3Request.ltiExtension}"/>
             </li>
         </ul>
     </div>
@@ -396,7 +396,7 @@ http://www.thymeleaf.org "
         <ul class="list-group">
             <li class="list-group-item ">
                 <label><strong>ltiCustom, is a map:</strong></label>
-                <span th:text="${lTI3Request.ltiCustom}"/>
+                <span th:text="${lti3Request.ltiCustom}"/>
             </li>
         </ul>
     </div>

@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@WebMvcTest(RegistrationController.class)
 public class RegistrationControllerTest {
 
     private static final String TEST_OPENID_CONFIGURATION_URL = "https://platform.com/get-configuration";
@@ -63,6 +66,11 @@ public class RegistrationControllerTest {
 
     @Mock
     private Model model;
+
+    @Configuration
+    static class ContextConfiguration {
+
+    }
 
     @BeforeEach
     public void setUp() {

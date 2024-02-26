@@ -40,17 +40,17 @@ import java.util.List;
 /**
  * LTI3 Redirect calls will be filtered on this class. We will check if the JWT is valid and then extract all the needed data.
  */
-public class LTI3OAuthProviderProcessingFilterAfter extends GenericFilterBean {
+public class LTI3OAuthProviderProcessingFilterStateNonceChecked extends GenericFilterBean {
 
     LTIDataService ltiDataService;
     LTIJWTService ltijwtService;
 
-    static final Logger log = LoggerFactory.getLogger(LTI3OAuthProviderProcessingFilterAfter.class);
+    static final Logger log = LoggerFactory.getLogger(LTI3OAuthProviderProcessingFilterStateNonceChecked.class);
 
     /**
      * We need to load the data service to find the iss configurations and extract the keys.
      */
-    public LTI3OAuthProviderProcessingFilterAfter(LTIDataService ltiDataService, LTIJWTService ltijwtService) {
+    public LTI3OAuthProviderProcessingFilterStateNonceChecked(LTIDataService ltiDataService, LTIJWTService ltijwtService) {
         super();
         if (ltiDataService == null) throw new AssertionError();
         this.ltiDataService = ltiDataService;

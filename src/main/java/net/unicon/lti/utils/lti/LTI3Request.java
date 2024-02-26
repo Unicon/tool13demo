@@ -288,11 +288,11 @@ public class LTI3Request {
      * @throws IllegalStateException if this is not an LTI request
      */
     public LTI3Request(HttpServletRequest request, LTIDataService ltiDataService, boolean update, String linkId, Jws<Claims> jwsClaims) throws DataServiceException {
-        Boolean cookies = request.getParameter("cookies").equals("true");
         if (request == null) throw new AssertionError("cannot make an LtiRequest without a request");
         if (ltiDataService == null) throw new AssertionError("LTIDataService cannot be null");
         this.ltiDataService = ltiDataService;
         this.httpServletRequest = request;
+        Boolean cookies = request.getParameter("cookies").equals("true");
         // extract the typical LTI data from the request
         String jwt = httpServletRequest.getParameter("id_token");
         this.jws = jwsClaims != null ? jwsClaims : validateAndRetrieveJWTClaims(ltiDataService, jwt);

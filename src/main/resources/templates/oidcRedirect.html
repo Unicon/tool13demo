@@ -26,11 +26,14 @@
 
 <body>
 <script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"
+        integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
+        crossorigin="anonymous"></script>
 
     <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
     <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
         completely on the back end, so the user will never see this page/information as they will be sent directly to
-        the tool's landing page (the next UI page).</h5>
+        the tool's landing page.</h5>
 
     <button class="accordion large-font">
         Click to view the form data we received from the platform
@@ -151,9 +154,8 @@
     const stateHash = [[${ state }]];
     const nonce = [[${ nonce }]];
 
-    // origin of the LTI launch. Currently, * is the only value the LMS appears to accept
+    // origin of the LTI launch.
     let origin = [[${oidc_authorization_uri }]];
-    //let origin = '*';
 
     // Create an instance of LTIPostMessage
     let ltiPostMessage = new LTIPostMessage([[${ initiation_dto.ltiStorageTarget }]]);
@@ -203,7 +205,7 @@
     // Function to send both state and nonce to LMS
     const sendStateAndNonce = async () => {
       // send state message
-      const state_uuid = await ltiPostMessage.create_UUID();
+      const state_uuid = uuidv4();
       await ltiPostMessage.sendMessage({
         subject: 'lti.put_data',
         key: `state${stateHash}`,
@@ -216,7 +218,7 @@
       }).catch(function (error) {
         console.error('Error sending state message to LMS', error);
       });
-      const nonce_uuid = await ltiPostMessage.create_UUID();
+      const nonce_uuid = uuidv4();
       // send nonce message
       await ltiPostMessage.sendMessage({
         subject: 'lti.put_data',
@@ -248,20 +250,19 @@
       ltiPostMessage.destroy();
     });
     }
-    if ([[${initiation_dto.ltiStorageTarget }]]) {
-        if (window.location !== window.parent.location) {
-            nonceStateCheck();
-        } else {
-            document.getElementById("get_button").classList.remove('disabled');
-            document.getElementById("post_button").disabled = false;
-            //Maybe send something to our system to "know" this the next time, when receiving the id_token
-            console.info('Not using post messages, just cookies because we are on another tab');
-        }
+    if (window.location !== window.parent.location) {
+        nonceStateCheck();
     } else {
         document.getElementById("get_button").classList.remove('disabled');
         document.getElementById("post_button").disabled = false;
-        console.info('Not using post messages, just cookies');
+
+        if ([[${initiation_dto.ltiStorageTarget }]]) {
+            console.info('Not using post messages, just cookies because we are on another tab');
+        } else {
+            console.info('Not using post messages, just cookies');
+        }
     }
+
 </script>
 
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>

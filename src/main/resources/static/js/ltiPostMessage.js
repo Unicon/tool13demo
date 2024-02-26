@@ -11,7 +11,7 @@ class LTIPostMessage {
      * The message ID.
      * @type {string|null}
      */
-    this.mId = null;
+    this.messageId = null;
 
     /**
      * The subject of the message.
@@ -68,7 +68,7 @@ class LTIPostMessage {
 
     if (
       event.data.subject === subjectResponse &&
-      event.data.message_id === this.mId
+      event.data.message_id === this.messageId
     ) {
       if (event.data.error) {
         this.error = event.data.error;
@@ -89,7 +89,7 @@ class LTIPostMessage {
     if (platformOrigin !== '*'){
         platformOrigin = new URL(platformOrigin).origin;
     }
-    this.mId = message.message_id;
+    this.messageId = message.message_id;
     this.subject = message.subject;
 
     // send the postMessage

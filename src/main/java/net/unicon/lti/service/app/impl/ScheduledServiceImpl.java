@@ -25,7 +25,7 @@ public class ScheduledServiceImpl implements ScheduledService {
     NonceStateService nonceStateService;
 
     @Override
-    @Scheduled(cron = "${scheduled.deleteoldtokens.cron:0 0 1 * * ?}")
+    @Scheduled(cron = "${scheduled.deleteoldtokens.cron:0 0 1 * * ?}")  //Runs once a day
     public void deleteOldTokens(){
         log.info("Deleting Old Tokens :: Starting - {} ", dateTimeFormatter.format(LocalDateTime.now()));
         apiDataService.cleanOldTokens();
@@ -33,7 +33,7 @@ public class ScheduledServiceImpl implements ScheduledService {
     }
 
     @Override
-    @Scheduled(cron = "${scheduled.deleteoldnonces.cron:0 */5 * * * ?}")
+    @Scheduled(cron = "${scheduled.deleteoldnonces.cron:0 */5 * * * ?}") //Runs every 5 minutes
     public void deleteOldNonces(){
         log.info("Deleting Old Nonces :: Starting - {} ", dateTimeFormatter.format(LocalDateTime.now()));
         nonceStateService.deleteOldNonces();

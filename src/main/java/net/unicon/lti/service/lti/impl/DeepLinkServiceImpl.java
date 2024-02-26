@@ -86,13 +86,11 @@ public class DeepLinkServiceImpl implements DeepLinkService {
     @Override
     public DeepLinkJWTDTO generateDeepLinkJWT(List<String> deepLinkRequestIds, Jws<Claims> id_token) throws GeneralSecurityException, IOException {
 
-        //, String nonce, String deepLinkData, String deploymentId, String clientId, String iss
-
         Date date = new Date();
         Key toolPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         DeepLinkJWTDTO deepLinkJWTDTO = new DeepLinkJWTDTO();
 
-        List<Map<String,Object>> jsonDeepLinks = getDeepLinksJSON(deepLinkRequestIds);
+        List<Map<String,Object>> jsonDeepLinks = createDeepLinksJSON(deepLinkRequestIds);
         deepLinkJWTDTO.setJSONString(jsonDeepLinks);
 
         String jwt = Jwts.builder()
@@ -117,7 +115,7 @@ public class DeepLinkServiceImpl implements DeepLinkService {
         return deepLinkJWTDTO;
     }
 
-    private List<Map<String,Object>> getDeepLinksJSON(List<String> deepLinkRequestIds) {
+    private List<Map<String,Object>> createDeepLinksJSON(List<String> deepLinkRequestIds) {
         List<Map<String,Object>> jsonList = new ArrayList<>();
         String localURL = ltiDataService.getLocalUrl();
         for (String id: deepLinkRequestIds){

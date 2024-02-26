@@ -28,12 +28,17 @@
 <body>
 <script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"
+        integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
+        crossorigin="anonymous"></script>
+
+</script>
 
 
 
 
     <div th:if="${ltiStorageTarget}">
-        <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes - Step 1)</h4>
+        <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes)</h4>
         <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
             without any user interaction, so the user will never see this page/information except maybe for some
             milliseconds or in case of error.</h5>
@@ -67,8 +72,7 @@
 
         <div class="alert alert-info">
             <p>
-                The LTI tool is using the <code>target</code> to retrieve the <code>nonce</code> and <code>state</code> from
-                the storage.
+                The LTI tool is retrieving the <code>nonce</code> and <code>state</code> from the <code>target</code> frame storage.               the storage.
                 We have these values:
             </p>
 
@@ -80,10 +84,6 @@
                 <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
                 <li><code>oidc_authorization_uri</code>: <code th:text="${oidc_authorization_uri}"></code></li>
             </ul>
-
-
-            <!--WE NEED HERE TO ADD THE CODE TO RETRIEVE THE NONCE AND STATE FROM THE STORAGE-->
-
 
         </div>
     </div>
@@ -168,7 +168,7 @@
     // Function to send both state and nonce to LMS
     const sendStateAndNonce = async () => {
       // send state message
-      const state_uuid = await ltiPostMessage.create_UUID();
+      const state_uuid = uuidv4();
       await ltiPostMessage.sendMessage({
         subject: 'lti.get_data',
         key: `state${stateHash}`,
@@ -184,7 +184,7 @@
       }).catch(function (error) {
         console.error('Error sending state message to LMS', error);
       });
-      const nonce_uuid = await ltiPostMessage.create_UUID();
+      const nonce_uuid = uuidv4();
       // send nonce message
       await ltiPostMessage.sendMessage({
         subject: 'lti.get_data',
@@ -205,11 +205,7 @@
 
     // send state and nonce
     sendStateAndNonce();
-    if (stateNonceValid){
-        //HERE WE WILL NEED TO FORWARD AGAIN TO OUR BACKEND!
-        var form = document.getElementById('endpoint-form');
-        //form.submit();
-    } else {
+    if (!stateNonceValid){
         setAutoRedirectUrl('ltiError.html');
     }
 
@@ -231,7 +227,7 @@
             document.getElementById('pmState').value = [[${ expected_state }]];
             document.getElementById('cookies').value = 'true';
             document.getElementById("post_button").disabled = false;
-            windows.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
+            window.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
         }
 
     } else {

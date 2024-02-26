@@ -77,10 +77,10 @@ public class LTI3OAuthProviderProcessingFilter extends GenericFilterBean {
                 Jws<Claims> stateClaims = ltijwtService.validateState(nonceState.getState());
                 String nonce = stateClaims.getBody().getId();
                 if (!nonceState.getNonce().equals(nonce)) {
-                    throw new IllegalStateException("LTI request doesn't contains the expected state/nonce");
+                    throw new IllegalStateException("LTI request doesn't contain the expected state/nonce");
                 }
             }else{
-                throw new IllegalStateException("LTI request doesn't contains a valid state");
+                throw new IllegalStateException("LTI request doesn't contain a valid state");
             }
             filterChain.doFilter(servletRequest, servletResponse);
             this.resetAuthenticationAfterRequest();

@@ -1,11 +1,6 @@
 package net.unicon.lti.controller.lti;
 
-import com.google.common.hash.Hashing;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
 import net.unicon.lti.model.PlatformDeployment;
-import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.AllRepositories;
 import net.unicon.lti.repository.NonceStateRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
@@ -21,6 +16,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -29,13 +25,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 
 import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
@@ -49,7 +43,6 @@ import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
 import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
 import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -111,6 +104,7 @@ public class OIDCControllerTest {
 
     }
 
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -144,6 +138,8 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndClientIdAndDeploymentIdOneConfig() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        when(req.getParameter("cookies")).thenReturn("false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
@@ -168,6 +164,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndClientIdAndDeploymentIdMultipleConfigs() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
@@ -192,6 +189,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndClientIdOneConfig() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
@@ -216,6 +214,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndClientIdMultipleConfigs() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
@@ -240,6 +239,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerOneConfig() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
@@ -265,6 +265,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerMultipleConfigs() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
@@ -290,6 +291,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndDeploymentIdOneConfig() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
@@ -315,6 +317,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithIssuerAndDeploymentIdMultipleConfigs() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
@@ -340,6 +343,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithoutConfigIdentifiers() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(null);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(null);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(null);
@@ -362,6 +366,7 @@ public class OIDCControllerTest {
 
     @Test
     public void testLoginInitiationWithoutIss() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
         when(req.getParameter(OIDC_ISS)).thenReturn(null);
         when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
         when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
@@ -400,22 +405,6 @@ public class OIDCControllerTest {
         assertEquals(OIDC_ID_TOKEN, parameters.get("response_type").get(0));
         assertEquals(OIDC_OPEN_ID, parameters.get("scope").get(0));
         assertTrue(parameters.get("nonce").get(0).length() >= 36);
-        /*Jws<Claims> finalClaims = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(parameters.get("state").get(0));
-        assertNotNull(finalClaims);
-        assertEquals(TextConstants.DEFAULT_KID, finalClaims.getHeader().get("kid"));
-        assertEquals("JWT", finalClaims.getHeader().get("typ"));
-        assertEquals("ltiStarter", finalClaims.getBody().getIssuer());
-        assertEquals(clientId, finalClaims.getBody().getAudience());
-        assertNotNull(finalClaims.getBody().getExpiration());
-        assertNotNull(finalClaims.getBody().getNotBefore());
-        assertNotNull(finalClaims.getBody().getIssuedAt());
-        assertNotNull(finalClaims.getBody().getId());
-        assertEquals(iss, finalClaims.getBody().get("original_iss"));
-        assertEquals(SAMPLE_LOGIN_HINT, finalClaims.getBody().get("loginHint"));
-        assertEquals(SAMPLE_LTI_MESSAGE_HINT, finalClaims.getBody().get("ltiMessageHint"));
-        assertEquals(SAMPLE_TARGET_URI, finalClaims.getBody().get("targetLinkUri"));
-        assertEquals("/oidc/login_initiations", finalClaims.getBody().get("controller"));
-        assertEquals(clientId, finalClaims.getBody().get("clientId"));
-        assertEquals(deploymentId, finalClaims.getBody().get("ltiDeploymentId"));*/
+        assertTrue(parameters.get("state").get(0).length() >= 36);
     }
 }

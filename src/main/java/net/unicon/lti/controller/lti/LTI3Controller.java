@@ -77,6 +77,8 @@ public class LTI3Controller {
 
     @RequestMapping({"", "/"})
     public String lti3(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
+        //There is a filter LTI3OAuthProviderProcessingFilter.java that is executed before this.
+        //Some security checks are performed there.
 
         //We need to pass to the model the LTI3 request, the state and the nonce and link, and a JWT with the hash of all of them.
         String state = req.getParameter("state");
@@ -127,6 +129,10 @@ public class LTI3Controller {
 
     @RequestMapping({"", "/stateNonceChecked"})
     public String lti3checked(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
+        //There is a filter LTI3OAuthProviderProcessingFilterStateNonceChecked.java that is executed before this.
+        //Some security checks, the processing of the LTIRequest as an object
+        //and some database updates are performed there.
+
         //We validate the hash.
         String state = req.getParameter("state");
         String nonce = req.getParameter("nonce");
@@ -185,7 +191,7 @@ public class LTI3Controller {
             //We add the request to the model so it can be displayed. But, in a real application, we would start
             // processing it here to generate the right answer.
             if (ltiDataService.getDemoMode()) {
-                model.addAttribute("lTI3Request", lti3Request);
+                model.addAttribute("lti3Request", lti3Request);
                 String link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
                 if (StringUtils.isNotBlank(link)) {
                     List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext(lti3Request.getLtiLinkId(), link, lti3Request.getContext());

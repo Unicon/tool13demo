@@ -61,7 +61,7 @@ public class DeepLinkController {
     NonceStateService nonceStateService;
 
 
-    @RequestMapping({"/toJwt"})
+    @PostMapping({"/toJwt"})
     public ResponseEntity<Object> deepLinksToJwt(@RequestBody DeepLinkRequest deeplinksRequested) throws ConnectionException, GeneralSecurityException, IOException {
         NonceState nonceState = nonceStateService.getNonce(deeplinksRequested.getNonce());
         ResponseEntity<Object> responseEntity = checkAccess(deeplinksRequested, nonceState);
