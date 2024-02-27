@@ -74,7 +74,21 @@ public class LTI3RequestTest {
         when(ltiDataService.getRepos()).thenReturn(allRepositories);
         when(jwsClaims.getBody()).thenReturn(claims);
         when(req.getSession()).thenReturn(mockHttpSession);
+        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
 
+        Map<String,Object> testMap = new HashMap<>();
+        testMap.put("id","value1");
+        List<String> testList = new ArrayList<>();
+        testList.add("key1");
+        when(claims.getExpiration()).thenReturn(new Date());
+        when(claims.getIssuedAt()).thenReturn(new Date());
+        when(claims.getSubject()).thenReturn(SAMPLE_USER);
+        when(claims.containsKey(eq(LtiStrings.LTI_LINK))).thenReturn(true);
+        when(claims.get(eq(LtiStrings.LTI_LINK), eq(Map.class))).thenReturn(testMap);
+        when(claims.containsKey(eq(LtiStrings.LTI_ROLES))).thenReturn(true);
+        when(claims.get(eq(LtiStrings.LTI_ROLES), eq(List.class))).thenReturn(testList);
+        when(claims.containsKey(eq(LtiStrings.LTI_VERSION))).thenReturn(true);
+        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
     }
 
     @Test
@@ -97,7 +111,6 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithoutDeployment() {
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(new ArrayList<>());
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
@@ -114,7 +127,6 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithDuplicateDeployment() {
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(Arrays.asList(platformDeployment, platformDeployment));
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
@@ -131,7 +143,6 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithInvalidMessageType() {
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
@@ -145,18 +156,16 @@ public class LTI3RequestTest {
         verify(platformDeploymentRepository).findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class));
         verify(claims).get(eq(LtiStrings.LTI_VERSION), eq(String.class));
         verify(claims).get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class));
-        assertEquals("Request is not a valid LTI3 request: LTI Version = null. LTI Message Type = null. ", exception.getMessage());
+        assertEquals("Request is not a valid LTI3 request: LTI Message Type = null. ", exception.getMessage());
     }
 
     @Test
     public void testLTI3RequestWithMissingNonce() {
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("true");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
         when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         mockHttpSession.setAttribute("lti_nonce", new ArrayList<String>());
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
@@ -174,13 +183,12 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithMissingNonceCookieless() {
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
+
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
         when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         mockHttpSession.setAttribute("lti_nonce", new ArrayList<String>());
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
@@ -198,31 +206,17 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithValidNonce() {
-        Map<String,Object> testMap = new HashMap<>();
-        testMap.put("id","value1");
-        List<String> testList = new ArrayList<>();
-        testList.add("key1");
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
         when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
-        when(claims.getExpiration()).thenReturn(new Date());
-        when(claims.getIssuedAt()).thenReturn(new Date());
-        when(claims.getSubject()).thenReturn(SAMPLE_USER);
-        when(claims.containsKey(eq(LtiStrings.LTI_LINK))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_LINK), eq(Map.class))).thenReturn(testMap);
-        when(claims.containsKey(eq(LtiStrings.LTI_ROLES))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_ROLES), eq(List.class))).thenReturn(testList);
         when(claims.containsKey(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID), eq(String.class))).thenReturn(SAMPLE_DEPLOYMENT_ID);
-        when(claims.containsKey(eq(LtiStrings.LTI_VERSION))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.containsKey(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
+
         mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
         NonceState nonceState = new NonceState("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47", "HASH_STATE", "VALID_STATE", "_parent");
@@ -240,37 +234,20 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithInvalidNonce() {
-        Map<String,Object> testMap = new HashMap<>();
-        testMap.put("id","value1");
-        List<String> testList = new ArrayList<>();
-        testList.add("key1");
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("true");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
         when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
-        when(claims.getExpiration()).thenReturn(new Date());
-        when(claims.getIssuedAt()).thenReturn(new Date());
         when(claims.getSubject()).thenReturn(SAMPLE_USER);
-        when(claims.containsKey(eq(LtiStrings.LTI_LINK))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_LINK), eq(Map.class))).thenReturn(testMap);
-        when(claims.containsKey(eq(LtiStrings.LTI_ROLES))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_ROLES), eq(List.class))).thenReturn(testList);
         when(claims.containsKey(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID), eq(String.class))).thenReturn(SAMPLE_DEPLOYMENT_ID);
-        when(claims.containsKey(eq(LtiStrings.LTI_VERSION))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.containsKey(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
-        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
         NonceState nonceState = new NonceState("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47", "HASH_STATE", "VALID_STATE", "_parent");
         when(nonceStateRepository.findByNonce("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47")).thenReturn(nonceState);
-
-        mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("ba5938df7756a32ca3a4f89c40d88ff742651bc3ff417f6a4b7443f6f1e6a16c");
 
         IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);});
@@ -285,37 +262,19 @@ public class LTI3RequestTest {
 
     @Test
     public void testLTI3RequestWithInvalidNonceCookieless() {
-        Map<String,Object> testMap = new HashMap<>();
-        testMap.put("id","value1");
-        List<String> testList = new ArrayList<>();
-        testList.add("key1");
-        when(req.getParameter("id_token")).thenReturn(ID_TOKEN);
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
         when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID);
-        when(claims.getExpiration()).thenReturn(new Date());
-        when(claims.getIssuedAt()).thenReturn(new Date());
-        when(claims.getSubject()).thenReturn(SAMPLE_USER);
-        when(claims.containsKey(eq(LtiStrings.LTI_LINK))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_LINK), eq(Map.class))).thenReturn(testMap);
-        when(claims.containsKey(eq(LtiStrings.LTI_ROLES))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_ROLES), eq(List.class))).thenReturn(testList);
         when(claims.containsKey(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID), eq(String.class))).thenReturn(SAMPLE_DEPLOYMENT_ID);
-        when(claims.containsKey(eq(LtiStrings.LTI_VERSION))).thenReturn(true);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         when(claims.containsKey(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE), eq(String.class))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
         when(claims.get(eq(LtiStrings.LTI_MESSAGE_TYPE))).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
-        when(claims.get(eq(LtiStrings.LTI_VERSION), eq(String.class))).thenReturn(LtiStrings.LTI_VERSION_3);
         mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
-        when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47");
         NonceState nonceState = new NonceState("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47", "HASH_STATE", "VALID_STATE", "_parent");
         when(nonceStateRepository.findByNonce("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47")).thenReturn(nonceState);
-
-        mockHttpSession.setAttribute("lti_nonce", Arrays.asList("5d04cb12f45df6ee373c42a1ca4cdbe08e2bfa8e5f7c662aca3f6560687fdc47"));
         when(claims.get(eq(LtiStrings.LTI_NONCE), eq(String.class))).thenReturn("ba5938df7756a32ca3a4f89c40d88ff742651bc3ff417f6a4b7443f6f1e6a16c");
 
         IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, () -> {new LTI3Request(req, ltiDataService, false, "1234", jwsClaims);});

@@ -209,11 +209,6 @@ public class LTI3ControllerTest {
             PlatformDeployment mockPlatformDeployment = new PlatformDeployment();
             mockPlatformDeployment.setOidcEndpoint("mockOidcEndpoint");
             mockPlatformDeploymentList.add(mockPlatformDeployment);
-
-            //when(ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, ltiDeploymentId))
-            //        .thenReturn(mockPlatformDeploymentList);
-
-
             when(allRepositories.platformDeploymentRepository.findByIssAndClientIdAndDeploymentId("iss-1", "client-id-1", "deployment-id-1")).thenReturn(mockPlatformDeploymentList);
             when(platformDeployment1.getOidcEndpoint()).thenReturn("https://tool.net/oidc");
             String response = lti3Controller.lti3(req, model);
