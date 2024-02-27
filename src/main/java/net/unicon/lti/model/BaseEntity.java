@@ -33,7 +33,7 @@ public class BaseEntity {
 
     @Version
     @Column(name = "entity_version")
-    int version;
+    Integer version;
 
     @PrePersist
     void preCreate() {
@@ -61,11 +61,11 @@ public class BaseEntity {
         this.updatedAt = updatedAt;
     }
 
-    public int getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 

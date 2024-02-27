@@ -43,7 +43,7 @@ public class LtiOidcUtils {
      * The state will be returned when the tool makes the final call to us, so it is useful to send information
      * to our own tool, to know about the request.
      */
-    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue) throws GeneralSecurityException {
+    public static String generateState(LTIDataService ltiDataService, Map<String, String> authRequestMap, LoginInitiationDTO loginInitiationDTO, String clientIdValue, String deploymentIdValue, String nonce) throws GeneralSecurityException {
         Date date = new Date();
         Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
         String state = Jwts.builder()
@@ -57,11 +57,10 @@ public class LtiOidcUtils {
                 .setIssuedAt(date) // for example, now
                 .setId(authRequestMap.get("nonce")) //just a nonce... we don't use it by the moment, but it could be good if we store information about the requests in DB.
                 .claim("original_iss", loginInitiationDTO.getIss())  //All this claims are the information received in the OIDC initiation and some other useful things.
-                .claim("loginHint", loginInitiationDTO.getLoginHint())
-                .claim("ltiMessageHint", loginInitiationDTO.getLtiMessageHint())
                 .claim("targetLinkUri", loginInitiationDTO.getTargetLinkUri())
                 .claim("clientId", clientIdValue)
                 .claim("ltiDeploymentId", deploymentIdValue)
+                .claim("nonce", nonce)
                 .claim("controller", "/oidc/login_initiations")
                 .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
                 .compact();

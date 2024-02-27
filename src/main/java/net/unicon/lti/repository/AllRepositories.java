@@ -38,6 +38,8 @@ public class AllRepositories {
     public LtiLinkRepository links;
 
     @Autowired
+    public ToolLinkRepository toolLinks;
+    @Autowired
     public LtiMembershipRepository members;
 
     @Autowired
@@ -51,6 +53,9 @@ public class AllRepositories {
 
     @Autowired
     public ApiOneUseTokenRepository apiOneUseTokenRepository;
+
+    @Autowired
+    public NonceStateRepository nonceStateRepository;
 
     @PersistenceContext
     public EntityManager entityManager;

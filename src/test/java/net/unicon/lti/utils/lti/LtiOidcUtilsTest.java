@@ -66,13 +66,11 @@ public class LtiOidcUtilsTest {
             when(platformDeployment.getIss()).thenReturn("test-iss");
             when(platformDeployment.getClientId()).thenReturn("client-id");
             when(loginInitiationDTO.getIss()).thenReturn("test-iss");
-            when(loginInitiationDTO.getLoginHint()).thenReturn("login-hint");
-            when(loginInitiationDTO.getLtiMessageHint()).thenReturn("lti-message-hint");
             when(loginInitiationDTO.getTargetLinkUri()).thenReturn("target-link-uri");
             Map<String, String> authRequestMap = Collections.singletonMap("nonce", "nonce-value");
             topDateTimeUtilMock.when(() -> LocalDateTime.now(ZoneId.of("Z"))).thenReturn(currentLocalDate);
 
-            String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id");
+            String state = LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id", "nonce-value");
 
             // validate that ltiToken was signed using private key and contains expected payload
             Jws<Claims> parsedLtiToken = Jwts.parser().setSigningKey(kp.getPublic()).parseClaimsJws(state);
@@ -84,8 +82,6 @@ public class LtiOidcUtilsTest {
             assertEquals("client-id", ltiTokenClaims.getAudience());
             assertEquals("nonce-value", ltiTokenClaims.getId());
             assertEquals("test-iss", ltiTokenClaims.get("original_iss"));
-            assertEquals("login-hint", ltiTokenClaims.get("loginHint"));
-            assertEquals("lti-message-hint", ltiTokenClaims.get("ltiMessageHint"));
             assertEquals("target-link-uri", ltiTokenClaims.get("targetLinkUri"));
             assertEquals("client-id", ltiTokenClaims.get("clientId"));
             assertEquals("deployment-id", ltiTokenClaims.get("ltiDeploymentId"));

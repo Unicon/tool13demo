@@ -12,21 +12,26 @@
  */
 package net.unicon.lti.repository;
 
-import net.unicon.lti.model.LtiContextEntity;
-import net.unicon.lti.model.LtiLinkEntity;
+import net.unicon.lti.model.lti.dto.NonceState;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.Date;
 
 @Transactional
-public interface LtiLinkRepository extends JpaRepository<LtiLinkEntity, Long> {
+public interface NonceStateRepository extends JpaRepository<NonceState, String> {
 
-    List<LtiLinkEntity> findByToolLinkToolLinkId(Long toolLinkId);
+    NonceState findByNonce(String nonce);
+    NonceState findByStateHash(String stateHash);
 
-    List<LtiLinkEntity> findByToolLinkToolLinkIdAndContext(String toolLinkId, LtiContextEntity context);
+    Boolean existsByNonce(String nonce);
 
-    List<LtiLinkEntity> findByLtiLinkIdAndToolLinkToolLinkIdAndContext(String ltiLinkId, String toolLinkId, LtiContextEntity context);
+
+    @Transactional
+    void deleteByNonce(String nonce);
+
+    @Transactional
+    void deleteByCreatedAtBefore(Date expiryDate);
 
 
 }

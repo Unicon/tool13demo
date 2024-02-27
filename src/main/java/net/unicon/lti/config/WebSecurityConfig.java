@@ -15,6 +15,7 @@ package net.unicon.lti.config;
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
 import net.unicon.lti.security.app.JwtAuthenticationProvider;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
+import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilterStateNonceChecked;
 import net.unicon.lti.service.app.APIDataService;
 import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.LTIDataService;
@@ -57,6 +58,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/oidc/**")
                 .antMatchers("/registration/**")
                 .antMatchers("/jwks/**")
+                .antMatchers("/deeplink/**")
                 .antMatchers("/ags/**")
                     .and()
                 .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
@@ -103,8 +105,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Configuration
+    @Order(35) // HIGH
+    public static class LTI3SecurityConfigurerAdapterAfter extends WebSecurityConfigurerAdapter {
+        private LTI3OAuthProviderProcessingFilterStateNonceChecked lti3oAuthProviderProcessingFilter;
+        @Autowired
+        LTIDataService ltiDataService;
+        @Autowired
+        LTIJWTService ltijwtService;
+
+        @PostConstruct
+        public void init() {
+            lti3oAuthProviderProcessingFilter = new LTI3OAuthProviderProcessingFilterStateNonceChecked(ltiDataService, ltijwtService);
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            /**/
+            http.requestMatchers().antMatchers("/lti3/stateNonceChecked").and()
+                    .addFilterAfter(lti3oAuthProviderProcessingFilter, UsernamePasswordAuthenticationFilter.class)
+                    .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
+        }
+    }
+
+    @Configuration
     @Order(40) // HIGH
-    public static class LTI3SecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+    public static class LTI3SecurityConfigurerAdapterCheck extends WebSecurityConfigurerAdapter {
         private LTI3OAuthProviderProcessingFilter lti3oAuthProviderProcessingFilter;
         @Autowired
         LTIDataService ltiDataService;

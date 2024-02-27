@@ -20,6 +20,8 @@ import static net.unicon.lti.utils.LtiStrings.OIDC_ISS;
 import static net.unicon.lti.utils.LtiStrings.OIDC_LOGIN_HINT;
 import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_MESSAGE_HINT;
 import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
+import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_STORAGE_TARGET;
+
 
 public class LoginInitiationDTO {
 
@@ -29,18 +31,20 @@ public class LoginInitiationDTO {
     private String ltiMessageHint;
     private String clientId;
     private String deploymentId;
+    private String ltiStorageTarget;
 
 
     public LoginInitiationDTO() {//Empty on purpose
     }
 
-    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId) {
+    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId, String ltiStorageTarget) {
         this.iss = iss;
         this.loginHint = loginHint;
         this.targetLinkUri = targetLinkUri;
         this.ltiMessageHint = ltiMessageHint;
         this.clientId = clientId;
         this.deploymentId = deploymentId;
+        this.ltiStorageTarget =ltiStorageTarget;
     }
 
     public LoginInitiationDTO(HttpServletRequest req) {
@@ -49,7 +53,8 @@ public class LoginInitiationDTO {
                 req.getParameter(OIDC_TARGET_LINK_URI),
                 req.getParameter(OIDC_LTI_MESSAGE_HINT),
                 req.getParameter(OIDC_CLIENT_ID),
-                req.getParameter(OIDC_DEPLOYMENT_ID)
+                req.getParameter(OIDC_DEPLOYMENT_ID),
+                req.getParameter(OIDC_LTI_STORAGE_TARGET)
         );
     }
 
@@ -99,5 +104,13 @@ public class LoginInitiationDTO {
 
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
+    }
+
+    public String getLtiStorageTarget() {
+        return ltiStorageTarget;
+    }
+
+    public void setLtiStorageTarget(String ltiStorageTarget) {
+        this.ltiStorageTarget = ltiStorageTarget;
     }
 }

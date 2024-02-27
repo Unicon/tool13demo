@@ -79,27 +79,29 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
         try {
             String token = extractJwtStringValue((HttpServletRequest) servletRequest);
             if (token == null) {
-                throw new AuthenticationCredentialsNotFoundException("Missing JWT token");
-            }
-            //Second, as the state is something that we have created, it should be in our list of states.
+                log.info("Missing JWT token");
+                ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            } else {
+                //Second, as the state is something that we have created, it should be in our list of states.
 
-            if (StringUtils.hasText(token)) {
-                Jws<Claims> tokenClaims = apiJwtService.validateToken(token);
-                if (tokenClaims != null) {
-                    if (!tokenClaims.getBody().getIssuer().equals("ISSUER")){
-                        throw new IllegalStateException("API token is invalid");
-                    }
-                    //TODO add here any other checks we want to perform.
-                    if ((Boolean)tokenClaims.getBody().get("oneUse")){
-                        boolean exists = apiDataService.findAndDeleteOneUseToken(token);
-                        if (!exists){
-                            throw new IllegalStateException("OneUse token does not exists or has been already used");
+                if (StringUtils.hasText(token)) {
+                    Jws<Claims> tokenClaims = apiJwtService.validateToken(token);
+                    if (tokenClaims != null) {
+                        if (!tokenClaims.getBody().getIssuer().equals("ISSUER")) {
+                            throw new IllegalStateException("API token is invalid");
+                        }
+                        //TODO add here any other checks we want to perform.
+                        if ((Boolean) tokenClaims.getBody().get("oneUse")) {
+                            boolean exists = apiDataService.findAndDeleteOneUseToken(token);
+                            if (!exists) {
+                                throw new IllegalStateException("OneUse token does not exists or has been already used");
+                            }
                         }
                     }
                 }
+                filterChain.doFilter(servletRequest, servletResponse);
+                this.resetAuthenticationAfterRequest();
             }
-            filterChain.doFilter(servletRequest, servletResponse);
-            this.resetAuthenticationAfterRequest();
         } catch (ExpiredJwtException eje) {
             log.info("Security exception for user {} - {}", eje.getClaims().getSubject(), eje.getMessage());
             ((HttpServletResponse) servletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);

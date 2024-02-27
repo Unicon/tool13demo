@@ -1,0 +1,248 @@
+<!--
+
+    Copyright 2021 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag -->
+<html xmlns:th="http://www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+
+<head>
+    <title>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+
+</head>
+
+<body>
+<script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
+<script type="text/javascript" th:src="@{/js/utils.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"
+        integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
+        crossorigin="anonymous"></script>
+
+</script>
+
+
+
+
+    <div th:if="${ltiStorageTarget}">
+        <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes)</h4>
+        <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
+            without any user interaction, so the user will never see this page/information except maybe for some
+            milliseconds or in case of error.</h5>
+
+        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
+            <table>
+                <tr>
+                    <td>State retrieved</td><td><input id="pmState" name="state" type="text" value="" /></td>
+                </tr>
+                <tr>
+                    <td>Nonce retrieved</td><td><input id="pmNonce" name="nonce" type="text" value="" /></td>
+                </tr>
+                <tr>
+                    <td>Expected_state</td><td><input id="pmExpected_state" name="expected_state" type="text" value="" /></td>
+                </tr>
+                <tr>
+                    <td>Expected_nonce</td><td><input id="pmExpected_nonce" name="expected_nonce" type="text" value="" /></td>
+                </tr>
+                <tr>
+                    <td>Id_token</td><td><input id="pmId_token" name="id_token" type="text" value="" /></td>
+                </tr>
+                <tr>
+                    <td>Security Token</td><td><input id="pmToken" name="token" type="text" value="" /></td>
+                </tr>
+            </table>
+            <input id="cookies" name="cookies" type="hidden" value="false" />
+            <input type="submit" id="post_button" value="Submit POST" class="btn btn-primary" disabled="disabled">
+        </form>
+
+        <div></br></br></div>
+
+        <div class="alert alert-info">
+            <p>
+                The LTI tool is retrieving the <code>nonce</code> and <code>state</code> from the <code>target</code> frame storage.
+                We have these values:
+            </p>
+
+            <ul>
+                <li><code>token</code>: <code th:text="${token}"></code></li>
+                <li><code>id_token</code>: <code th:text="${id_token}"></code></li>
+                <li><code>ltiStorageTarget</code>: <code th:text="${ltiStorageTarget}"></code></li>
+                <li><code>expected_state</code>: <code th:text="${expected_state}"></code></li>
+                <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
+                <li><code>oidc_authorization_uri</code>: <code th:text="${oidc_authorization_uri}"></code></li>
+            </ul>
+
+        </div>
+    </div>
+    <div th:if="${ltiStorageTarget == null}">
+        <p>We are using cookies because the ltiStorageTarget has not been provided, so this step does not need to perform any action. Press the continue button to allow the process to finish.</p>
+
+        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
+            <input id="pmState" name="state" type="hidden" value="" />
+            <input id="pmNonce" name="nonce" type="hidden" value="" />
+            <input id="pmExpected_state" name="expected_state" type="hidden" value="" />
+            <input id="pmExpected_nonce" name="expected_nonce" type="hidden" value="" />
+            <input id="pmId_token" name="id_token" type="hidden" value="" />
+            <input id="pmToken" name="token" type="hidden" value="" />
+            <input id="cookies" name="cookies" type="hidden" value="true" />
+            <input type="submit" id="post_button" value="Continue" class="btn btn-primary" disabled="disabled">
+        </form>
+
+    </div>
+
+<script th:inline="javascript">
+    const nonceStateCheck = async () => {
+
+    // placeholder for state and nonce validations
+    let stateValid = false, nonceValid = false, stateNonceValid = false;
+
+    // state and nonce values. These should be generated on the server side
+    const stateHash = [[${ expected_state }]];
+    const nonce = [[${ expected_nonce }]];
+
+    // origin of the LTI launch. Currently, * is the only value the LMS appears to accept
+    let origin = [[${oidc_authorization_uri }]];
+    //let origin = '*';
+
+    // Create an instance of LTIPostMessage
+    let ltiPostMessage = new LTIPostMessage([[${ltiStorageTarget }]]);
+
+    const verifyStateAndNonce = () => {
+      // Verify the state and nonce
+      if (stateValid && nonceValid) {
+        console.info('State and Nonce are validated 🤘🏽');
+        stateNonceValid = true;
+        document.getElementById('pmExpected_state').value = [[${ expected_state }]];
+        document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
+        document.getElementById('pmId_token').value = [[${ id_token }]];
+        document.getElementById('pmToken').value = [[${ token }]];
+        document.getElementById("post_button").disabled = false;
+      } else {
+        console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
+      }
+    }
+
+    const setAutoRedirectUrl = (address) => {
+        redirectUrl = address;
+    };
+
+    const verifyAnswer = (uuid, expected_value, data) => {
+      // Verify the state and nonce
+      if (
+        // verify `data` is an object
+        typeof data === "object" &&
+        // Message ID we sent needs to match response
+        data.message_id === uuid &&
+        // verify data.subject = lti.put/get_data.response
+        data.subject === 'lti.get_data.response'
+        )
+        {
+            console.log(
+                `✅ ${
+                data.key.includes("state") ? "State" : "Nonce"
+                } passed ${data.value}`
+            );
+            return true;
+        }
+        console.log(
+            `✅ ${
+            data.key.includes("state") ? "State" : "Nonce"
+            } failure ${data} response`
+        );
+        return false;
+    }
+
+    // Function to send both state and nonce to LMS
+    const sendStateAndNonce = async () => {
+      // send state message
+      const state_uuid = uuidv4();
+      await ltiPostMessage.sendMessage({
+        subject: 'lti.get_data',
+        key: `state${stateHash}`,
+        value: stateHash,
+        message_id: state_uuid // an ID that we can reference on the LTI page
+      }, origin).then(function (response) {
+        console.info('State response from LMS', response);
+        stateValid = verifyAnswer(state_uuid,stateHash,response);
+        if (stateValid) {
+            document.getElementById('pmState').value = response.value;
+        }
+        verifyStateAndNonce();
+      }).catch(function (error) {
+        console.error('Error sending state message to LMS', error);
+      });
+      const nonce_uuid = uuidv4();
+      // send nonce message
+      await ltiPostMessage.sendMessage({
+        subject: 'lti.get_data',
+        key: `nonce${nonce}`,
+        value: nonce,
+        message_id: nonce_uuid // and ID that we can reference on the LTI page
+      }, origin).then(function (response) {
+        console.info('Nonce response from LMS', response);
+        nonceValid = verifyAnswer(nonce_uuid,nonce,response);
+        if (nonceValid) {
+            document.getElementById('pmNonce').value = response.value;
+        }
+        verifyStateAndNonce();
+      }).catch(function (error) {
+        console.error('Error sending nonce message to LMS', error);
+      });
+    }
+
+    // send state and nonce
+    sendStateAndNonce();
+    if (!stateNonceValid){
+        setAutoRedirectUrl('ltiError.html');
+    }
+
+    // Optional: Cleanup if needed when the page is unloaded
+    window.addEventListener('unload', function () {
+      // or call this method directly when postMessage service isn't needed anymore
+      ltiPostMessage.destroy();
+    });
+    }
+    if ([[${ltiStorageTarget }]]) {
+        if (window.location !== window.parent.location) {
+            nonceStateCheck();
+        } else {
+            document.getElementById('pmExpected_state').value = [[${ expected_state }]];
+            document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
+            document.getElementById('pmId_token').value = [[${ id_token }]];
+            document.getElementById('pmToken').value = [[${ token }]];
+            document.getElementById('pmNonce').value = [[${ expected_nonce }]];
+            document.getElementById('pmState').value = [[${ expected_state }]];
+            document.getElementById('cookies').value = 'true';
+            document.getElementById("post_button").disabled = false;
+            window.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
+        }
+
+    } else {
+        console.info('Not using post messages, just cookies');
+        document.getElementById('pmExpected_state').value = [[${ expected_state }]];
+        document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
+        document.getElementById('pmId_token').value = [[${ id_token }]];
+        document.getElementById('pmToken').value = [[${ token }]];
+        document.getElementById('pmNonce').value = [[${ expected_nonce }]];
+        document.getElementById('pmState').value = [[${ expected_state }]];
+        document.getElementById("post_button").disabled = false;
+    }
+
+</script>
+
+</body>
+
+</html>

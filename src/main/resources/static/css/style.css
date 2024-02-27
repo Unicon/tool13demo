@@ -41,3 +41,8 @@ body {
 .active:after {
   content: "\2303"; /* Unicode character for "minus" sign (-) */
 }
+
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+}
