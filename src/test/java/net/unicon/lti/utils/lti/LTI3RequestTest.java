@@ -212,7 +212,7 @@ public class LTI3RequestTest {
         when(req.getParameter("cookies")).thenReturn("false");
         when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
         when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
-        when(Iterables.getOnlyElement(claims.getAudience())).thenReturn(SAMPLE_CLIENT_ID);
+        when(claims.getAudience()).thenReturn(SAMPLE_CLIENT_ID_SET);
         when(claims.containsKey(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(true);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID))).thenReturn(SAMPLE_DEPLOYMENT_ID);
         when(claims.get(eq(LtiStrings.LTI_DEPLOYMENT_ID), eq(String.class))).thenReturn(SAMPLE_DEPLOYMENT_ID);
