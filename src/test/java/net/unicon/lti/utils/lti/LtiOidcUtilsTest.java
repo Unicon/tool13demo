@@ -59,7 +59,7 @@ public class LtiOidcUtilsTest {
         LocalDateTime currentLocalDate = LocalDateTime.now(ZoneId.of("Z"));
         try (MockedStatic<LocalDateTime> topDateTimeUtilMock = Mockito.mockStatic(LocalDateTime.class)) {
             KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-            kpg.initialize(1024);
+            kpg.initialize(2056);
             KeyPair kp = kpg.generateKeyPair();
             Base64.Encoder encoder = Base64.getEncoder();
             String privateKey = "-----BEGIN PRIVATE KEY-----\n" + encoder.encodeToString(kp.getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";

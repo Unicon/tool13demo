@@ -53,7 +53,7 @@ public class WebSecurityConfig {
     @Value("${terracotta.admin.password:admin}")
     String adminPassword;
 
-    private LTI3OAuthProviderProcessingFilterAfter lti3oAuthProviderProcessingFilterAfter;
+    private LTI3OAuthProviderProcessingFilterStateNonceChecked lti3OAuthProviderProcessingFilterStateNonceChecked;
     private LTI3OAuthProviderProcessingFilter lti3oAuthProviderProcessingFilter;
     private APIOAuthProviderProcessingFilter apioAuthProviderProcessingFilter;
     @Autowired
@@ -69,7 +69,7 @@ public class WebSecurityConfig {
 
     @PostConstruct
     public void init() {
-        lti3oAuthProviderProcessingFilterAfter = new LTI3OAuthProviderProcessingFilterAfter(ltiDataService, ltijwtService);
+        lti3OAuthProviderProcessingFilterStateNonceChecked = new LTI3OAuthProviderProcessingFilterStateNonceChecked(ltiDataService, ltijwtService);
         lti3oAuthProviderProcessingFilter = new LTI3OAuthProviderProcessingFilter(ltiDataService, ltijwtService);
         apioAuthProviderProcessingFilter = new APIOAuthProviderProcessingFilter(apiJwtService, apiDataService);
     }
@@ -114,7 +114,7 @@ public class WebSecurityConfig {
         return http.authorizeHttpRequests(authz -> authz
                         .requestMatchers("/lti3/after").permitAll()
                 )
-                .addFilterAfter(lti3oAuthProviderProcessingFilterAfter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(lti3OAuthProviderProcessingFilterStateNonceChecked, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .headers(frameOptions -> frameOptions.disable())
                 .build();
