@@ -22,17 +22,9 @@ public interface APIJWTService {
     String buildJwt(boolean oneUse,
                     List<String> roles,
                     Long contextId,
+                    String contextKey,
                     Long platformDeploymentId,
                     String userId,
-                    String canvasUserId,
-                    String canvasUserGlobalId,
-                    String canvasLoginId,
-                    String canvasUserName,
-                    String canvasCourseId,
-                    String canvasAssignmentId,
-                    String dueAt,
-                    String lockAt,
-                    String unlockAt,
                     String nonce) throws GeneralSecurityException, IOException;
 
     String buildJwt(boolean oneUse, LTI3Request lti3Request) throws GeneralSecurityException, IOException;

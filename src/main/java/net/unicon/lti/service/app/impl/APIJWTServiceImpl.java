@@ -111,17 +111,9 @@ public class APIJWTServiceImpl implements APIJWTService {
     public String buildJwt(boolean oneUse,
                            List<String> roles,
                            Long contextId,
+                           String contextKey,
                            Long platformDeploymentId,
                            String userId,
-                           String canvasUserId,
-                           String canvasUserGlobalId,
-                           String canvasLoginId,
-                           String canvasUserName,
-                           String canvasCourseId,
-                           String canvasAssignmentId,
-                           String dueAt,
-                           String lockAt,
-                           String unlockAt,
                            String nonce
     ) throws GeneralSecurityException, IOException {
 
@@ -143,19 +135,11 @@ public class APIJWTServiceImpl implements APIJWTService {
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
                 .claim("contextId", contextId)  //This is an specific claim to ask for tokens.
+                .claim("contextKey", contextKey)  //This is an specific claim to ask for tokens.
                 .claim("platformDeploymentId", platformDeploymentId)  //This is an specific claim to ask for tokens.
                 .claim("userId", userId)  //This is an specific claim to ask for tokens.
                 .claim("roles", roles)
                 .claim("oneUse", oneUse)  //This is an specific claim to ask for tokens.
-                .claim("canvasUserId", canvasUserId)
-                .claim("canvasUserGlobalId", canvasUserGlobalId)
-                .claim("canvasLoginId", canvasLoginId)
-                .claim("canvasUserName", canvasUserName)
-                .claim("canvasCourseId", canvasCourseId)
-                .claim("canvasAssignmentId", canvasAssignmentId)
-                .claim("dueAt", dueAt)
-                .claim("lockAt", lockAt)
-                .claim("unlockAt", unlockAt)
                 .claim("nonce", nonce)
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey);  //We sign it with our own private key. The platform has the public one.
         String token = builder.compact();
@@ -173,42 +157,11 @@ public class APIJWTServiceImpl implements APIJWTService {
     @Override
     public String buildJwt(boolean oneUse, LTI3Request lti3Request) throws GeneralSecurityException, IOException {
 
-        String targetLinkUrl = lti3Request.getLtiTargetLinkUrl();
-        MultiValueMap<String, String> queryParams =
-                UriComponentsBuilder.fromUriString(targetLinkUrl).build().getQueryParams();
-        String assignmentIdText = queryParams.getFirst("assignment");
-        Long assignmentId = null;
-        if (StringUtils.isNotBlank(assignmentIdText)){
-            assignmentId = Long.parseLong(assignmentIdText);
-        }
-        String consentText = queryParams.getFirst("consent");
-        boolean consent = false;
-        if (StringUtils.isNotBlank(consentText)){
-            if (consentText.equals("true")){
-                consent = true;
-            }
-        }
-        String experimentIdText = queryParams.getFirst("experiment");
-        Long experimentId = null;
-        if (StringUtils.isNotBlank(experimentIdText)){
-            experimentId = Long.parseLong(experimentIdText);
-        }
-
-
-
         return buildJwt(oneUse, lti3Request.getLtiRoles(),
                 lti3Request.getContext().getContextId(),
+                lti3Request.getContext().getContextKey(),
                 lti3Request.getKey().getKeyId(),
                 lti3Request.getUser().getUserKey(),
-                lti3Request.getLtiCustom().get("canvas_user_id").toString(),
-                lti3Request.getLtiCustom().get("canvas_user_global_id").toString(),
-                lti3Request.getLtiCustom().get("canvas_login_id").toString(),
-                lti3Request.getLtiCustom().get("canvas_user_name").toString(),
-                lti3Request.getLtiCustom().get("canvas_course_id").toString(),
-                lti3Request.getLtiCustom().get("canvas_assignment_id").toString(),
-                lti3Request.getLtiCustom().get("due_at").toString(),
-                lti3Request.getLtiCustom().get("lock_at").toString(),
-                lti3Request.getLtiCustom().get("unlock_at").toString(),
                 lti3Request.getNonce());
 
     }
@@ -232,19 +185,11 @@ public class APIJWTServiceImpl implements APIJWTService {
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
                 .claim("contextId", tokenClaims.getBody().get("contextId"))
+                .claim("contextKey", tokenClaims.getBody().get("contextKey"))
                 .claim("platformDeploymentId", tokenClaims.getBody().get("platformDeploymentId"))
                 .claim("userId", tokenClaims.getBody().get("userId"))
                 .claim("roles", tokenClaims.getBody().get("roles"))
                 .claim("oneUse", false)
-                .claim("canvasUserId", tokenClaims.getBody().get("canvasUserId"))
-                .claim("canvasUserGlobalId", tokenClaims.getBody().get("canvasUserGlobalId"))
-                .claim("canvasLoginId", tokenClaims.getBody().get("canvasLoginId"))
-                .claim("canvasUserName", tokenClaims.getBody().get("canvasUserName"))
-                .claim("canvasCourseId", tokenClaims.getBody().get("canvasCourseId"))
-                .claim("canvasAssignmentId", tokenClaims.getBody().get("canvasAssignmentId"))
-                .claim("dueAt", tokenClaims.getBody().get("dueAt"))
-                .claim("lockAt", tokenClaims.getBody().get("lockAt"))
-                .claim("unlockAt", tokenClaims.getBody().get("unlockAt"))
                 .claim("nonce", tokenClaims.getBody().get("nonce"))
                 .signWith(SignatureAlgorithm.RS256, toolPrivateKey);  //We sign it with our own private key. The platform has the public one.
         String newToken = builder.compact();
@@ -279,16 +224,8 @@ public class APIJWTServiceImpl implements APIJWTService {
           securedInfo.setUserId(claims.getBody().get("userId").toString());
           securedInfo.setPlatformDeploymentId(Long.valueOf((Integer) claims.getBody().get("platformDeploymentId")));
           securedInfo.setContextId(Long.valueOf((Integer) claims.getBody().get("contextId")));
+          securedInfo.setContextKey(claims.getBody().get("contextKey").toString());
           securedInfo.setRoles((List<String>) claims.getBody().get("roles"));
-          securedInfo.setCanvasUserId(claims.getBody().get("canvasUserId").toString());
-          securedInfo.setCanvasUserGlobalId(claims.getBody().get("canvasUserGlobalId").toString());
-          securedInfo.setCanvasLoginId(claims.getBody().get("canvasLoginId").toString());
-          securedInfo.setCanvasUserName(claims.getBody().get("canvasUserName").toString());
-          securedInfo.setCanvasCourseId(claims.getBody().get("canvasCourseId").toString());
-          securedInfo.setCanvasAssignmentId(claims.getBody().get("canvasAssignmentId").toString());
-          securedInfo.setDueAt(extractTimestamp(claims,"dueAt"));
-          securedInfo.setLockAt(extractTimestamp(claims,"lockAt"));
-          securedInfo.setUnlockAt(extractTimestamp(claims,"unlockAt"));
           securedInfo.setNonce(claims.getBody().get("nonce").toString());
           return securedInfo;
         } else {

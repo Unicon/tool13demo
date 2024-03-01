@@ -7,6 +7,7 @@ public class SecuredInfo {
 
     long platformDeploymentId;
     long contextId;
+    String contextKey;
     String userId;
     List<String> roles;
     String canvasUserId;
@@ -37,6 +38,14 @@ public class SecuredInfo {
 
     public void setContextId(long contextId) {
         this.contextId = contextId;
+    }
+
+    public String getContextKey() {
+        return contextKey;
+    }
+
+    public void setContextKey(String contextKey) {
+        this.contextKey = contextKey;
     }
 
     public String getUserId() {

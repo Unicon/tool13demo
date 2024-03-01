@@ -49,17 +49,9 @@ public class TokenController {
                 return new ResponseEntity<>(apijwtService.buildJwt(false,
                         (List<String>)claims.getBody().get("roles"),
                         Long.parseLong(claims.getBody().get("contextId").toString()),
+                        claims.getBody().get("contextKey").toString(),
                         Long.parseLong(claims.getBody().get("platformDeploymentId").toString()),
                         claims.getBody().get("userId").toString(),
-                        claims.getBody().get("canvasUserId").toString(),
-                        claims.getBody().get("canvasUserGlobalId").toString(),
-                        claims.getBody().get("canvasLoginId").toString(),
-                        claims.getBody().get("canvasUserName").toString(),
-                        claims.getBody().get("canvasCourseId").toString(),
-                        claims.getBody().get("canvasAssignmentId").toString(),
-                        claims.getBody().get("dueAt").toString(),
-                        claims.getBody().get("lockAt").toString(),
-                        claims.getBody().get("unlockAt").toString(),
                         claims.getBody().get("nonce").toString())
                         , HttpStatus.OK);
             } catch (GeneralSecurityException | IOException e) {

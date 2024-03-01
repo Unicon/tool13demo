@@ -204,6 +204,10 @@ public class LTI3Controller {
                 } else {
                     model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
                 }
+                String advantageToken = apiJWTService.buildJwt(
+                        false,
+                        lti3Request);
+                model.addAttribute(TextConstants.ADVANTAGE_TOKEN, advantageToken);
                 if (lti3Request.getLtiMessageType().equals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)) {
 
                     //Let's get the list of links available

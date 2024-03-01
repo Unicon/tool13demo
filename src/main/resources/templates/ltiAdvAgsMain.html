@@ -26,11 +26,11 @@
 <body>
 <h4>Assignment and Grade Services </h4>
 <p>&nbsp;</p>
-<div th:if="${noSessionValues}">
+<div th:if="${noAdvantageToken}">
     <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
         in the course and the deployment. </p>
     <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership
-        service without a session created. </p>
+        service without a valid token created. </p>
 </div>
 
 <div th:if="${deleteResults != null and deleteResults}">
@@ -40,9 +40,9 @@
     <p>LineItem NO deleted</p>
 </div>
 
-<div th:if="${!noSessionValues}">
+<div th:if="${!noAdvantageToken}">
 <h4>Create a new LineItem: </h4>
-<form action="#" method="post" th:action="@{/ags/}" th:object="${lineItem}">
+<form action="#" method="post" th:action="@{/ags/(advantageToken=${advantageToken})}" th:object="${lineItem}">
     <table>
         <tr>
             <td>Label: </td><td><input type="text" id="label" name="label" /></td>
@@ -129,8 +129,9 @@
         </thead>
         <tbody>
         <tr th:each="lineitem,rowStat : ${lineitems}">
-            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]})}">Delete</a></td>
-            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]})}">Detail</a></td>            <td th:text="${rowStat.count}">1</td>
+            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}, advantageToken=${advantageToken})}">Delete</a></td>
+            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}, advantageToken=${advantageToken})}">Detail</a></td>
+            <td th:text="${rowStat.count}">1</td>
             <td th:text="${lineitem.id}"></td>
             <td th:text="${lineitem.scoreMaximum}"></td>
             <td th:text="${lineitem.label}"></td>

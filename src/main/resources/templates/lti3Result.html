@@ -30,19 +30,20 @@
 
 <div>
     <span th:text="${htmlContent}"/>
+    <span th:text="${advantageToken}"/>
 </div>
 
 <p>&nbsp;</p>
 <h4>MEMBERSHIP SERVICE: </h4>
 <div>
-    <a th:href="@{/membership/}" target="_blank">Click here to see the users on this course using the LTI Adv membership
+    <a th:href="@{/membership/(advantageToken=${advantageToken})}" target="_blank">Click here to see the users on this course using the LTI Adv membership
         service</a>
 </div>
 
 <p>&nbsp;</p>
 <h4>AGS SERVICE: </h4>
 <div>
-    <a th:href="@{/ags/}" target="_blank">Click here to see the lineitems on this course using the LTI Adv AGS
+    <a th:href="@{/ags/(advantageToken=${advantageToken})}" target="_blank">Click here to see the lineitems on this course using the LTI Adv AGS
         service</a>
 </div>
 
