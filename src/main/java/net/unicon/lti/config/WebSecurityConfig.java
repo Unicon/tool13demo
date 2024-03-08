@@ -110,9 +110,9 @@ public class WebSecurityConfig {
     @Order(35) // HIGH
     @Bean
     public SecurityFilterChain filterChain3(HttpSecurity http) throws Exception {
-        http.securityMatcher("/lti3/after");
+        http.securityMatcher("/lti3/stateNonceChecked");
         return http.authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/lti3/after").permitAll()
+                        .requestMatchers("/lti3/stateNonceChecked").permitAll()
                 )
                 .addFilterAfter(lti3OAuthProviderProcessingFilterStateNonceChecked, UsernamePasswordAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())

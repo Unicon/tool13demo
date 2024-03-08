@@ -250,7 +250,7 @@
       ltiPostMessage.destroy();
     });
     }
-    if (window.location !== window.parent.location) {
+    if ((window.location !== window.parent.location)&&([[${ initiation_dto.ltiStorageTarget }]]!=null)) {
         nonceStateCheck();
     } else {
         document.getElementById("get_button").classList.remove('disabled');

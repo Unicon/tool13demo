@@ -260,8 +260,8 @@ public class DeepLinkUtils {
 
         Map<String, Object> iframe = new HashMap<>();
         iframe.put("src", "https://www.youtube.com/embed/corV3-WsIro");
-        iframe.put("width", new Integer("560"));
-        iframe.put("height", new Integer("315"));
+        iframe.put("width", Integer.valueOf(560));
+        iframe.put("height", Integer.valueOf(315));
         deepLink2.put("iframe", iframe);
         deepLinks.add(deepLink2);
 
