@@ -106,3 +106,95 @@ Using Ngrok For Local SSL Cert
 3. Utilize the https url from ngrok when registering your tool with the platform   
 
 Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+
+Google Classroom Adapter
+------------------------
+------------------------
+Developer/Admin Setup in Google Cloud
+-------------------------------------
+Source: https://developers.google.com/classroom/quickstart/java
+1. Go to the Google Cloud Console: https://console.cloud.google.com/
+2. Click on the dropdown to the right of "Google Cloud" to open the pop-up to select a project.
+3. Click on NEW PROJECT in the upper right hand corner.
+4. Enter a project name and ensure the other fields have valid values, then click CREATE.
+5. Wait for the project to be created, then click SELECT PROJECT.
+6. Your project's name should now appear to the right of "Google Cloud" at the top of the page.
+7. Go here: https://console.cloud.google.com/flows/enableapi?apiid=classroom.googleapis.com
+8. Ensure that you still see your project's name at the top of the page and then click NEXT.
+9. Click ENABLE.
+10. In the Google Cloud console, go to Menu menu > APIs & Services > Credentials.
+11. Click CREATE CREDENTIALS > OAuth client ID.
+12. Click CONFIGURE CONSENT SCREEN.
+13. Select your User Type (I chose Internal) and click CREATE.
+14. Enter a name for your application, a User Support email, and a Developer email address. I left the remaining fields with blank/default values. Click SAVE & CONTINUE.
+15. Click ADD OR REMOVE SCOPES.
+16. Enter the following list of scopes:
+```
+https://www.googleapis.com/auth/classroom.announcements
+https://www.googleapis.com/auth/classroom.announcements.readonly
+https://www.googleapis.com/auth/classroom.courses
+https://www.googleapis.com/auth/classroom.courses.readonly
+https://www.googleapis.com/auth/classroom.coursework.me
+https://www.googleapis.com/auth/classroom.coursework.me.readonly
+https://www.googleapis.com/auth/classroom.coursework.students
+https://www.googleapis.com/auth/classroom.coursework.students.readonly
+https://www.googleapis.com/auth/classroom.courseworkmaterials
+https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly
+https://www.googleapis.com/auth/classroom.guardianlinks.me.readonly
+https://www.googleapis.com/auth/classroom.guardianlinks.students
+https://www.googleapis.com/auth/classroom.guardianlinks.students.readonly
+https://www.googleapis.com/auth/classroom.profile.emails
+https://www.googleapis.com/auth/classroom.profile.photos
+https://www.googleapis.com/auth/classroom.push-notifications
+https://www.googleapis.com/auth/classroom.rosters
+https://www.googleapis.com/auth/classroom.rosters.readonly
+https://www.googleapis.com/auth/classroom.student-submissions.me.readonly
+https://www.googleapis.com/auth/classroom.student-submissions.students.readonly
+https://www.googleapis.com/auth/classroom.topics
+https://www.googleapis.com/auth/classroom.topics.readonly
+```
+17. Use the left/right arrow buttons to navigate through the scopes (I see 48 total). I also checked the boxes for service.management and service.management.readonly, userinfo.email, userinfo.profile, and openid. Click UPDATE.
+18. Click SAVE AND CONTINUE.
+19. Review the summary then click BACK TO DASHBOARD.
+20. In the Google Cloud console, go to Menu menu > APIs & Services > Credentials.
+21. Click CREATE CREDENTIALS > OAuth client ID.
+22. Click Application type > Web application.
+23. In the Name field, type a name for the credential. This name is only shown in the Google Cloud console.
+24. For Authorized Redirect URIs, enter `http://localhost:8888` (Ensure in your properties file that you have `management.port=8888`)
+25. Click Create. The OAuth client created screen appears, showing your new Client ID and Client secret.
+26. Click OK. The newly created credential appears under OAuth 2.0 Client IDs.
+27. Save the downloaded JSON file as google-cloud-credentials.json, and move the file to src/main/resources.
+
+Add Hardcoded Self PlatformDeployment to DB
+-------------------------------------------
+In Postman, use the `/config` endpoint and the following request body to add the self platform deployment. Ensure to change out the domain with your own ngrok domain.
+```json
+{
+  "iss": "https://7ae3-184-101-4-99.ngrok.io",
+  "clientId": "self-client-id",
+  "oidcEndpoint": "https://7ae3-184-101-4-99.ngrok.io/app/platform-oidc-authorize",
+  "jwksEndpoint": "https://7ae3-184-101-4-99.ngrok.io/jwks/jwk",
+  "oAuth2TokenUrl": "",
+  "oAuth2TokenAud": "",
+  "deploymentId": "self-deployment-id"
+}
+```
+
+Overview
+--------
+Hopefully after completing the steps in the previous 2 sections, you should be ready to use the Google Classroom Adapter.
+The Google Classroom adapter supports Classwork insertion (Deep Linking) and standard LTI launches from Google Classroom. It does not support grade passback or memberships (NRPS).
+Replacing the example ngrok domain with your own ngrok domain, the flow should be as follows:
+1. In your browser, go to https://7ae3-184-101-4-99.ngrok.io/app
+2. If this is your first time using the app, then there will be a Google Auth link in the logs. Copy/paste that link into a separate tab in your browser.
+3. Complete the Google Auth process and close the tab for it.
+4. Return to your App tab.
+5. Select your Google Classroom class from the dropdown (if you don't have one, create one and then refresh this page).
+6. Click the "Add Content to LMS" button.
+7. Complete the demo LTI flow to get to the Deep Linking menu.
+8. Select which link(s) you would like to insert into your Google Classroom class.
+9. A success page should appear.
+10. In another tab, open your Google Classroom class and click on the Classwork tab.
+11. Your link(s) should be there.
+12. Click on one of the links.
+13. Complete the demo LTI flow to receive a "Google Classroom" LTI id_token.

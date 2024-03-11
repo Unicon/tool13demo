@@ -12,24 +12,51 @@
  */
 package net.unicon.lti.utils.lti;
 
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.GcCourseEntity;
+import net.unicon.lti.model.GcLinkEntity;
+import net.unicon.lti.model.GcUserEntity;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static net.unicon.lti.utils.LtiStrings.DEEP_LINKING_SETTINGS;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT_ID;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT_LABEL;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT_TITLE;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT_TYPE;
+import static net.unicon.lti.utils.LtiStrings.LTI_CONTEXT_TYPE_COURSE_OFFERING;
+import static net.unicon.lti.utils.LtiStrings.LTI_DEPLOYMENT_ID;
+import static net.unicon.lti.utils.LtiStrings.LTI_EMAIL;
+import static net.unicon.lti.utils.LtiStrings.LTI_FAMILY_NAME;
+import static net.unicon.lti.utils.LtiStrings.LTI_GIVEN_NAME;
+import static net.unicon.lti.utils.LtiStrings.LTI_LINK_ID;
+import static net.unicon.lti.utils.LtiStrings.LTI_LINK_TITLE;
+import static net.unicon.lti.utils.LtiStrings.LTI_MESSAGE_TYPE;
+import static net.unicon.lti.utils.LtiStrings.LTI_NAME;
+import static net.unicon.lti.utils.LtiStrings.LTI_NONCE;
+import static net.unicon.lti.utils.LtiStrings.LTI_ROLES;
+import static net.unicon.lti.utils.LtiStrings.LTI_TARGET_LINK_URI;
+import static net.unicon.lti.utils.LtiStrings.LTI_VERSION;
+import static net.unicon.lti.utils.LtiStrings.LTI_VERSION_3;
+import static net.unicon.lti.utils.TextConstants.LTI3_SUFFIX;
 
 public class LtiOidcUtils {
 
@@ -68,4 +95,83 @@ public class LtiOidcUtils {
         return state;
     }
 
+    public static String generateLtiMessageHint(LTIDataService ltiDataService, String linkUuid, String link) throws GeneralSecurityException {
+        Date date = new Date();
+        Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+        String state = Jwts.builder()
+                .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
+                .setHeaderParam("typ", "JWT") // The type
+                .setIssuer("ltiStarter")  //This is our own identifier, to know that we are the issuer.
+                .setSubject(ltiDataService.getLocalUrl()) // We store here the platform issuer to check that matches with the issuer received later
+                .setAudience("self-client-id")  //We send here the clientId to check it later.
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setNotBefore(date) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim("linkUuid", linkUuid)
+                .claim("link", link)
+                .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
+                .compact();
+        log.debug("lti_message_hint: \n {} \n", state);
+        return state;
+    }
+
+    public static String generateLtiIdToken(LTIDataService ltiDataService, String nonce, GcUserEntity gcUserEntity, GcCourseEntity gcCourseEntity, GcLinkEntity gcLinkEntity, boolean deepLinking) throws GeneralSecurityException {
+        Date date = new Date();
+        Key issPrivateKey = OAuthUtils.loadPrivateKey(ltiDataService.getOwnPrivateKey());
+
+        JSONObject context = new JSONObject();
+        context.put(LTI_CONTEXT_ID, gcCourseEntity.getGcCourseId());
+        context.put(LTI_CONTEXT_LABEL, gcCourseEntity.getSection());
+        context.put(LTI_CONTEXT_TITLE, gcCourseEntity.getName());
+        context.put(LTI_CONTEXT_TYPE, Collections.singletonList(LTI_CONTEXT_TYPE_COURSE_OFFERING));
+
+        String baseTargetUri = ltiDataService.getLocalUrl() + LTI3_SUFFIX;
+
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .setHeaderParam("kid", TextConstants.DEFAULT_KID)  // The key id used to sign this
+                .setHeaderParam("typ", "JWT") // The type
+                .setIssuer(ltiDataService.getLocalUrl())  //This is our own identifier, to know that we are the issuer.
+                .setSubject(gcUserEntity.getGcUserId())
+                .setAudience("self-client-id")  //We send here the clientId to check it later.
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setNotBefore(date) //a java.util.Date
+                .setIssuedAt(date)
+                .claim(LTI_VERSION, LTI_VERSION_3)
+                .claim(LTI_CONTEXT, context.toMap())
+                .claim(LTI_DEPLOYMENT_ID, "self-deployment-id")
+                .claim(LTI_NONCE, nonce)
+                .claim(LTI_ROLES, gcUserEntity.getLtiRoles())
+                .claim(LTI_EMAIL, gcUserEntity.getEmail())
+                .claim(LTI_NAME, gcUserEntity.getFullName())
+                .claim(LTI_GIVEN_NAME, gcUserEntity.getGivenName())
+                .claim(LTI_FAMILY_NAME, gcUserEntity.getFamilyName());
+        if (!deepLinking) {
+            jwtBuilder.claim(LTI_MESSAGE_TYPE, "LtiResourceLinkRequest");
+            jwtBuilder.claim(LTI_TARGET_LINK_URI, baseTargetUri + "?link=" + gcLinkEntity.getId());
+
+            JSONObject resourceLink = new JSONObject();
+            resourceLink.put(LTI_LINK_ID, gcLinkEntity.getUuid());
+            resourceLink.put(LTI_LINK_TITLE, gcLinkEntity.getTitle());
+            jwtBuilder.claim("https://purl.imsglobal.org/spec/lti/claim/resource_link", resourceLink.toMap());
+        } else {
+            Map<String, Object> deepLinkingSettings = new HashMap<>();
+            deepLinkingSettings.put("deep_link_return_url", ltiDataService.getLocalUrl() + "/app/gccoursework/" + gcCourseEntity.getGcCourseId());
+            List<String> deepLinkingResponseAcceptTypes = new ArrayList<>();
+            deepLinkingResponseAcceptTypes.add("ltiResourceLink");
+            deepLinkingSettings.put("accept_types", deepLinkingResponseAcceptTypes);
+            List<String> deepLinkingAcceptPresentationDocumentTargets = new ArrayList<>();
+            deepLinkingAcceptPresentationDocumentTargets.add("iframe");
+            deepLinkingAcceptPresentationDocumentTargets.add("window");
+            deepLinkingSettings.put("accept_presentation_document_targets", deepLinkingAcceptPresentationDocumentTargets);
+
+            jwtBuilder.claim(LTI_MESSAGE_TYPE, "LtiDeepLinkingRequest");
+            jwtBuilder.claim(LTI_TARGET_LINK_URI, baseTargetUri);
+            jwtBuilder.claim(DEEP_LINKING_SETTINGS, deepLinkingSettings);
+        }
+
+        String ltiToken = jwtBuilder.signWith(SignatureAlgorithm.RS256, issPrivateKey)
+                .compact();
+        log.debug("Internal LTI id_token: \n {} \n", ltiToken);
+        return ltiToken;
+    }
 }

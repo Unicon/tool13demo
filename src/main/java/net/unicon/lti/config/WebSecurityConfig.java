@@ -60,6 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/jwks/**")
                 .antMatchers("/deeplink/**")
                 .antMatchers("/ags/**")
+                .antMatchers("/app/**")
                     .and()
                 .authorizeRequests().anyRequest().permitAll().and().csrf().disable().headers().frameOptions().disable();
         }

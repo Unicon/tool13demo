@@ -29,6 +29,8 @@
 
 application-local*.properties
 
+google-cloud-credentials.json
+
 # Locally generated certificates
 *.key
 *.pem
