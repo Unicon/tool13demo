@@ -35,7 +35,7 @@
 
 <div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
     <h4>Post a score </h4>
-    <form action="#" method="post" th:with="idLocator=${#strings.contains(lineitems[0].id, '?') ? 2 : 1}" th:action="@{/ags/score/{did}(did=${#strings.arraySplit(lineitems[0].id,'/')[#arrays.length(#strings.arraySplit(lineitems[0].id, '/')) - idLocator]}), advantageToken=${advantageToken})}" th:object="${score}">
+    <form action="#" method="post" th:with="idLocator=${#strings.contains(lineitems[0].id, '?') ? 2 : 1}" th:action="@{/ags/score/{did}(did=${#strings.arraySplit(lineitems[0].id,'/')[#arrays.length(#strings.arraySplit(lineitems[0].id, '/')) - idLocator]}, advantageToken=${advantageToken})}" th:object="${score}">
         <table>
             <tr>
                 <td>userId: </td><td><input type="text" id="userId" name="userId" /></td>
