@@ -239,10 +239,12 @@ public class RegistrationController {
         message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
         message1.setLabel(clientName); // required not null for Canvas, optional otherwise
         message1.setIcon_uri(""); // required not null for Canvas, optional otherwise
-        for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
-            if (messagesSupported.getPlacements().contains("link_selection")) {
-                message1.setPlacements(Arrays.asList("link_selection")); // if missing in Canvas, iframe won't close
-                break;
+        if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
+            for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
+                if (messagesSupported.getPlacements().contains("link_selection")) {
+                    message1.setPlacements(Arrays.asList("link_selection")); // if missing in Canvas, iframe won't close
+                    break;
+                }
             }
         }
 //        OPTIONAL: --> message1 --> setCustom_parameters
@@ -253,10 +255,12 @@ public class RegistrationController {
         message2.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
         message2.setLabel(clientName); // required not null for Canvas, optional otherwise
         message2.setIcon_uri(""); // required not null for Canvas, optional otherwise
-        for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
-            if (messagesSupported.getPlacements().contains("course_navigation")) {
-                message2.setPlacements(Arrays.asList("course_navigation")); // if missing in Canvas, iframe won't close
-                break;
+        if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
+            for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
+                if (messagesSupported.getPlacements().contains("course_navigation")) {
+                    message2.setPlacements(Arrays.asList("course_navigation")); // if missing in Canvas, iframe won't close
+                    break;
+                }
             }
         }
         messages.add(message2);
