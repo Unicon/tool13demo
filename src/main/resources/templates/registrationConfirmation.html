@@ -25,7 +25,10 @@
         let done = false;
         (function() {
             if (!done) {
-              (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'[[${issuer}]]');
+              <!--  For non-Canvas LMSs, you can use issuer as the targetOrigin instead of * -->
+              <!--  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'[[${issuer}]]');-->
+
+              (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'*');
               done = true;
             }
         })();

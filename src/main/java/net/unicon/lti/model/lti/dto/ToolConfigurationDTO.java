@@ -12,7 +12,11 @@
  */
 package net.unicon.lti.model.lti.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +32,9 @@ public class ToolConfigurationDTO {
     @JsonProperty("messages")
     private List<ToolMessagesSupportedDTO> messages;
     private List<String> claims;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("https://canvas.instructure.com/lti/privacy_level")
+    private String canvasPrivacyLevel;
 
 
     public ToolConfigurationDTO() {//Empty on purpose
@@ -97,17 +104,28 @@ public class ToolConfigurationDTO {
         this.claims = claims;
     }
 
+    public String getCanvasPrivacyLevel() { return canvasPrivacyLevel; }
+
+    public void setCanvasPrivacyLevel(String canvasPrivacyLevel) { this.canvasPrivacyLevel = canvasPrivacyLevel; }
+
+
     @Override
     public String toString() {
-        return "ToolConfigurationDTO{" +
-                "domain='" + domain + '\'' +
-                ", secondary_domains=" + secondary_domains +
-                ", deployment_id='" + deployment_id + '\'' +
-                ", target_link_uri='" + target_link_uri + '\'' +
-                ", custom_parameters=" + custom_parameters +
-                ", description='" + description + '\'' +
-                ", messages=" + messages +
-                ", claims=" + claims +
-                '}';
+        try {
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            return ow.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "ToolConfigurationDTO{" +
+                    "domain='" + domain + '\'' +
+                    ", secondary_domains=" + secondary_domains +
+                    ", deployment_id='" + deployment_id + '\'' +
+                    ", target_link_uri='" + target_link_uri + '\'' +
+                    ", custom_parameters=" + custom_parameters +
+                    ", description='" + description + '\'' +
+                    ", messages=" + messages +
+                    ", claims=" + claims +
+                    ", canvasPrivacyLevel='" + canvasPrivacyLevel + '\'' +
+                    '}';
+        }
     }
 }
