@@ -88,7 +88,10 @@ public class OIDCController {
         // Getting the client_id (that is optional) and can come in the form or in the URL.
         String clientIdValue = loginInitiationDTO.getClientId();
         // Getting the deployment_id (that is optional) and can come in the form or in the URL.
-        String deploymentIdValue = loginInitiationDTO.getDeploymentId();
+        String deploymentIdValue = loginInitiationDTO.getLtiDeploymentId();
+        if (deploymentIdValue == null){
+            deploymentIdValue = loginInitiationDTO.getDeploymentId();
+        }
 
         // We search for the platformDeployment.
         // We will try all the options here (from more detailed to less), and we will deal with the error if there are more than one result.

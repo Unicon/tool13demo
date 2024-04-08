@@ -123,6 +123,56 @@ public class DeepLinkUtils {
         jwt2bList.add(listMapToJson(oneDeepLinkNoLti));
         deepLinkJwtMap.put("Example 3: ONE External (YouTube) Link (NON ltiResourceLink)", jwt2bList);
 
+        //JWT 2c: One link (not ltiResourcelink)
+        List<Map<String, Object>> oneDeepLinkNoLtiFile = createOneDeepLinkNoLtiFile(localUrl);
+        String jwt2c = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP, LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE, lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP, lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID, lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION, LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA, lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLinkNoLtiFile)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
+
+        List<String> jwt2cList = new ArrayList<>();
+        jwt2cList.add(jwt2c);
+        jwt2cList.add(listMapToJson(oneDeepLinkNoLtiFile));
+        deepLinkJwtMap.put("Example 4: ONE File Link (NON ltiResourceLink)", jwt2cList);
+
+        //JWT 2c: One link (not ltiResourcelink)
+        List<Map<String, Object>> oneDeepLinkNoLtiFile2 = createOneDeepLinkNoLtiFile2(localUrl);
+        String jwt2d = Jwts.builder()
+                .setHeaderParam(LtiStrings.TYP, LtiStrings.JWT)
+                .setHeaderParam(LtiStrings.KID, TextConstants.DEFAULT_KID)
+                .setHeaderParam(LtiStrings.ALG, LtiStrings.RS256)
+                .setIssuer(platformDeployment.getClientId())  //Client ID
+                .setAudience(lti3Request.getIss())
+                .setExpiration(DateUtils.addSeconds(date, 3600)) //a java.util.Date
+                .setIssuedAt(date) // for example, now
+                .claim(LtiStrings.LTI_NONCE, lti3Request.getNonce())
+                .claim(LtiStrings.LTI_AZP, lti3Request.getIss())
+                .claim(LtiStrings.LTI_DEPLOYMENT_ID, lti3Request.getLtiDeploymentId())
+                .claim(LtiStrings.LTI_MESSAGE_TYPE, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE)
+                .claim(LtiStrings.LTI_VERSION, LtiStrings.LTI_VERSION_3)
+                .claim(LtiStrings.LTI_DATA, lti3Request.deepLinkData)
+                .claim(LtiStrings.LTI_CONTENT_ITEMS, oneDeepLinkNoLtiFile2)
+                .signWith(SignatureAlgorithm.RS256, toolPrivateKey)  //We sign it
+                .compact();
+
+        List<String> jwt2dList = new ArrayList<>();
+        jwt2dList.add(jwt2d);
+        jwt2dList.add(listMapToJson(oneDeepLinkNoLtiFile2));
+        deepLinkJwtMap.put("Example 4b: A different file Link (NON ltiResourceLink)", jwt2dList);
+
         //JWT 3: More than one link
         List<Map<String, Object>> multipleDeepLink = createMultipleDeepLink(localUrl);
         String jwt3 = Jwts.builder()
@@ -146,7 +196,7 @@ public class DeepLinkUtils {
         List<String> jwt3List = new ArrayList<>();
         jwt3List.add(jwt3);
         jwt3List.add(listMapToJson(multipleDeepLink));
-        deepLinkJwtMap.put("Example 4: TWO Standard LTI Core Links (ltiResourceLinks) and TWO external links", jwt3List);
+        deepLinkJwtMap.put("Example 5: TWO Standard LTI Core Links (ltiResourceLinks) and TWO external links", jwt3List);
 
         //JWT 3b: More than one link but only ltiresourceLinks
         List<Map<String, Object>> multipleDeepLinkOnlyLti = createMultipleDeepLinkOnlyLti(localUrl);
@@ -171,7 +221,7 @@ public class DeepLinkUtils {
         List<String> jwt3bList = new ArrayList<>();
         jwt3bList.add(jwt3b);
         jwt3bList.add(listMapToJson(multipleDeepLinkOnlyLti));
-        deepLinkJwtMap.put("Example 5: TWO Standard LTI Core Links (ltiResourceLinks)", jwt3bList);
+        deepLinkJwtMap.put("Example 6: TWO Standard LTI Core Links (ltiResourceLinks)", jwt3bList);
 
         return deepLinkJwtMap;
 
@@ -236,6 +286,33 @@ public class DeepLinkUtils {
         deepLink2b.put(LtiStrings.DEEP_LINK_URL, "https://www.youtube.com/watch?v=corV3-WsIro");
 
         deepLinks.add(deepLink2b);
+        return deepLinks;
+
+
+    }
+
+    static List<Map<String, Object>> createOneDeepLinkNoLtiFile(String localUrl) {
+        List<Map<String, Object>> deepLinks = new ArrayList<>();
+
+        Map<String, Object> deepLink2c = new HashMap<>();
+        deepLink2c.put(LtiStrings.DEEP_LINK_TYPE, "file");
+        deepLink2c.put(LtiStrings.DEEP_LINK_URL, localUrl + "/files/TestSubmission.pdf");
+
+        deepLinks.add(deepLink2c);
+        return deepLinks;
+
+
+    }
+
+
+    static List<Map<String, Object>> createOneDeepLinkNoLtiFile2(String localUrl) {
+        List<Map<String, Object>> deepLinks = new ArrayList<>();
+
+        Map<String, Object> deepLink2d = new HashMap<>();
+        deepLink2d.put(LtiStrings.DEEP_LINK_TYPE, "file");
+        deepLink2d.put(LtiStrings.DEEP_LINK_URL, localUrl + "/files/TestSubmission2.pdf");
+
+        deepLinks.add(deepLink2d);
         return deepLinks;
 
 

@@ -14,13 +14,7 @@ package net.unicon.lti.model.lti.dto;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_DEPLOYMENT_ID;
-import static net.unicon.lti.utils.LtiStrings.OIDC_ISS;
-import static net.unicon.lti.utils.LtiStrings.OIDC_LOGIN_HINT;
-import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_MESSAGE_HINT;
-import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
-import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_STORAGE_TARGET;
+import static net.unicon.lti.utils.LtiStrings.*;
 
 
 public class LoginInitiationDTO {
@@ -30,20 +24,22 @@ public class LoginInitiationDTO {
     private String targetLinkUri;
     private String ltiMessageHint;
     private String clientId;
-    private String deploymentId;
+    private String deploymentId; //we need this one because canvas sends it with the wrong name...
+    private String ltiDeploymentId;
     private String ltiStorageTarget;
 
 
     public LoginInitiationDTO() {//Empty on purpose
     }
 
-    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId, String ltiStorageTarget) {
+    public LoginInitiationDTO(String iss, String loginHint, String targetLinkUri, String ltiMessageHint, String clientId, String deploymentId, String ltiDeploymentId, String ltiStorageTarget) {
         this.iss = iss;
         this.loginHint = loginHint;
         this.targetLinkUri = targetLinkUri;
         this.ltiMessageHint = ltiMessageHint;
         this.clientId = clientId;
         this.deploymentId = deploymentId;
+        this.ltiDeploymentId = ltiDeploymentId;
         this.ltiStorageTarget =ltiStorageTarget;
     }
 
@@ -53,6 +49,7 @@ public class LoginInitiationDTO {
                 req.getParameter(OIDC_TARGET_LINK_URI),
                 req.getParameter(OIDC_LTI_MESSAGE_HINT),
                 req.getParameter(OIDC_CLIENT_ID),
+                req.getParameter(OIDC_DEPLOYMENT_ID_CANVAS),
                 req.getParameter(OIDC_DEPLOYMENT_ID),
                 req.getParameter(OIDC_LTI_STORAGE_TARGET)
         );
@@ -104,6 +101,14 @@ public class LoginInitiationDTO {
 
     public void setDeploymentId(String deploymentId) {
         this.deploymentId = deploymentId;
+    }
+
+    public String getLtiDeploymentId() {
+        return ltiDeploymentId;
+    }
+
+    public void setLtiDeploymentId(String ltiDeploymentId) {
+        this.ltiDeploymentId = ltiDeploymentId;
     }
 
     public String getLtiStorageTarget() {
