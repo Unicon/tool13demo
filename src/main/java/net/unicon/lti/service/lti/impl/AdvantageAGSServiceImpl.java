@@ -30,10 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -91,7 +88,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             final String GET_LINEITEMS = context.getLineitems();
             log.debug("GET_LINEITEMS -  " + GET_LINEITEMS);
             ResponseEntity<LineItem[]> lineItemsGetResponse = restTemplate.exchange(GET_LINEITEMS, HttpMethod.GET, request, LineItem[].class);
-            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            HttpStatusCode status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 List<LineItem> lineItemsList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(lineItemsGetResponse.getBody())));
                 //We deal here with pagination
@@ -141,7 +138,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             log.debug("DELETE_LINEITEM -  " + DELETE_LINEITEM);
             ResponseEntity<String> lineItemsGetResponse = restTemplate.
                     exchange(DELETE_LINEITEM, HttpMethod.DELETE, request, String.class);
-            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            HttpStatusCode status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 return true;
             } else {
@@ -171,7 +168,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             log.debug("PUT_LINEITEM -  " + PUT_LINEITEM);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
                     exchange(PUT_LINEITEM, HttpMethod.PUT, request, LineItem.class);
-            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            HttpStatusCode status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 resultlineItem = lineItemsGetResponse.getBody();
                 //We deal here with pagination
@@ -211,7 +208,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             }
             log.debug("GET_LINEITEM -  " + getLineItemUrl);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.exchange(getLineItemUrl, HttpMethod.GET, request, LineItem.class);
-            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            HttpStatusCode status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 lineItem = lineItemsGetResponse.getBody();
                 Results results1 = getResults(resultsToken, context, lineItem.getId());
@@ -245,7 +242,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             log.debug("POST_LINEITEMS -  " + POST_LINEITEMS);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
                     exchange(POST_LINEITEMS, HttpMethod.POST, request, LineItem.class);
-            HttpStatus status = lineItemsGetResponse.getStatusCode();
+            HttpStatusCode status = lineItemsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 LineItem lineItems =lineItemsGetResponse.getBody();
                 resultLineItems.getLineItemList().add(lineItems);
@@ -283,7 +280,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             }
             log.debug("getResultsUrl -  " + getResultsUrl  + "/" + lineItemId + "/results");
             ResponseEntity<Result[]> resultsGetResponse = restTemplate.exchange(getResultsUrl, HttpMethod.GET, request, Result[].class);
-            HttpStatus status = resultsGetResponse.getStatusCode();
+            HttpStatusCode status = resultsGetResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 List<Result> resultList = new ArrayList<>(Arrays.asList(Objects.requireNonNull(resultsGetResponse.getBody())));
                 //We deal here with pagination
@@ -335,7 +332,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
             log.debug("POST_SCORES -  " + postScoresUrl);
             ResponseEntity<Void> postScoreResponse = restTemplate.exchange(postScoresUrl, HttpMethod.POST, request, Void.class);
-            HttpStatus status = postScoreResponse.getStatusCode();
+            HttpStatusCode status = postScoreResponse.getStatusCode();
             if (status.is2xxSuccessful()) {
                 return getResults(lTITokenResults, context, lineItemId);
             } else {

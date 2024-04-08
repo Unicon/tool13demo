@@ -25,11 +25,7 @@ import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
@@ -79,7 +75,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
             log.debug("Endpoint -  " + endpoint);
             ResponseEntity<ToolConfigurationACKDTO> registrationRequest = restTemplate.exchange(endpoint, HttpMethod.POST, request, ToolConfigurationACKDTO.class);
-            HttpStatus status = registrationRequest.getStatusCode();
+            HttpStatusCode status = registrationRequest.getStatusCode();
             if (status.is2xxSuccessful()) {
                 answer = registrationRequest.getBody();
                 log.debug(answer.toString());

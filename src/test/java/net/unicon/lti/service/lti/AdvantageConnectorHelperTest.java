@@ -148,7 +148,7 @@ public class AdvantageConnectorHelperTest {
 
             verify(ltijwtService).generateStateOrClientAssertionJWT(any(PlatformDeployment.class));
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(LTIToken.class));
-            assertEquals("Can't get the token: " + HttpStatus.BAD_REQUEST.getReasonPhrase(), exception.getMessage());
+            assertEquals("Can't get the token: 400", exception.getMessage());
         } catch (GeneralSecurityException | IOException e) {
             fail("Should not throw exception");
         }

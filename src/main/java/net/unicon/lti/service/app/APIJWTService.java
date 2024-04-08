@@ -8,7 +8,7 @@ import net.unicon.lti.exceptions.BadTokenException;
 import net.unicon.lti.model.oauth2.SecuredInfo;
 import net.unicon.lti.utils.lti.LTI3Request;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -22,17 +22,9 @@ public interface APIJWTService {
     String buildJwt(boolean oneUse,
                     List<String> roles,
                     Long contextId,
+                    String contextKey,
                     Long platformDeploymentId,
                     String userId,
-                    String canvasUserId,
-                    String canvasUserGlobalId,
-                    String canvasLoginId,
-                    String canvasUserName,
-                    String canvasCourseId,
-                    String canvasAssignmentId,
-                    String dueAt,
-                    String lockAt,
-                    String unlockAt,
                     String nonce) throws GeneralSecurityException, IOException;
 
     String buildJwt(boolean oneUse, LTI3Request lti3Request) throws GeneralSecurityException, IOException;

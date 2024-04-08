@@ -12,7 +12,7 @@
  */
 package net.unicon.lti.model.lti.dto;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 
 public class DeepLinkDTO {

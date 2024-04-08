@@ -12,7 +12,7 @@
  */
 package net.unicon.lti.model.lti.dto;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static net.unicon.lti.utils.LtiStrings.OIDC_CLIENT_ID;
 import static net.unicon.lti.utils.LtiStrings.OIDC_DEPLOYMENT_ID;

@@ -13,6 +13,8 @@
 package net.unicon.lti.controller.lti;
 
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
@@ -20,7 +22,9 @@ import net.unicon.lti.model.membership.CourseUsers;
 import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
+import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.AdvantageMembershipService;
+import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +33,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -49,6 +52,9 @@ public class MembershipController {
     LtiContextRepository ltiContextRepository;
 
     @Autowired
+    APIJWTService apijwtService;
+
+    @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
 
     @Autowired
@@ -61,26 +67,31 @@ public class MembershipController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute("deployment_key") != null) {
-            model.addAttribute("noSessionValues", false);
-            Long deployment = (Long) session.getAttribute("deployment_key");
-            String contextId = (String) session.getAttribute("context_id");
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the membership service to get the users on the context
-                // 1. Get the token
-                LTIToken LTIToken = advantageMembershipService.getToken(platformDeployment.get());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 2. Call the service
-                CourseUsers courseUsers = advantageMembershipService.callMembershipService(LTIToken, context);
+                    //Call the membership service to get the users on the context
+                    // 1. Get the token
+                    LTIToken LTIToken = advantageMembershipService.getToken(platformDeployment.get());
 
-                // 3. update the model
-                model.addAttribute("results", courseUsers.getCourseUserList());
+                    // 2. Call the service
+                    CourseUsers courseUsers = advantageMembershipService.callMembershipService(LTIToken, context);
+
+                    // 3. update the model
+                    model.addAttribute("results", courseUsers.getCourseUserList());
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute("noSessionValues", true);

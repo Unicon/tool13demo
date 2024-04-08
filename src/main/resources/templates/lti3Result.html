@@ -35,14 +35,14 @@
 <p>&nbsp;</p>
 <h4>MEMBERSHIP SERVICE: </h4>
 <div>
-    <a th:href="@{/membership/}" target="_blank">Click here to see the users on this course using the LTI Adv membership
+    <a th:href="@{/membership/(advantageToken=${advantageToken})}" target="_blank">Click here to see the users on this course using the LTI Adv membership
         service</a>
 </div>
 
 <p>&nbsp;</p>
 <h4>AGS SERVICE: </h4>
 <div>
-    <a th:href="@{/ags/}" target="_blank">Click here to see the lineitems on this course using the LTI Adv AGS
+    <a th:href="@{/ags/(advantageToken=${advantageToken})}" target="_blank">Click here to see the lineitems on this course using the LTI Adv AGS
         service</a>
 </div>
 
@@ -264,31 +264,8 @@
             </li>
         </ul>
     </div>
-
-
     <p>&nbsp;</p>
 
-
-    <h4>SESSION</h4>
-
-    <p>We added some parameters in the session too:</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>user_id</strong></label>
-                <span th:text="${#session.getAttribute('user_id')}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>user_role</strong></label>
-                <span th:text="${#session.getAttribute('user_role')}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>The Lti context id:</strong></label>
-                <span th:text="${#session.getAttribute('context_id')}"/>
-            </li>
-        </ul>
-    </div>
 </div>
 
 <script type="text/javascript" th:src="@{/js/utils.js}"></script>

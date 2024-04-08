@@ -20,9 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Transactional
-public interface LtiLinkRepository extends JpaRepository<LtiLinkEntity, Long> {
+public interface LtiLinkRepository extends JpaRepository<LtiLinkEntity, String> {
 
-    List<LtiLinkEntity> findByToolLinkToolLinkId(Long toolLinkId);
+    List<LtiLinkEntity> findByToolLinkToolLinkId(String toolLinkId);
 
     List<LtiLinkEntity> findByToolLinkToolLinkIdAndContext(String toolLinkId, LtiContextEntity context);
 

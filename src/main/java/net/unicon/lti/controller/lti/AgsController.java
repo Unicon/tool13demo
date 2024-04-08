@@ -13,6 +13,8 @@
 package net.unicon.lti.controller.lti;
 
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.model.LtiContextEntity;
 import net.unicon.lti.model.PlatformDeployment;
@@ -23,8 +25,8 @@ import net.unicon.lti.model.ags.Score;
 import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.repository.LtiContextRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
+import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.AdvantageAGSService;
-import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +40,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.Optional;
@@ -62,6 +63,9 @@ public class AgsController {
     LtiContextRepository ltiContextRepository;
 
     @Autowired
+    APIJWTService apijwtService;
+
+    @Autowired
     PlatformDeploymentRepository platformDeploymentRepository;
 
     @Autowired
@@ -73,27 +77,33 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to get the users on the context
-                // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
-                // 2. Call the service
-                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 3. update the model
-                model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
+                    //Call the ags service to get the users on the context
+                    // 1. Get the token
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                    // 2. Call the service
+                    LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
+
+                    // 3. update the model
+                    model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -109,34 +119,41 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to post a lineitem
-                // 1. Get the token
-                log.debug("RETRIEVING TOKEN TO CREATE LINEITEM:");
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 2. Call the service
-                log.debug("POST TO CREATE LINEITEM:");
-                advantageAGSServiceServiceImpl.cleanLineItem(lineItem);
-                LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItem(LTIToken, context, lineItem);
-                log.debug("GET ALL LINEITEMS:");
-                LineItems lineItemsResults = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
+                    //Call the ags service to post a lineitem
+                    // 1. Get the token
+                    log.debug("RETRIEVING TOKEN TO CREATE LINEITEM:");
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
-                // 3. update the model
-                model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
-                model.addAttribute(TextConstants.LINEITEMS, lineItemsResults.getLineItemList());
+                    // 2. Call the service
+                    log.debug("POST TO CREATE LINEITEM:");
+                    advantageAGSServiceServiceImpl.cleanLineItem(lineItem);
+                    LineItems lineItemsResult = advantageAGSServiceServiceImpl.postLineItem(LTIToken, context, lineItem);
+                    log.debug("GET ALL LINEITEMS:");
+                    LineItems lineItemsResults = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
+
+                    // 3. update the model
+                    model.addAttribute(TextConstants.RESULTS, lineItemsResult.getLineItemList());
+                    model.addAttribute(TextConstants.LINEITEMS, lineItemsResults.getLineItemList());
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -153,30 +170,37 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to post a lineitem
-                // 1. Get the token
-                log.debug("RETREIVING TOKEN TO GET SINGLE LINEITEM:");
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 2. Call the service
-                log.debug("GET SINGLE LINEITEM:");
-                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+                    //Call the ags service to post a lineitem
+                    // 1. Get the token
+                    log.debug("RETREIVING TOKEN TO GET SINGLE LINEITEM:");
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
-                // 3. update the model
-                model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResult));
+                    // 2. Call the service
+                    log.debug("GET SINGLE LINEITEM:");
+                    LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+
+                    // 3. update the model
+                    model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResult));
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -193,28 +217,35 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to post a lineitem
-                // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 2. Call the service
-                lineItem.setId(id);
-                LineItem lineItemsResult = advantageAGSServiceServiceImpl.putLineItem(LTIToken, context, lineItem);
+                    //Call the ags service to post a lineitem
+                    // 1. Get the token
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
-                // 3. update the model
-                model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
+                    // 2. Call the service
+                    lineItem.setId(id);
+                    LineItem lineItemsResult = advantageAGSServiceServiceImpl.putLineItem(LTIToken, context, lineItem);
+
+                    // 3. update the model
+                    model.addAttribute(TextConstants.RESULTS, Collections.singletonList(lineItemsResult));
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -231,29 +262,35 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to post a lineitem
-                // 1. Get the token
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
 
-                // 2. Call the service
-                Boolean deleteResult = advantageAGSServiceServiceImpl.deleteLineItem(LTIToken, context, id);
-                LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
+                    //Call the ags service to post a lineitem
+                    // 1. Get the token
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
-                // 3. update the model
-                model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
-                model.addAttribute("deleteResults", deleteResult);
+                    // 2. Call the service
+                    Boolean deleteResult = advantageAGSServiceServiceImpl.deleteLineItem(LTIToken, context, id);
+                    LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context);
+
+                    // 3. update the model
+                    model.addAttribute(TextConstants.LINEITEMS, lineItemsResult.getLineItemList());
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+                    model.addAttribute("deleteResults", deleteResult);
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);
@@ -269,39 +306,46 @@ public class AgsController {
         //To keep this endpoint secured, we will only allow access to the course/platform stored in the session.
         //LTI Advantage services doesn't need a session to access to the membership, but we implemented this control here
         // to avoid access to all the courses and platforms.
-        HttpSession session = req.getSession();
-        if (session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY) != null) {
-            model.addAttribute(TextConstants.NO_SESSION_VALUES, false);
-            Long deployment = (Long) session.getAttribute(LtiStrings.LTI_SESSION_DEPLOYMENT_KEY);
-            String contextId = (String) session.getAttribute(LtiStrings.LTI_SESSION_CONTEXT_ID);
-            //We find the right deployment:
-            Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
-            if (platformDeployment.isPresent()) {
-                //Get the context in the query
-                LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextId, platformDeployment.get());
+        if (req.getParameter(TextConstants.ADVANTAGE_TOKEN) != null) {
+            try {
+                Jws<Claims> claims = apijwtService.validateToken(req.getParameter(TextConstants.ADVANTAGE_TOKEN).toString());
 
-                //Call the ags service to post a lineitem
-                // 1. Get the token
-                log.debug("RETRIEVING TOKEN FOR FETCHING ALL LINEITEMS:");
-                LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
-                log.debug("RETRIEVING TOKEN FOR FETCHING ALL RESULTS:");
-                LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                log.debug("RETRIEVING TOKEN FOR POSTING SCORE:");
-                LTIToken scoresToken = advantageAGSServiceServiceImpl.getToken("scores", platformDeployment.get());
-                log.debug("Scores Bearer Token: {}", scoresToken.getAccess_token());
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, false);
+                Long deployment = Long.parseLong(claims.getPayload().get("platformDeploymentId").toString());
+                String contextKey = claims.getPayload().get("contextKey").toString();
+                //We find the right deployment:
+                Optional<PlatformDeployment> platformDeployment = platformDeploymentRepository.findById(deployment);
+                if (platformDeployment.isPresent()) {
+                    //Get the context in the query
+                    LtiContextEntity context = ltiContextRepository.findByContextKeyAndPlatformDeployment(contextKey, platformDeployment.get());
+
+                    //Call the ags service to post a lineitem
+                    // 1. Get the token
+                    log.debug("RETRIEVING TOKEN FOR FETCHING ALL LINEITEMS:");
+                    LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
+                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
+                    log.debug("RETRIEVING TOKEN FOR FETCHING ALL RESULTS:");
+                    LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
+                    log.debug("RETRIEVING TOKEN FOR POSTING SCORE:");
+                    LTIToken scoresToken = advantageAGSServiceServiceImpl.getToken("scores", platformDeployment.get());
+                    log.debug("Scores Bearer Token: {}", scoresToken.getAccess_token());
 
 
-                // 2. Call the service
-                log.debug("CALLING GET SINGLE LINEITEM:");
-                LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
-                log.debug("CALLING POST SCORE:");
-                Results scoreResults = advantageAGSServiceServiceImpl.postScore(scoresToken, resultsToken, context, lineItemsResult.getId(), score);
-                log.debug("CALLING GET SINGLE LINEITEM:");
-                LineItem lineItemsResultNew = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+                    // 2. Call the service
+                    log.debug("CALLING GET SINGLE LINEITEM:");
+                    LineItem lineItemsResult = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
+                    log.debug("CALLING POST SCORE:");
+                    Results scoreResults = advantageAGSServiceServiceImpl.postScore(scoresToken, resultsToken, context, lineItemsResult.getId(), score);
+                    log.debug("CALLING GET SINGLE LINEITEM:");
+                    LineItem lineItemsResultNew = advantageAGSServiceServiceImpl.getLineItem(LTIToken, resultsToken, context, id);
 
-                // 3. update the model
-                model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResultNew));
+                    // 3. update the model
+                    model.addAttribute(TextConstants.LINEITEMS, Collections.singletonList(lineItemsResultNew));
+                    model.addAttribute(TextConstants.ADVANTAGE_TOKEN, req.getParameter(TextConstants.ADVANTAGE_TOKEN));
+
+                }
+            } catch (Exception ex){
+                model.addAttribute(TextConstants.NO_ADVANTAGE_TOKEN, true);
             }
         } else {
             model.addAttribute(TextConstants.NO_SESSION_VALUES, true);

@@ -14,7 +14,7 @@ public interface LTIDataService {
 
     @Transactional
         //We check if we already have the information about this link in the database.
-    boolean loadLTIDataFromDB(LTI3Request lti, String link);
+    void loadLTIDataFromDB(LTI3Request lti, String link);
 
     @Transactional
         // We update the information for the context, user, membership, link (if received), etc...  with new information on the LTI Request.
