@@ -44,6 +44,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -112,6 +113,11 @@ public class LTI3Controller {
             String clientId = stateClaims.getBody().get("clientId", String.class);
             String ltiDeploymentId = stateClaims.getBody().get("ltiDeploymentId", String.class);
 
+            if (ltiDeploymentId == null) { //If we did not receive the deployment id in the oidc part we will need to trust the on in the id_Token
+                Jws<Claims> idtokenClains = ltijwtService.validateJWT(id_token,clientId);
+                ltiDeploymentId = idtokenClains.getPayload().get("https://purl.imsglobal.org/spec/lti/claim/deployment_id").toString();
+            }
+
             List<PlatformDeployment> platformDeployment = ltiDataService.getRepos().platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(iss, clientId, ltiDeploymentId);
             if (!platformDeployment.isEmpty()) {
                 model.addAttribute("oidc_authorization_uri", platformDeployment.get(0).getOidcEndpoint());
@@ -127,7 +133,7 @@ public class LTI3Controller {
         return "nonceStateCheck";
     }
 
-    @RequestMapping({"", "/stateNonceChecked"})
+    @RequestMapping("/stateNonceChecked")
     public String lti3checked(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
         //There is a filter LTI3OAuthProviderProcessingFilterStateNonceChecked.java that is executed before this.
         //Some security checks, the processing of the LTIRequest as an object

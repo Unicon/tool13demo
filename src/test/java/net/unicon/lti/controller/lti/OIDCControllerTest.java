@@ -62,7 +62,7 @@ public class OIDCControllerTest {
     private static final String SAMPLE_DEPLOYMENT_ID = "sample-deployment-id";
     private static final String SAMPLE_DEPLOYMENT_ID2 = "sample-deployment-id-2";
     private static final String SAMPLE_OIDC_ENDPOINT = "https://platform-lms.com/oidc";
-    private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti-tool.com%2Flti3%2F";
+    private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti-tool.com%2Flti3";
 
     @InjectMocks
     private OIDCController oidcController = new OIDCController();
