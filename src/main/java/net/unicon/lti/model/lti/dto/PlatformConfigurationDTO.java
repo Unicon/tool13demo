@@ -12,6 +12,10 @@
  */
 package net.unicon.lti.model.lti.dto;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 import java.util.List;
 
 public class PlatformConfigurationDTO {
@@ -55,5 +59,15 @@ public class PlatformConfigurationDTO {
 
     public void setVariables(List<String> variables) {
         this.variables = variables;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            return ow.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "PlatformConfigurationDTO could not be serialized";
+        }
     }
 }

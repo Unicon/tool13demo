@@ -12,10 +12,9 @@
  */
 package net.unicon.lti.model.lti.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class ToolConfigurationACKDTO extends ToolRegistrationDTO{
 
@@ -35,9 +34,14 @@ public class ToolConfigurationACKDTO extends ToolRegistrationDTO{
 
     @Override
     public String toString() {
-        return "ToolConfigurationACKDTO{" +
-                "client_id='" + client_id + '\'' +
-                ", registration_client_uri='" + registration_client_uri + '\'' +
-                "} " + super.toString();
+        try {
+            ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+            return ow.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return "ToolConfigurationACKDTO{" +
+                    "client_id='" + client_id + '\'' +
+                    ", registration_client_uri='" + registration_client_uri + '\'' +
+                    "} " + super.toString();
+        }
     }
 }
