@@ -100,7 +100,11 @@ public class RegistrationServiceImpl implements RegistrationService {
             PlatformDeployment platformDeployment = new PlatformDeployment();
             platformDeployment.setDeploymentId(answer.getToolConfiguration().getDeployment_id());
             platformDeployment.setClientId(answer.getClient_id());
-            platformDeployment.setIss(platformRegistrationDTO.getIssuer());
+            if (platformRegistrationDTO.getIssuer().contains("developer.blackboard.com")) { // Blackboard incorrectly sets their issuer in Dynamic Registration
+                platformDeployment.setIss("https://blackboard.com");
+            } else {
+                platformDeployment.setIss(platformRegistrationDTO.getIssuer());
+            }
             platformDeployment.setJwksEndpoint(platformRegistrationDTO.getJwks_uri());
             if (platformRegistrationDTO.getIssuer().endsWith("brightspace.com")) {
                 platformDeployment.setoAuth2TokenAud(platformRegistrationDTO.getToken_endpoint());
