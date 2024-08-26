@@ -26,8 +26,11 @@
 
 <script>
 function confirmRegistration() {
-  alert("being called");
-  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'[[${issuer}]]');
+  alert("Sending confirmation close postMessage...");
+  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'*');
+
+  <!--  For non-Canvas LMSs, you can use issuer as the targetOrigin instead of * -->
+  <!--  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'[[${issuer}]]');-->
 }
 
 </script>
@@ -99,7 +102,7 @@ function confirmRegistration() {
 <!--{
 "client_uri":null,
 "grant_types":[
-"implict",
+"implicit",
 "client_credentials"
 ],
 "application_type":"web",

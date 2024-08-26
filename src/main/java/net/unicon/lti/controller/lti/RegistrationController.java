@@ -15,6 +15,7 @@ package net.unicon.lti.controller.lti;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.RegistrationException;
+import net.unicon.lti.model.lti.dto.MessagesSupportedDTO;
 import net.unicon.lti.model.lti.dto.PlatformRegistrationDTO;
 import net.unicon.lti.model.lti.dto.ToolConfigurationACKDTO;
 import net.unicon.lti.model.lti.dto.ToolConfigurationDTO;
@@ -49,10 +50,13 @@ import jakarta.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static net.unicon.lti.utils.TextConstants.CANVAS_ISSUER;
 
 /**
  * This LTI controller should be protected by OAuth 1.0a (on the /oauth path)
@@ -204,7 +208,7 @@ public class RegistrationController {
         ToolRegistrationDTO toolRegistrationDTO = new ToolRegistrationDTO();
         toolRegistrationDTO.setApplication_type("web");
         List<String> grantTypes = new ArrayList<>();
-        grantTypes.add("implict");
+        grantTypes.add("implicit");
         grantTypes.add("client_credentials");
         toolRegistrationDTO.setGrant_types(grantTypes);
         toolRegistrationDTO.setResponse_types(Collections.singletonList("id_token"));
@@ -223,7 +227,7 @@ public class RegistrationController {
         //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
 
-        toolConfigurationDTO.setTarget_link_uri(domainUrl);
+        toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
 
         //OPTIONAL -->setCustom_parameters --> Map
         toolConfigurationDTO.setDescription(description);
@@ -233,14 +237,44 @@ public class RegistrationController {
         ToolMessagesSupportedDTO message1 = new ToolMessagesSupportedDTO();
         message1.setType("LtiDeepLinkingRequest");
         message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
-//        OPTIONAL: --> message1 --> setLabel
-//        OPTIONAL: --> message1 --> setIcon_uri
+        message1.setLabel(clientName); // required not null for Canvas, optional otherwise
+        message1.setIcon_uri(""); // required not null for Canvas, optional otherwise
+        if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
+            MessagesSupportedDTO ltiDeepLinkingPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
+                    .filter(messagesSupported -> messagesSupported.getType().equals("LtiDeepLinkingRequest")).findFirst().orElse(null);
+            if (ltiDeepLinkingPlatformMessagesSupported != null && ltiDeepLinkingPlatformMessagesSupported.getPlacements() != null) {
+                message1.setPlacements(Arrays.asList(ltiDeepLinkingPlatformMessagesSupported.getPlacements().stream()
+                        .filter(placement -> placement.contains("link_selection") || placement.contains("ContentArea")) // link_selection for Canvas, ContentArea for D2L
+                        .findFirst()
+                        .orElse("")));
+            }
+        }
 //        OPTIONAL: --> message1 --> setCustom_parameters
         messages.add(message1);
 
         ToolMessagesSupportedDTO message2 = new ToolMessagesSupportedDTO();
         message2.setType("LtiResourceLinkRequest");
         message2.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
+        message2.setLabel(clientName); // required not null for Canvas, optional otherwise
+        message2.setIcon_uri(""); // required not null for Canvas, optional otherwise
+        if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
+            MessagesSupportedDTO ltiResourceLinkPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
+                    .filter(messagesSupported -> messagesSupported.getType().equals("LtiResourceLinkRequest")).findFirst().orElse(null);
+            if (ltiResourceLinkPlatformMessagesSupported != null && ltiResourceLinkPlatformMessagesSupported.getPlacements() != null) {
+                List<String> placements = ltiResourceLinkPlatformMessagesSupported.getPlacements().stream()
+                        .filter(placement -> placement.contains("course_navigation"))
+                        .findFirst()
+                        .map(Collections::singletonList)
+                        .orElse(Collections.singletonList(""));
+
+                // Check if placements contains only a blank string and set it to null if true
+                if (placements.size() == 1 && StringUtils.isBlank(placements.get(0))) {
+                    placements = null;
+                }
+
+                message2.setPlacements(placements);
+            }
+        }
         messages.add(message2);
         toolConfigurationDTO.setMessages_supported(messages);
 
@@ -248,6 +282,9 @@ public class RegistrationController {
         platformAndOptionalClaims.addAll(LtiStrings.LTI_OPTIONAL_CLAIMS);
         List<String> toolConfigurationClaims = new ArrayList<>(platformAndOptionalClaims);
         toolConfigurationDTO.setClaims(toolConfigurationClaims);
+        if (StringUtils.equals(platformConfiguration.getIssuer(), CANVAS_ISSUER)) { // Canvas does not use claims field for privacy settings as of 3/12/2024
+            toolConfigurationDTO.setCanvasPrivacyLevel("public");
+        }
 
         toolRegistrationDTO.setToolConfiguration(toolConfigurationDTO);
         toolRegistrationDTO.setScope(StringUtils.join(platformConfiguration.getScopes_supported(), " "));
