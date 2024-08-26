@@ -227,7 +227,7 @@ public class RegistrationController {
         //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
 
-        toolConfigurationDTO.setTarget_link_uri(domainUrl);
+        toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
 
         //OPTIONAL -->setCustom_parameters --> Map
         toolConfigurationDTO.setDescription(description);
@@ -240,11 +240,13 @@ public class RegistrationController {
         message1.setLabel(clientName); // required not null for Canvas, optional otherwise
         message1.setIcon_uri(""); // required not null for Canvas, optional otherwise
         if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
-            for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
-                if (messagesSupported.getPlacements().contains("link_selection")) {
-                    message1.setPlacements(Arrays.asList("link_selection")); // if missing in Canvas, iframe won't close
-                    break;
-                }
+            MessagesSupportedDTO ltiDeepLinkingPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
+                    .filter(messagesSupported -> messagesSupported.getType().equals("LtiDeepLinkingRequest")).findFirst().orElse(null);
+            if (ltiDeepLinkingPlatformMessagesSupported != null && ltiDeepLinkingPlatformMessagesSupported.getPlacements() != null) {
+                message1.setPlacements(Arrays.asList(ltiDeepLinkingPlatformMessagesSupported.getPlacements().stream()
+                        .filter(placement -> placement.contains("link_selection") || placement.contains("ContentArea")) // link_selection for Canvas, ContentArea for D2L
+                        .findFirst()
+                        .orElse("")));
             }
         }
 //        OPTIONAL: --> message1 --> setCustom_parameters
@@ -256,11 +258,21 @@ public class RegistrationController {
         message2.setLabel(clientName); // required not null for Canvas, optional otherwise
         message2.setIcon_uri(""); // required not null for Canvas, optional otherwise
         if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
-            for (MessagesSupportedDTO messagesSupported : platformConfiguration.getPlatformConfiguration().getMessages_supported()) {
-                if (messagesSupported.getPlacements().contains("course_navigation")) {
-                    message2.setPlacements(Arrays.asList("course_navigation")); // if missing in Canvas, iframe won't close
-                    break;
+            MessagesSupportedDTO ltiResourceLinkPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
+                    .filter(messagesSupported -> messagesSupported.getType().equals("LtiResourceLinkRequest")).findFirst().orElse(null);
+            if (ltiResourceLinkPlatformMessagesSupported != null && ltiResourceLinkPlatformMessagesSupported.getPlacements() != null) {
+                List<String> placements = ltiResourceLinkPlatformMessagesSupported.getPlacements().stream()
+                        .filter(placement -> placement.contains("course_navigation"))
+                        .findFirst()
+                        .map(Collections::singletonList)
+                        .orElse(Collections.singletonList(""));
+
+                // Check if placements contains only a blank string and set it to null if true
+                if (placements.size() == 1 && StringUtils.isBlank(placements.get(0))) {
+                    placements = null;
                 }
+
+                message2.setPlacements(placements);
             }
         }
         messages.add(message2);
