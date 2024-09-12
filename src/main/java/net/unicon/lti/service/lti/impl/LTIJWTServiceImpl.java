@@ -64,23 +64,16 @@ public class LTIJWTServiceImpl implements LTIJWTService {
     //Here we could add other checks like expiration of the state (not implemented)
     @Override
     public Jws<Claims> validateState(String state) {
-        return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
-            // This is done because each state is signed with a different key based on the issuer... so
-            // we don't know the key and we need to check it pre-extracting the claims and finding the kid
-            @Override
-            public Key resolveSigningKey(JwsHeader header, Claims claims) {
-                PublicKey toolPublicKey;
-                try {
-                    // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
-                    // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
-                } catch (GeneralSecurityException ex) {
-                    log.error("Error validating the state. Error generating the tool public key", ex);
-                    return null;
-                }
-                return toolPublicKey;
-            }
-        }).build().parseSignedClaims(state);
+        PublicKey toolPublicKey;
+        try {
+            // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
+            // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
+            toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
+        } catch (GeneralSecurityException ex) {
+            log.error("Error validating the state. Error generating the tool public key", ex);
+            return null;
+        }
+        return Jwts.parser().verifyWith(toolPublicKey).build().parseSignedClaims(state);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
@@ -90,23 +83,16 @@ public class LTIJWTServiceImpl implements LTIJWTService {
     //Here we could add other checks like expiration of the state (not implemented)
     @Override
     public Jws<Claims> validateNonceState(String nonceStateToken) {
-        return Jwts.parser().setSigningKeyResolver(new SigningKeyResolverAdapter() {
-            // This is done because each state is signed with a different key based on the issuer... so
-            // we don't know the key and we need to check it pre-extracting the claims and finding the kid
-            @Override
-            public Key resolveSigningKey(JwsHeader header, Claims claims) {
-                PublicKey toolPublicKey;
-                try {
-                    // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
-                    // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
-                    toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
-                } catch (GeneralSecurityException ex) {
-                    log.error("Error validating the state. Error generating the tool public key", ex);
-                    return null;
-                }
-                return toolPublicKey;
-            }
-        }).build().parseSignedClaims(nonceStateToken);
+        PublicKey toolPublicKey;
+        try {
+            // We are dealing with RS256 encryption, so we have some Oauth utils to manage the keys and
+            // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
+            toolPublicKey = OAuthUtils.loadPublicKey(ltiDataService.getOwnPublicKey());
+        } catch (GeneralSecurityException ex) {
+            log.error("Error validating the state. Error generating the tool public key", ex);
+            return null;
+        }
+        return Jwts.parser().verifyWith(toolPublicKey).build().parseSignedClaims(nonceStateToken);
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
