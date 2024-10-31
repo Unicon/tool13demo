@@ -218,18 +218,18 @@ public class RegistrationController {
         toolRegistrationDTO.setJwks_uri(localUrl + "/jwks/jwk");
         //OPTIONAL -->setLogo_uri
         toolRegistrationDTO.setToken_endpoint_auth_method("private_key_jwt");
-        //OPTIONAL -->setContacts
+        toolRegistrationDTO.setContacts(Collections.EMPTY_LIST); //OPTIONAL -->setContacts
         //OPTIONAL -->setClient_uri
         //OPTIONAL -->setTos_uri
         //OPTIONAL -->setPolicy_uri
         ToolConfigurationDTO toolConfigurationDTO = new ToolConfigurationDTO();
         toolConfigurationDTO.setDomain(domainUrl);
-        //OPTIONAL -->setSecondary_domains --> Collections.singletonList
+        toolConfigurationDTO.setSecondary_domains(Collections.EMPTY_LIST); //OPTIONAL -->setSecondary_domains --> Collections.singletonList
         //OPTIONAL -->setDeployment_id
 
         toolConfigurationDTO.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
 
-        //OPTIONAL -->setCustom_parameters --> Map
+        toolConfigurationDTO.setCustom_parameters(Collections.EMPTY_MAP); //OPTIONAL -->setCustom_parameters --> Map
         toolConfigurationDTO.setDescription(description);
         List<ToolMessagesSupportedDTO> messages = new ArrayList<>();
 
@@ -238,7 +238,7 @@ public class RegistrationController {
         message1.setType("LtiDeepLinkingRequest");
         message1.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
         message1.setLabel(clientName); // required not null for Canvas, optional otherwise
-        message1.setIcon_uri(""); // required not null for Canvas, optional otherwise
+        message1.setIcon_uri(null); // required not null for Canvas, optional otherwise
         if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
             MessagesSupportedDTO ltiDeepLinkingPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
                     .filter(messagesSupported -> messagesSupported.getType().equals("LtiDeepLinkingRequest")).findFirst().orElse(null);
@@ -249,14 +249,14 @@ public class RegistrationController {
                         .orElse("")));
             }
         }
-//        OPTIONAL: --> message1 --> setCustom_parameters
+        message1.setCustom_parameters(Collections.EMPTY_MAP); // OPTIONAL: --> message1 --> setCustom_parameters
         messages.add(message1);
 
         ToolMessagesSupportedDTO message2 = new ToolMessagesSupportedDTO();
         message2.setType("LtiResourceLinkRequest");
         message2.setTarget_link_uri(localUrl + TextConstants.LTI3_SUFFIX);
         message2.setLabel(clientName); // required not null for Canvas, optional otherwise
-        message2.setIcon_uri(""); // required not null for Canvas, optional otherwise
+        message2.setIcon_uri(null); // required not null for Canvas, optional otherwise
         if (platformConfiguration.getPlatformConfiguration() != null && platformConfiguration.getPlatformConfiguration().getMessages_supported() != null) {
             MessagesSupportedDTO ltiResourceLinkPlatformMessagesSupported = platformConfiguration.getPlatformConfiguration().getMessages_supported().stream()
                     .filter(messagesSupported -> messagesSupported.getType().equals("LtiResourceLinkRequest")).findFirst().orElse(null);
@@ -275,6 +275,7 @@ public class RegistrationController {
                 message2.setPlacements(placements);
             }
         }
+        message2.setCustom_parameters(Collections.EMPTY_MAP);
         messages.add(message2);
         toolConfigurationDTO.setMessages_supported(messages);
 
