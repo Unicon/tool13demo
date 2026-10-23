@@ -45,9 +45,9 @@ Instructions to Start from Scratch
 ----------------------------------
 Prerequisites
 -------------
-- Install Java 8
+- Install Java 17 (the `java.version` in `pom.xml`).
 - Install Maven
-- Install MySQL
+- Install MySQL (optional for local development, see the H2 note under "Creating the database")
 
 Creating the database
 ---------------------
@@ -59,6 +59,22 @@ values in the properties file. This code was last tested with MySQL version 8.0.
 `mysql> create user 'YOURDATABASEUSERNAME'@'%' identified by 'YOURDATABASEUSERPASSWORD'; Query OK, 0 rows affected (0.00 sec)`
 
 `mysql> grant all on YOURDATABASE.* to 'YOURDATABASEUSERNAME'@'%'; Query OK, 0 rows affected (0.00 sec)`
+
+### Using in-memory H2 instead of MySQL
+For local development you can skip MySQL and use an in-memory H2 database by setting these properties:
+
+```
+spring.datasource.url=jdbc:h2:mem:lti13demo;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.liquibase.enabled=false
+```
+
+Keep in mind that the database is wiped every time the application restarts. The platform registrations seeded from
+`src/main/resources/data/platform_deployment/*.json` are reloaded on startup, but anything you registered through the
+`/config/` endpoint has to be registered again (or added as a JSON file in that directory so it persists).
 
 Customizing
 -----------
@@ -99,10 +115,51 @@ application.url=https://localhost:443
 5. After running the spring boot application, you should be able to reach it at https://localhost:443
 
 
-Using Ngrok For Local SSL Cert
--------------------------------------
-1. Download and install ngrok
-2. `./ngrok http 9090` (Note: This port number must match the value of `server.port` in the application.properties file.)
-3. Utilize the https url from ngrok when registering your tool with the platform   
+Exposing the Local Tool to an LMS with Tailscale Funnel
+-------------------------------------------------------
+A hosted LMS such as Canvas needs to reach your tool from the public internet with a certificate it trusts, both for the
+browser redirects and for server-to-server calls (for example fetching your JWKS to validate LTI Advantage token requests).
+Tailscale Funnel provides that: Tailscale terminates TLS on port 443 with a valid certificate for your machine's
+`*.ts.net` hostname and proxies the traffic to the tool running locally.
 
-Note: Each time you restart ngrok, you will need to change the url of your tool in your registration with the LMS. However, you may restart the tool as much as you like while leaving ngrok running without issue.
+1. Install Tailscale, log in, and have your tailnet admin enable Funnel (see the Tailscale docs).
+2. Run the tool on a port other than 443, for example `--server.port=9090`. Tailscale needs port 443 on your machine's
+   Tailscale IP. If the tool binds `*:443` it answers that traffic itself with its self-signed certificate, and the LMS
+   fails with errors like Canvas's `JWK Error: Failed to fetch public key`.
+3. Start the Funnel in the background. Use `https+insecure` because the tool is serving its own self-signed certificate
+   on the local port:
+
+       tailscale funnel --bg https+insecure://localhost:9090
+
+4. Set `application.url` and `domain.url` in your properties file to your Tailscale hostname, for example
+   `https://yourmachine.your-tailnet.ts.net`, and use that hostname in the tool registration on the platform. The hostname
+   is stable across restarts, so the platform registration does not need to change.
+5. Check `https://yourmachine.your-tailnet.ts.net/jwks/jwk` loads in a browser without a certificate warning.
+6. When you are done, turn the Funnel off. The hostname is public while it is on and automated scanners find it within minutes:
+
+       tailscale funnel --https=443 off
+
+`tailscale funnel status` shows the current configuration. Any other tunnel (ngrok and similar) works the same way: point it
+at the local port and use the public https URL in the platform registration.
+
+Registering a Platform Deployment
+---------------------------------
+Each LMS deployment the tool accepts launches from needs a platform deployment record (issuer, client id, deployment id
+and the platform's OIDC, JWKS and token endpoints). You can seed them from JSON files in
+`src/main/resources/data/platform_deployment/` or create them at runtime with the admin credentials
+(`terracotta.admin.user` / `terracotta.admin.password`):
+
+    curl -u admin:PASSWORD -X POST https://localhost:9090/config/ -H "Content-Type: application/json" -d '{
+      "iss": "https://canvas.instructure.com",
+      "clientId": "YOUR_DEVELOPER_KEY_ID",
+      "deploymentId": "YOUR_DEPLOYMENT_ID",
+      "oidcEndpoint": "https://sso.canvaslms.com/api/lti/authorize_redirect",
+      "jwksEndpoint": "https://sso.canvaslms.com/api/lti/security/jwks",
+      "oAuth2TokenUrl": "https://sso.canvaslms.com/login/oauth2/token"
+    }'
+
+A launch that fails with "Not found any existing tool deployment with iss ... clientId ... deploymentId ..." means no
+record matches the values the platform sent. Create one with exactly those values.
+
+Canvas note: use Canvas's domain-agnostic `authorize_redirect` endpoint above rather than an institution-specific
+`https://INSTITUTION.instructure.com/api/lti/authorize`, which is being deprecated.
