@@ -1,5 +1,35 @@
 package net.unicon.lti.utils.lti;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import com.nimbusds.jose.KeySourceException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.RequiredTypeException;
+import net.unicon.lti.config.ApplicationConfig;
+import net.unicon.lti.service.lti.impl.LTIDataServiceImpl;
+import org.junit.jupiter.api.AfterEach;
+import org.mockito.MockedStatic;
+import org.objenesis.ObjenesisStd;
+import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.lang.reflect.Method;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPublicKey;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.mockito.ArgumentCaptor;
+import java.util.List;
+import java.util.ArrayList;
 import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -16,7 +46,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,7 +63,6 @@ public class LTI3RequestTest {
     private static final String SAMPLE_CLIENT_ID = "sample-client-id";
     private static final String SAMPLE_DEPLOYMENT_ID = "sample-deployment-id";
     private static final String SAMPLE_USER = "sample-user";
-
 
     @Mock
     private LTIDataService ltiDataService;
@@ -63,11 +91,6 @@ public class LTI3RequestTest {
     private List<PlatformDeployment> platformDeploymentList;
 
     private MockHttpSession mockHttpSession = new MockHttpSession();
-
-    @Configuration
-    static class ContextConfiguration {
-
-    }
 
     @BeforeEach()
     public void setUp() throws Exception {
@@ -288,5 +311,541 @@ public class LTI3RequestTest {
         verify(claims).get(eq(LtiStrings.LTI_NONCE), eq(String.class));
         assertEquals("Nonce error: Nonce not found in the database.", exception.getMessage());
 
+    }
+
+
+
+
+
+
+    private static final String NONCE = "launch-nonce";
+    private static final String KID = "platform-kid";
+    private static final String JWKS_URL = "https://platform-lms.com/jwks";
+    private static KeyPair platformKeys;
+
+    @AfterEach
+    public void clearRequestAttributes() {
+        RequestContextHolder.resetRequestAttributes();
+    }
+
+    private static synchronized KeyPair platformKeys() throws Exception {
+        if (platformKeys == null) {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
+            kpg.initialize(2048);
+            platformKeys = kpg.generateKeyPair();
+        }
+        return platformKeys;
+    }
+
+    private static String privateKeyPem() throws Exception {
+        return "-----BEGIN PRIVATE KEY-----\n" + Base64.getEncoder().encodeToString(platformKeys().getPrivate().getEncoded()) + "\n-----END PRIVATE KEY-----\n";
+    }
+
+    private static Map<String, Object> launchClaims(String aud, String messageType) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("iss", SAMPLE_ISS);
+        claims.put("aud", aud);
+        claims.put("sub", SAMPLE_USER);
+        claims.put("iat", new Date().getTime() / 1000);
+        claims.put("exp", new Date().getTime() / 1000 + 3600);
+        claims.put(LtiStrings.LTI_NONCE, NONCE);
+        claims.put(LtiStrings.LTI_AZP, aud);
+        claims.put(LtiStrings.LTI_MESSAGE_TYPE, messageType);
+        claims.put(LtiStrings.LTI_VERSION, LtiStrings.LTI_VERSION_3);
+        claims.put(LtiStrings.LTI_DEPLOYMENT_ID, SAMPLE_DEPLOYMENT_ID);
+        claims.put(LtiStrings.LTI_GIVEN_NAME, "Jane");
+        claims.put(LtiStrings.LTI_FAMILY_NAME, "Doe");
+        claims.put(LtiStrings.LTI_MIDDLE_NAME, "Q");
+        claims.put(LtiStrings.LTI_PICTURE, "https://platform-lms.com/jane.png");
+        claims.put(LtiStrings.LTI_EMAIL, "jane@example.com");
+        claims.put(LtiStrings.LTI_NAME, "Jane Doe");
+        claims.put(LtiStrings.LTI_ROLES, List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_INSTRUCTOR));
+        claims.put(LtiStrings.LTI_LINK, Map.of("id", "resource-link-1", "title", "Link title", "description", "Link description"));
+        claims.put(LtiStrings.LTI_CONTEXT, Map.of("id", "context-1", "label", "CTX", "title", "Context title", "type", List.of(LtiStrings.LTI_CONTEXT_TYPE_COURSE_OFFERING)));
+        claims.put(LtiStrings.LTI_PLATFORM, Map.of("name", "Platform", "contact_email", "admin@platform-lms.com", "description", "A platform",
+                "url", "https://platform-lms.com", "product_family_code", "canvas", "version", "cloud"));
+        claims.put(LtiStrings.LTI_ENDPOINT, Map.of("scope", List.of("lineitem"), "lineitems", "https://platform-lms.com/lineitems"));
+        claims.put(LtiStrings.LTI_NAMES_ROLE_SERVICE, Map.of("context_memberships_url", "https://platform-lms.com/memberships", "service_versions", List.of("2.0")));
+        claims.put(LtiStrings.LTI_CALIPER_ENDPOINT_SERVICE, Map.of("scopes", List.of("caliper"), "caliper_endpoint_url", "https://platform-lms.com/caliper", "caliper_federated_session_id", "session-1"));
+        claims.put(LtiStrings.LTI_LIS, Map.of("person_sourcedid", "jane"));
+        claims.put(LtiStrings.LTI_11_LEGACY_USER_ID, "legacy-1");
+        claims.put(LtiStrings.LTI_PRES_LOCALE, "es-MX");
+        claims.put(LtiStrings.LTI_LAUNCH_PRESENTATION, Map.of("height", 400, "width", "wide", "return_url", "https://platform-lms.com/return", "document_target", "iframe"));
+        claims.put(LtiStrings.LTI_CUSTOM, Map.of("canvas_user_id", 386));
+        claims.put(LtiStrings.LTI_EXTENSION, Map.of("ext", "value"));
+        claims.put(LtiStrings.LTI_TARGET_LINK_URI, "https://tool.example.com/lti3?link=1234");
+        if (LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING.equals(messageType)) {
+            claims.put(LtiStrings.DEEP_LINKING_SETTINGS, Map.of("deep_link_return_url", "https://platform-lms.com/deeplink",
+                    "accept_types", List.of("ltiResourceLink"), "accept_media_types", "text/html",
+                    "accept_presentation_document_targets", List.of("iframe"), "accept_multiple", "true", "auto_create", "true",
+                    "title", "DL title", "text", "DL text", "data", "DL data"));
+        }
+        return claims;
+    }
+
+    private static String signedToken(Map<String, Object> claims) throws Exception {
+        return Jwts.builder().header().keyId(KID).and().claims(claims).signWith(platformKeys().getPrivate()).compact();
+    }
+
+    private static Jws<Claims> parsed(Map<String, Object> claims) throws Exception {
+        return Jwts.parser().verifyWith(platformKeys().getPublic()).build().parseSignedClaims(signedToken(claims));
+    }
+
+
+    private void stubValidLaunch() {
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class))).thenReturn(platformDeploymentList);
+        when(nonceStateRepository.findByNonce(NONCE)).thenReturn(new NonceState(NONCE, "HASH_STATE", "VALID_STATE", "_parent"));
+    }
+
+    private static MockHttpServletRequest launchRequest(String cookies) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("cookies", cookies);
+        return request;
+    }
+
+    private LTI3Request bareRequest() {
+        LTI3Request lti = new ObjenesisStd().newInstance(LTI3Request.class);
+        lti.setLtiDataService(ltiDataService);
+        lti.setHttpServletRequest(req);
+        return lti;
+    }
+
+    @Test
+    public void testResourceLinkLaunchPopulatesTheRequestAndUpdatesTheDatabase() throws Exception {
+        stubValidLaunch();
+        MockHttpServletRequest request = launchRequest("false");
+
+        LTI3Request lti = new LTI3Request(request, ltiDataService, true, "1234", parsed(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)));
+
+        verify(ltiDataService).loadLTIDataFromDB(lti, "1234");
+        verify(ltiDataService).upsertLTIDataInDB(lti, platformDeployment, "1234");
+        assertSame(request, lti.getHttpServletRequest());
+        assertTrue(lti.isComplete());
+        assertTrue(lti.isCorrect());
+        assertEquals(SAMPLE_ISS, lti.getIss());
+        assertEquals(SAMPLE_CLIENT_ID, lti.getAud());
+        assertEquals(SAMPLE_USER, lti.getSub());
+        assertEquals(NONCE, lti.getNonce());
+        assertEquals(SAMPLE_CLIENT_ID, lti.getAzp());
+        assertEquals(SAMPLE_DEPLOYMENT_ID, lti.getLtiDeploymentId());
+        assertEquals(LtiStrings.LTI_VERSION_3, lti.getLtiVersion());
+        assertEquals("Jane", lti.getLtiGivenName());
+        assertEquals("Doe", lti.getLtiFamilyName());
+        assertEquals("Q", lti.getLtiMiddleName());
+        assertEquals("https://platform-lms.com/jane.png", lti.getLtiPicture());
+        assertEquals("jane@example.com", lti.getLtiEmail());
+        assertEquals("Jane Doe", lti.getLtiName());
+        assertEquals(1, lti.getUserRoleNumber());
+        assertTrue(lti.getLtiRoleScopeMentor().isEmpty());
+        assertEquals("resource-link-1", lti.getLtiLinkId());
+        assertEquals("Link title", lti.getLtiLinkTitle());
+        assertEquals("Link description", lti.getLtiLinkDescription());
+        assertEquals("context-1", lti.getLtiContextId());
+        assertEquals("CTX", lti.getLtiContextLabel());
+        assertEquals("Context title", lti.getLtiContextTitle());
+        assertEquals(List.of(LtiStrings.LTI_CONTEXT_TYPE_COURSE_OFFERING), lti.getLtiContextType());
+        assertEquals("Platform", lti.getLtiToolPlatformName());
+        assertEquals("admin@platform-lms.com", lti.getLtiToolPlatformContactEmail());
+        assertEquals("A platform", lti.getLtiToolPlatformDesc());
+        assertEquals("https://platform-lms.com", lti.getLtiToolPlatformUrl());
+        assertEquals("canvas", lti.getLtiToolPlatformProduct());
+        assertEquals("canvas", lti.getLtiToolPlatformFamilyCode());
+        assertEquals("cloud", lti.getLtiToolPlatformVersion());
+        assertEquals(List.of("lineitem"), lti.getLtiEndpointScope());
+        assertEquals("https://platform-lms.com/lineitems", lti.getLtiEndpointLineItems());
+        assertEquals("https://platform-lms.com/memberships", lti.getLtiNamesRoleServiceContextMembershipsUrl());
+        assertEquals(List.of("2.0"), lti.getLtiNamesRoleServiceVersions());
+        assertEquals(List.of("caliper"), lti.getLtiCaliperEndpointServiceScopes());
+        assertEquals("https://platform-lms.com/caliper", lti.getLtiCaliperEndpointServiceUrl());
+        assertEquals("session-1", lti.getLtiCaliperEndpointServiceSessionId());
+        assertEquals("jane", lti.getLtiLis().get("person_sourcedid"));
+        assertEquals("legacy-1", lti.getLti11LegacyUserId());
+        assertEquals("es-MX", lti.getLocale());
+        assertEquals(Locale.forLanguageTag("es-MX"), lti.getLtiPresLocale());
+        assertEquals(400, lti.getLtiPresHeight());
+        // "wide" is not a number
+        assertNull(lti.getLtiPresWidth());
+        assertEquals("https://platform-lms.com/return", lti.getLtiPresReturnUrl());
+        assertEquals("iframe", lti.getLtiPresTarget());
+        assertEquals(386, lti.getLtiCustom().get("canvas_user_id"));
+        assertEquals("value", lti.getLtiExtension().get("ext"));
+        assertEquals("https://tool.example.com/lti3?link=1234", lti.getLtiTargetLinkUrl());
+        assertTrue(lti.getDeepLinkingSettings().isEmpty());
+        assertNull(lti.getDeepLinkReturnUrl());
+        assertNull(lti.getDeepLinkJwts());
+    }
+
+    @Test
+    public void testDeepLinkingLaunchGeneratesDemoJwtsAndUpdatesWithoutALink() throws Exception {
+        stubValidLaunch();
+        PlatformDeployment deployment = new PlatformDeployment();
+        deployment.setClientId(SAMPLE_CLIENT_ID);
+        when(platformDeploymentRepository.findByDeploymentId(SAMPLE_DEPLOYMENT_ID)).thenReturn(List.of(deployment));
+        when(ltiDataService.getOwnPrivateKey()).thenReturn(privateKeyPem());
+        when(ltiDataService.getLocalUrl()).thenReturn("https://tool.example.com");
+
+        LTI3Request lti = new LTI3Request(launchRequest("false"), ltiDataService, true, "1234", parsed(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)));
+
+        verify(ltiDataService).upsertLTIDataInDB(lti, platformDeployment, null);
+        assertTrue(lti.isComplete());
+        assertTrue(lti.isCorrect());
+        assertEquals("https://platform-lms.com/deeplink", lti.getDeepLinkReturnUrl());
+        assertEquals(List.of("ltiResourceLink"), lti.getDeepLinkAcceptTypes());
+        assertEquals("text/html", lti.getDeepLinkAcceptMediaTypes());
+        assertEquals(List.of("iframe"), lti.getDeepLinkAcceptPresentationDocumentTargets());
+        assertEquals("true", lti.getDeepLinkAcceptMultiple());
+        assertEquals("true", lti.getDeepLinkAutoCreate());
+        assertEquals("DL title", lti.getDeepLinkTitle());
+        assertEquals("DL text", lti.getDeepLinkText());
+        assertEquals("DL data", lti.getDeepLinkData());
+        assertNotNull(lti.getDeepLinkJwts());
+        assertFalse(lti.getDeepLinkJwts().isEmpty());
+    }
+
+    @Test
+    public void testDeepLinkingLaunchSurvivesAFailureBuildingTheDemoJwts() throws Exception {
+        stubValidLaunch();
+        when(platformDeploymentRepository.findByDeploymentId(SAMPLE_DEPLOYMENT_ID)).thenReturn(List.of(new PlatformDeployment()));
+        // no private key configured, so building the demo JWTs fails
+        when(ltiDataService.getOwnPrivateKey()).thenReturn(null);
+
+        LTI3Request lti = new LTI3Request(launchRequest("false"), ltiDataService, false, "1234", parsed(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING)));
+
+        assertTrue(lti.isComplete());
+        assertNull(lti.getDeepLinkJwts());
+        verify(ltiDataService).loadLTIDataFromDB(lti, "1234");
+        verify(ltiDataService, never()).upsertLTIDataInDB(any(), any(), any());
+    }
+
+    @Test
+    public void testBracketedAudienceIsUnwrapped() throws Exception {
+        stubValidLaunch();
+
+        LTI3Request lti = new LTI3Request(launchRequest("false"), ltiDataService, false, "1234", parsed(launchClaims("[" + SAMPLE_CLIENT_ID + "]", LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)));
+
+        assertEquals(SAMPLE_CLIENT_ID, lti.getAud());
+        verify(platformDeploymentRepository, times(2)).findByIssAndClientIdAndDeploymentId(SAMPLE_ISS, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID);
+    }
+
+    @Test
+    public void testHalfBracketedAudienceIsKeptAsIs() throws Exception {
+        stubValidLaunch();
+
+        LTI3Request lti = new LTI3Request(launchRequest("false"), ltiDataService, false, "1234", parsed(launchClaims("[" + SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)));
+
+        assertEquals("[" + SAMPLE_CLIENT_ID, lti.getAud());
+        verify(platformDeploymentRepository, times(2)).findByIssAndClientIdAndDeploymentId(SAMPLE_ISS, "[" + SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID);
+    }
+
+    @Test
+    public void testIncompleteLaunchIsRejected() throws Exception {
+        stubValidLaunch();
+        Map<String, Object> claims = launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        claims.remove(LtiStrings.LTI_ROLES);
+        Jws<Claims> jws = parsed(claims);
+
+        IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class,
+                () -> new LTI3Request(launchRequest("false"), ltiDataService, true, "1234", jws));
+
+        assertEquals("Request is not a valid LTI3 request: false", exception.getMessage());
+        verify(ltiDataService, never()).loadLTIDataFromDB(any(), any());
+    }
+
+    @Test
+    public void testValidateAndRetrieveJWTClaimsUsesThePlatformJwks() throws Exception {
+        PlatformDeployment deployment = new PlatformDeployment();
+        deployment.setJwksEndpoint(JWKS_URL);
+        when(platformDeploymentRepository.findByIssAndClientId(SAMPLE_ISS, SAMPLE_CLIENT_ID)).thenReturn(List.of(deployment));
+        String plain = signedToken(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK));
+        String bracketed = signedToken(launchClaims("[" + SAMPLE_CLIENT_ID + "]", LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK));
+
+        try (MockedStatic<PlatformJwks> jwkSet = mockStatic(PlatformJwks.class)) {
+            jwkSet.when(() -> PlatformJwks.publicKey(anyString(), anyString())).thenReturn(platformKeys().getPublic());
+
+            Jws<Claims> result = bareRequest().validateAndRetrieveJWTClaims(ltiDataService, plain);
+            assertEquals(SAMPLE_USER, result.getPayload().getSubject());
+            assertEquals(NONCE, result.getPayload().get(LtiStrings.LTI_NONCE));
+
+            Jws<Claims> bracketedResult = bareRequest().validateAndRetrieveJWTClaims(ltiDataService, bracketed);
+            assertEquals(SAMPLE_USER, bracketedResult.getPayload().getSubject());
+            jwkSet.verify(() -> PlatformJwks.publicKey(JWKS_URL, KID), times(2));
+        }
+        verify(platformDeploymentRepository, times(2)).findByIssAndClientId(SAMPLE_ISS, SAMPLE_CLIENT_ID);
+    }
+
+    @Test
+    public void testValidateAndRetrieveJWTClaimsKeepsAHalfBracketedAudience() throws Exception {
+        PlatformDeployment deployment = new PlatformDeployment();
+        deployment.setJwksEndpoint(JWKS_URL);
+        when(platformDeploymentRepository.findByIssAndClientId(SAMPLE_ISS, "[" + SAMPLE_CLIENT_ID)).thenReturn(List.of(deployment));
+        String token = signedToken(launchClaims("[" + SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK));
+
+        try (MockedStatic<PlatformJwks> jwkSet = mockStatic(PlatformJwks.class)) {
+            jwkSet.when(() -> PlatformJwks.publicKey(anyString(), anyString())).thenReturn(platformKeys().getPublic());
+            assertEquals(SAMPLE_USER, bareRequest().validateAndRetrieveJWTClaims(ltiDataService, token).getPayload().getSubject());
+        }
+    }
+
+    @Test
+    public void testValidateAndRetrieveJWTClaimsFailsWithoutAJwksEndpoint() throws Exception {
+        when(platformDeploymentRepository.findByIssAndClientId(SAMPLE_ISS, SAMPLE_CLIENT_ID)).thenReturn(List.of(new PlatformDeployment()));
+        String token = signedToken(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK));
+
+        Assertions.assertThrows(JwtException.class, () -> bareRequest().validateAndRetrieveJWTClaims(ltiDataService, token));
+    }
+
+    @Test
+    public void testValidateAndRetrieveJWTClaimsFailsWhenTheJwksCannotBeLoaded() throws Exception {
+        PlatformDeployment deployment = new PlatformDeployment();
+        deployment.setJwksEndpoint(JWKS_URL);
+        when(platformDeploymentRepository.findByIssAndClientId(SAMPLE_ISS, SAMPLE_CLIENT_ID)).thenReturn(List.of(deployment));
+        String token = signedToken(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK));
+
+        try (MockedStatic<PlatformJwks> jwkSet = mockStatic(PlatformJwks.class)) {
+            jwkSet.when(() -> PlatformJwks.publicKey(anyString(), anyString())).thenThrow(new KeySourceException("unreachable"));
+            Assertions.assertThrows(JwtException.class, () -> bareRequest().validateAndRetrieveJWTClaims(ltiDataService, token));
+        }
+    }
+
+    @Test
+    public void testGetInstanceWithoutARequestReturnsNull() {
+        RequestContextHolder.resetRequestAttributes();
+        assertNull(LTI3Request.getInstance("1234"));
+        IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, () -> LTI3Request.getInstanceOrDie("1234"));
+        assertEquals("No ServletRequestAttributes can be found, cannot get the LTIRequest unless we are currently in a request", exception.getMessage());
+    }
+
+    @Test
+    public void testGetInstanceReturnsTheRequestAttribute() {
+        LTI3Request existing = bareRequest();
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(LTI3Request.class.getName(), existing);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        assertSame(existing, LTI3Request.getInstance("1234"));
+        assertSame(existing, LTI3Request.getInstanceOrDie("1234"));
+    }
+
+    @Test
+    public void testGetInstanceOrDieFailsWithoutADataService() {
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(launchRequest("false")));
+        try (MockedStatic<ApplicationConfig> config = mockStatic(ApplicationConfig.class)) {
+            config.when(ApplicationConfig::getContext).thenReturn(null);
+            IllegalStateException exception = Assertions.assertThrows(IllegalStateException.class, () -> LTI3Request.getInstanceOrDie("1234"));
+            assertTrue(exception.getMessage().startsWith("Invalid LTI request, cannot create LTIRequest from request: "), exception.getMessage());
+            assertNull(LTI3Request.getInstance("1234"));
+        }
+    }
+
+    @Test
+    public void testGetInstanceOrDieBuildsARequestFromTheIdToken() throws Exception {
+        LTIDataServiceImpl dataService = mock(LTIDataServiceImpl.class);
+        when(dataService.getRepos()).thenReturn(allRepositories);
+        ApplicationContext context = mock(ApplicationContext.class);
+        when(context.getBean(LTIDataServiceImpl.class)).thenReturn(dataService);
+        PlatformDeployment deployment = new PlatformDeployment();
+        deployment.setJwksEndpoint(JWKS_URL);
+        when(platformDeploymentRepository.findByIssAndClientId(SAMPLE_ISS, SAMPLE_CLIENT_ID)).thenReturn(List.of(deployment));
+        stubValidLaunch();
+        MockHttpServletRequest request = launchRequest("false");
+        request.setParameter("id_token", signedToken(launchClaims(SAMPLE_CLIENT_ID, LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK)));
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        try (MockedStatic<ApplicationConfig> config = mockStatic(ApplicationConfig.class);
+             MockedStatic<PlatformJwks> jwkSet = mockStatic(PlatformJwks.class)) {
+            config.when(ApplicationConfig::getContext).thenReturn(context);
+            jwkSet.when(() -> PlatformJwks.publicKey(anyString(), anyString())).thenReturn(platformKeys().getPublic());
+
+            LTI3Request lti = LTI3Request.getInstanceOrDie("1234");
+
+            assertEquals(SAMPLE_USER, lti.getSub());
+            assertEquals("resource-link-1", lti.getLtiLinkId());
+            verify(dataService).loadLTIDataFromDB(lti, "1234");
+            verify(dataService).upsertLTIDataInDB(lti, platformDeployment, "1234");
+        }
+    }
+
+    @Test
+    public void testProcessRequestParametersToleratesMalformedClaims() {
+        Map<String, Object> context = new HashMap<>();
+        context.put(LtiStrings.LTI_CONTEXT_ID, null);
+        context.put(LtiStrings.LTI_CONTEXT_TYPE, "not-a-list");
+        Map<String, Object> presentation = new HashMap<>();
+        presentation.put(LtiStrings.LTI_PRES_HEIGHT, "tall");
+        presentation.put(LtiStrings.LTI_PRES_WIDTH, 300);
+        when(claims.getIssuer()).thenReturn(SAMPLE_ISS);
+        when(claims.getAudience()).thenReturn(Set.of(SAMPLE_CLIENT_ID));
+        when(claims.containsKey(LtiStrings.LTI_NONCE)).thenReturn(true);
+        when(claims.containsKey(LtiStrings.LTI_MESSAGE_TYPE)).thenReturn(true);
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE)).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE, String.class)).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        when(claims.containsKey(LtiStrings.LTI_CONTEXT)).thenReturn(true);
+        when(claims.get(LtiStrings.LTI_CONTEXT, Map.class)).thenReturn(context);
+        when(claims.containsKey(LtiStrings.LTI_LAUNCH_PRESENTATION)).thenReturn(true);
+        when(claims.get(LtiStrings.LTI_LAUNCH_PRESENTATION, Map.class)).thenReturn(presentation);
+        when(claims.containsKey(LtiStrings.LTI_PLATFORM)).thenReturn(true);
+        when(claims.get(LtiStrings.LTI_PLATFORM, Map.class)).thenThrow(new RequiredTypeException("not a map"));
+        when(claims.get(LtiStrings.LTI_ROLES, List.class)).thenThrow(new RequiredTypeException("not a list"));
+        LTI3Request lti = bareRequest();
+
+        Boolean valid = lti.processRequestParameters(null, jwsClaims);
+
+        assertFalse(valid);
+        assertSame(req, lti.getHttpServletRequest());
+        assertNull(lti.getNonce());
+        assertNull(lti.getLtiContextId());
+        assertTrue(lti.getLtiContextType().isEmpty());
+        assertNull(lti.getLtiPresHeight());
+        assertEquals(300, lti.getLtiPresWidth());
+        assertTrue(lti.getLtiToolPlatform().isEmpty());
+        assertTrue(lti.getLtiRoles().isEmpty());
+        assertEquals(Locale.getDefault(), lti.getLtiPresLocale());
+        assertTrue(lti.checkCompleteLTIRequest().contains("Lti Roles is empty"));
+
+        MockHttpServletRequest other = new MockHttpServletRequest();
+        lti.processRequestParameters(other, jwsClaims);
+        assertSame(other, lti.getHttpServletRequest());
+    }
+
+    @Test
+    public void testProcessRequestParametersRequiresAServletRequest() {
+        LTI3Request lti = bareRequest();
+        lti.setHttpServletRequest(null);
+        Assertions.assertThrows(AssertionError.class, () -> lti.processRequestParameters(null, jwsClaims));
+    }
+
+    @Test
+    public void testCheckCompleteLTIRequestListsEverythingMissing() {
+        LTI3Request lti = bareRequest();
+        String result = lti.checkCompleteLTIRequest();
+        assertTrue(result.contains("Lti Deployment Id is empty"));
+        assertTrue(result.contains("Lti Resource Link is empty"));
+        assertTrue(result.contains("User (sub) is empty"));
+        assertTrue(result.contains("Lti Roles is empty"));
+        assertTrue(result.contains("Exp is empty or invalid"));
+        assertTrue(result.contains("Iat is empty or invalid"));
+
+        lti.setLtiResourceLink(new HashMap<>());
+        lti.setLtiRoles(new ArrayList<>());
+        result = lti.checkCompleteLTIRequest();
+        assertTrue(result.contains("Lti Resource Link is empty"));
+        assertTrue(result.contains("Lti Roles is empty"));
+
+        lti.setLtiResourceLink(Map.of("title", "no id"));
+        result = lti.checkCompleteLTIRequest();
+        assertTrue(result.contains("Lti Resource Link ID is empty"));
+        assertFalse(result.contains("Lti Resource Link is empty"));
+    }
+
+    @Test
+    public void testCheckCompleteDeepLinkingRequest() {
+        LTI3Request lti = bareRequest();
+        String result = lti.checkCompleteDeepLinkingRequest();
+        assertTrue(result.contains("Lti Deployment Id is empty"));
+        assertTrue(result.contains("User (sub) is empty"));
+        assertTrue(result.contains("Exp is empty or invalid"));
+        assertTrue(result.contains("Iat is empty or invalid"));
+        assertTrue(result.contains("DeepLinkingSettings is empty or invalid"));
+        assertTrue(result.contains("deepLinkReturnUrl is empty"));
+        assertTrue(result.contains("deepLink AcceptTypes is empty"));
+        assertTrue(result.contains("deepLink AcceptPresentationDocumentTargets is empty"));
+
+        lti.setDeepLinkingSettings(new HashMap<>());
+        lti.setDeepLinkAcceptTypes(new ArrayList<>());
+        lti.setDeepLinkAcceptPresentationDocumentTargets(new ArrayList<>());
+        result = lti.checkCompleteDeepLinkingRequest();
+        assertTrue(result.contains("DeepLinkingSettings is empty or invalid"));
+        assertTrue(result.contains("deepLink AcceptTypes is empty"));
+        assertTrue(result.contains("deepLink AcceptPresentationDocumentTargets is empty"));
+
+        lti.setLtiDeploymentId(SAMPLE_DEPLOYMENT_ID);
+        lti.setSub(SAMPLE_USER);
+        lti.setExp(new Date());
+        lti.setIat(new Date());
+        lti.setDeepLinkingSettings(Map.of("deep_link_return_url", "https://platform-lms.com/deeplink"));
+        lti.setDeepLinkReturnUrl("https://platform-lms.com/deeplink");
+        lti.setDeepLinkAcceptTypes(List.of("ltiResourceLink"));
+        lti.setDeepLinkAcceptPresentationDocumentTargets(List.of("iframe"));
+        assertEquals("true", lti.checkCompleteDeepLinkingRequest());
+    }
+
+    @Test
+    public void testCheckNonceWithoutANonce() {
+        assertEquals("Nonce = null in the JWT or in the session.", bareRequest().checkNonce(jwsClaims, true));
+    }
+
+    @Test
+    public void testCheckNonceConsumesTheMatchingSessionNonce() {
+        when(claims.get(LtiStrings.LTI_NONCE, String.class)).thenReturn(NONCE);
+        when(nonceStateRepository.findByNonce(NONCE)).thenReturn(new NonceState(NONCE, "HASH_STATE", "VALID_STATE", "_parent"));
+        mockHttpSession.setAttribute("lti_nonce", Arrays.asList("other-nonce", NONCE));
+
+        assertEquals("true", bareRequest().checkNonce(jwsClaims, true));
+        assertEquals(List.of("other-nonce"), mockHttpSession.getAttribute("lti_nonce"));
+    }
+
+    @Test
+    public void testIsLTI3Request() {
+        when(claims.get(LtiStrings.LTI_VERSION, String.class)).thenReturn(null);
+        assertEquals("LTI Version = null. LTI Message Type = null. ", LTI3Request.isLTI3Request(jwsClaims));
+
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE, String.class)).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        assertEquals("LTI Version = null. ", LTI3Request.isLTI3Request(jwsClaims));
+
+        when(claims.get(LtiStrings.LTI_VERSION, String.class)).thenReturn(LtiStrings.LTI_VERSION_3);
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE, String.class)).thenReturn("SomethingElse");
+        assertEquals("LTI Message Type is not right: SomethingElse. ", LTI3Request.isLTI3Request(jwsClaims));
+
+        when(claims.get(LtiStrings.LTI_VERSION, String.class)).thenReturn("1.1");
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE, String.class)).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        assertEquals("LTI Version is not right: 1.1", LTI3Request.isLTI3Request(jwsClaims));
+
+        when(claims.get(LtiStrings.LTI_VERSION, String.class)).thenReturn(LtiStrings.LTI_VERSION_3);
+        assertEquals(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK, LTI3Request.isLTI3Request(jwsClaims));
+
+        when(claims.get(LtiStrings.LTI_MESSAGE_TYPE, String.class)).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
+        assertEquals(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING, LTI3Request.isLTI3Request(jwsClaims));
+    }
+
+    @Test
+    public void testMakeUserRoleNum() {
+        LTI3Request lti = bareRequest();
+        assertEquals(0, lti.makeUserRoleNum(null));
+        assertEquals(0, lti.makeUserRoleNum(List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER)));
+        assertEquals(1, lti.makeUserRoleNum(List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_INSTRUCTOR)));
+        assertEquals(2, lti.makeUserRoleNum(List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_INSTRUCTOR, LtiStrings.LTI_ROLE_MEMBERSHIP_ADMIN)));
+    }
+
+    @Test
+    public void testRoleChecksAndNormalizedRoleName() throws Exception {
+        Method normalizedRoleName = LTI3Request.class.getDeclaredMethod("getNormalizedRoleName");
+        normalizedRoleName.setAccessible(true);
+        LTI3Request lti = bareRequest();
+
+        lti.setUserRoleNumber(2);
+        assertFalse(lti.isRoleAdministrator());
+        assertFalse(lti.isRoleInstructor());
+        assertFalse(lti.isRoleLearner());
+        assertEquals(LtiStrings.LTI_ROLE_GENERAL, normalizedRoleName.invoke(lti));
+
+        lti.setLtiRoles(List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_ADMIN));
+        assertTrue(lti.isRoleAdministrator());
+        assertTrue(lti.isRoleInstructor());
+        assertEquals(LtiStrings.LTI_ROLE_ADMIN, normalizedRoleName.invoke(lti));
+
+        lti.setUserRoleNumber(1);
+        assertFalse(lti.isRoleAdministrator());
+        assertTrue(lti.isRoleInstructor());
+        assertEquals(LtiStrings.LTI_ROLE_MEMBERSHIP_INSTRUCTOR, normalizedRoleName.invoke(lti));
+
+        lti.setUserRoleNumber(0);
+        lti.setLtiRoles(List.of(LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER));
+        assertFalse(lti.isRoleInstructor());
+        assertTrue(lti.isRoleLearner());
+        assertEquals(LtiStrings.LTI_ROLE_MEMBERSHIP_LEARNER, normalizedRoleName.invoke(lti));
+
+        lti.setLtiRoles(List.of(LtiStrings.LTI_ROLE_GENERAL));
+        assertFalse(lti.isRoleLearner());
+        assertEquals(LtiStrings.LTI_ROLE_GENERAL, normalizedRoleName.invoke(lti));
     }
 }

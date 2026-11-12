@@ -16,7 +16,7 @@ public interface LTIDataService {
         //We check if we already have the information about this link in the database.
     void loadLTIDataFromDB(LTI3Request lti, String link);
 
-    @Transactional
+    @Transactional(rollbackFor = DataServiceException.class)
         // We update the information for the context, user, membership, link (if received), etc...  with new information on the LTI Request.
     int upsertLTIDataInDB(LTI3Request lti, PlatformDeployment platformDeployment, String link) throws DataServiceException;
 

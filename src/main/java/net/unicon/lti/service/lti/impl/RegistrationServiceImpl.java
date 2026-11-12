@@ -1,18 +1,8 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.lti.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import net.unicon.lti.utils.HttpClients;
+import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.RegistrationException;
@@ -24,10 +14,7 @@ import net.unicon.lti.model.lti.dto.ToolRegistrationDTO;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.RegistrationService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
@@ -38,12 +25,11 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class RegistrationServiceImpl implements RegistrationService {
-    @Autowired
-    private ExceptionMessageGenerator exceptionMessageGenerator;
+    private final ExceptionMessageGenerator exceptionMessageGenerator;
 
-    @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
     private RestTemplate restTemplate;
 
@@ -52,7 +38,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     public ToolConfigurationACKDTO callDynamicRegistration(String token, ToolRegistrationDTO toolRegistrationDTO, String endpoint) throws ConnectionException {
         ToolConfigurationACKDTO answer;
         try {
-            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            restTemplate = restTemplate == null ? HttpClients.restTemplate() : restTemplate;
             DefaultUriBuilderFactory defaultUriBuilderFactory = new DefaultUriBuilderFactory();
             defaultUriBuilderFactory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
             restTemplate.setUriTemplateHandler(defaultUriBuilderFactory);

@@ -1,23 +1,11 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package net.unicon.lti.controller.app;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.BadTokenException;
 import net.unicon.lti.service.app.APIJWTService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,12 +18,13 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping(value = "/api/oauth", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequiredArgsConstructor
 public class TokenController {
 
-    @Autowired
-    APIJWTService apijwtService;
+    private final APIJWTService apijwtService;
 
     @SuppressWarnings("rawtypes")
     @RequestMapping(method = RequestMethod.POST, value = "/trade")
@@ -69,10 +58,8 @@ public class TokenController {
         String token = apijwtService.extractJwtStringValue(req, true);
         try {
             return new ResponseEntity<>(apijwtService.refreshToken(token), HttpStatus.OK);
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Can't refresh the API token", e);
         } catch (BadTokenException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }

@@ -1,17 +1,6 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.lti.impl;
 
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.LtiContextEntity;
@@ -21,10 +10,8 @@ import net.unicon.lti.model.membership.CourseUsers;
 import net.unicon.lti.model.oauth2.LTIToken;
 import net.unicon.lti.service.lti.AdvantageConnectorHelper;
 import net.unicon.lti.service.lti.AdvantageMembershipService;
-import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -38,13 +25,12 @@ import java.util.Objects;
  * Necessary to get appropriate TX handling and service management
  */
 @Service
+@RequiredArgsConstructor
 public class AdvantageMembershipServiceImpl implements AdvantageMembershipService {
 
-    @Autowired
-    AdvantageConnectorHelper advantageConnectorHelper;
+    private final AdvantageConnectorHelper advantageConnectorHelper;
 
-    @Autowired
-    private ExceptionMessageGenerator exceptionMessageGenerator;
+    private final ExceptionMessageGenerator exceptionMessageGenerator;
 
     static final Logger log = LoggerFactory.getLogger(AdvantageMembershipServiceImpl.class);
 
@@ -59,7 +45,6 @@ public class AdvantageMembershipServiceImpl implements AdvantageMembershipServic
     @Override
     public CourseUsers callMembershipService(LTIToken LTIToken, LtiContextEntity context) throws ConnectionException {
         CourseUsers courseUsers;
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.

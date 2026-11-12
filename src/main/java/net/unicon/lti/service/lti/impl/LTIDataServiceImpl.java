@@ -1,17 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.lti.impl;
 
+import net.unicon.lti.utils.lti.LtiLinkUtils;
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.exceptions.DataServiceException;
 import net.unicon.lti.model.*;
 import net.unicon.lti.repository.AllRepositories;
@@ -20,7 +10,6 @@ import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.lti.LTI3Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +23,12 @@ import java.util.Optional;
  * Necessary to get appropriate TX handling and service management
  */
 @Service
+@RequiredArgsConstructor
 public class LTIDataServiceImpl implements LTIDataService {
 
     static final Logger log = LoggerFactory.getLogger(LTIDataServiceImpl.class);
 
-    @Autowired
-    AllRepositories repos;
+    private final AllRepositories repos;
 
     //This will be used to create the deep links. Needs to be in the application properties.
     @Value("${application.url}")
@@ -76,7 +65,7 @@ public class LTIDataServiceImpl implements LTIDataService {
             return;
         }
         if (link == null) {
-            link = lti.getLtiTargetLinkUrl().substring(lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
+            link = LtiLinkUtils.linkParameter(lti.getLtiTargetLinkUrl());
         }
 
         String sqlDeployment = "SELECT k, c, l, m, u" +
@@ -121,7 +110,7 @@ public class LTIDataServiceImpl implements LTIDataService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = DataServiceException.class)
     // We update the information for the context, user, membership, link (if received), etc...  with new information on the LTI Request.
     public int upsertLTIDataInDB(LTI3Request lti, PlatformDeployment platformDeployment, String link) throws DataServiceException {
         if (repos == null) {
@@ -133,12 +122,12 @@ public class LTIDataServiceImpl implements LTIDataService {
             lti.setKey(platformDeployment);
         }
         if (link == null) {
-            link = lti.getLtiTargetLinkUrl().substring(lti.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
+            link = LtiLinkUtils.linkParameter(lti.getLtiTargetLinkUrl());
         }
         // For the next elements, we will check if we have it already in the lti object, and if not
         // we check if it exists in the database or not.
         // if exists we get it, if not we create it.
-        repos.entityManager.merge(lti.getKey());
+        lti.setKey(repos.entityManager.merge(lti.getKey()));
         int inserts = 0;
         int updates = 0;
         if (lti.getContext() == null && lti.getLtiDeploymentId() != null) {
@@ -154,8 +143,7 @@ public class LTIDataServiceImpl implements LTIDataService {
                 ltiContextEntity.setTitle(lti.getLtiContextTitle());
                 ltiContextEntity.setContext_memberships_url(lti.getLtiNamesRoleServiceContextMembershipsUrl());
                 ltiContextEntity.setLineitems(lti.getLtiEndpointLineItems());
-                lti.setContext(ltiContextEntity);
-                repos.entityManager.merge(lti.getContext()); // reconnect object for this transaction
+                lti.setContext(repos.entityManager.merge(ltiContextEntity)); // reconnect object for this transaction
                 lti.setLtiContextId(lti.getContext().getContextKey());
                 log.debug("LTIupdate: Reconnected existing context id=" + lti.getLtiContextId());
             }
@@ -169,7 +157,7 @@ public class LTIDataServiceImpl implements LTIDataService {
         }
 
         //If we are getting a link in the url we do this, if not we skip it.
-        if (lti.getLink() == null && lti.getLtiLinkId() != null) {
+        if (link != null && lti.getLink() == null && lti.getLtiLinkId() != null) {
             //Link is not in the lti request at this moment. Let's see if it exists:
             List<LtiLinkEntity> ltiLinkEntityList = repos.links.findByToolLinkToolLinkIdAndContext(link, lti.getContext());
             boolean existingLink = false;
@@ -206,8 +194,7 @@ public class LTIDataServiceImpl implements LTIDataService {
                 inserts++;
                 log.debug("LTIupdate: Inserted user id=" + lti.getSub());
             } else {
-                lti.setUser(ltiUserEntity);
-                repos.entityManager.merge(lti.getUser()); // reconnect object for this transaction
+                lti.setUser(repos.entityManager.merge(ltiUserEntity)); // reconnect object for this transaction
                 lti.setSub(lti.getUser().getUserKey());
                 lti.setLtiName(lti.getUser().getDisplayName());
                 lti.setLtiEmail(lti.getUser().getEmail());
@@ -232,8 +219,7 @@ public class LTIDataServiceImpl implements LTIDataService {
                 log.debug("LTIupdate: Inserted membership id=" + newMember.getMembershipId() + ", role=" + newMember.getRole() + ", user="
                         + lti.getSub() + ", context=" + lti.getLtiContextId());
             } else {
-                lti.setMembership(ltiMembershipEntity);
-                repos.entityManager.merge(lti.getMembership()); // reconnect object for this transaction
+                lti.setMembership(repos.entityManager.merge(ltiMembershipEntity)); // reconnect object for this transaction
                 lti.setSub(lti.getUser().getUserKey());
                 lti.setLtiContextId(lti.getContext().getContextKey());
                 log.debug("LTIupdate: Reconnected existing membership id=" + lti.getMembership().getMembershipId());

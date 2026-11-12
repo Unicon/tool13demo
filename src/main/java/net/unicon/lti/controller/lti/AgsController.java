@@ -1,18 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.controller.lti;
 
 
+import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.ConnectionException;
@@ -30,8 +19,6 @@ import net.unicon.lti.service.lti.AdvantageAGSService;
 import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -51,25 +38,21 @@ import java.util.Optional;
  */
 @SuppressWarnings("SameReturnValue")
 @Controller
-@Scope("session")
 @RequestMapping("/ags")
+@RequiredArgsConstructor
 public class AgsController {
 
     static final Logger log = LoggerFactory.getLogger(AgsController.class);
     static final String LTIADVAGSMAIN = "ltiAdvAgsMain";
     static final String LTIADVAGSDETAIL = "ltiAdvAgsDetail";
 
-    @Autowired
-    LtiContextRepository ltiContextRepository;
+    private final LtiContextRepository ltiContextRepository;
 
-    @Autowired
-    APIJWTService apijwtService;
+    private final APIJWTService apijwtService;
 
-    @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    AdvantageAGSService advantageAGSServiceServiceImpl;
+    private final AdvantageAGSService advantageAGSServiceServiceImpl;
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public String agsGetLineItems(HttpServletRequest req, Principal principal, Model model) throws ConnectionException {
@@ -94,7 +77,6 @@ public class AgsController {
                     // 1. Get the token
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                     LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
                     // 2. Call the service
                     LineItems lineItemsResult = advantageAGSServiceServiceImpl.getLineItems(LTIToken, context, true, resultsToken);
 
@@ -137,7 +119,6 @@ public class AgsController {
                     log.debug("RETRIEVING TOKEN TO CREATE LINEITEM:");
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                     LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                     // 2. Call the service
                     log.debug("POST TO CREATE LINEITEM:");
@@ -188,7 +169,6 @@ public class AgsController {
                     log.debug("RETREIVING TOKEN TO GET SINGLE LINEITEM:");
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
                     LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                     // 2. Call the service
                     log.debug("GET SINGLE LINEITEM:");
@@ -233,7 +213,6 @@ public class AgsController {
                     //Call the ags service to post a lineitem
                     // 1. Get the token
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                     // 2. Call the service
                     lineItem.setId(id);
@@ -278,7 +257,6 @@ public class AgsController {
                     //Call the ags service to post a lineitem
                     // 1. Get the token
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
 
                     // 2. Call the service
                     Boolean deleteResult = advantageAGSServiceServiceImpl.deleteLineItem(LTIToken, context, id);
@@ -323,7 +301,6 @@ public class AgsController {
                     // 1. Get the token
                     log.debug("RETRIEVING TOKEN FOR FETCHING ALL LINEITEMS:");
                     LTIToken LTIToken = advantageAGSServiceServiceImpl.getToken("lineitems", platformDeployment.get());
-                    log.info(TextConstants.TOKEN + LTIToken.getAccess_token());
                     log.debug("RETRIEVING TOKEN FOR FETCHING ALL RESULTS:");
                     LTIToken resultsToken = advantageAGSServiceServiceImpl.getToken("results", platformDeployment.get());
                     log.debug("RETRIEVING TOKEN FOR POSTING SCORE:");

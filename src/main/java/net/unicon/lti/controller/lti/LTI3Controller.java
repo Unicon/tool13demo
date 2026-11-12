@@ -1,17 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.controller.lti;
 
+import net.unicon.lti.utils.lti.LtiLinkUtils;
+import lombok.RequiredArgsConstructor;
 import com.google.common.hash.Hashing;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -35,11 +25,10 @@ import net.unicon.lti.utils.lti.LTI3Request;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,31 +40,25 @@ import java.util.List;
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
 @Controller
-@Scope("session")
 @RequestMapping("/lti3")
+@RequiredArgsConstructor
 public class LTI3Controller {
 
     static final Logger log = LoggerFactory.getLogger(LTI3Controller.class);
 
-    @Autowired
-    LTIJWTService ltijwtService;
+    private final LTIJWTService ltijwtService;
 
-    @Autowired
-    APIJWTService apiJWTService;
+    private final APIJWTService apiJWTService;
 
-    @Autowired
-    LtiLinkRepository ltiLinkRepository;
+    private final LtiLinkRepository ltiLinkRepository;
 
-    @Autowired
-    LTIDataService ltiDataService;
+    private final LTIDataService ltiDataService;
 
-    @Autowired
-    DeepLinkService deepLinkService;
+    private final DeepLinkService deepLinkService;
 
-    @Autowired
-    LtiContextRepository ltiContextRepository;
+    private final LtiContextRepository ltiContextRepository;
 
-    @RequestMapping({"", "/"})
+    @RequestMapping(value = {"", "/"}, method = {RequestMethod.GET, RequestMethod.POST})
     public String lti3(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
         //There is a filter LTI3OAuthProviderProcessingFilter.java that is executed before this.
         //Some security checks are performed there.
@@ -132,7 +115,7 @@ public class LTI3Controller {
         return "nonceStateCheck";
     }
 
-    @RequestMapping("/stateNonceChecked")
+    @RequestMapping(value = "/stateNonceChecked", method = {RequestMethod.GET, RequestMethod.POST})
     public String lti3checked(HttpServletRequest req, Model model) throws DataServiceException, ConnectionException {
         //There is a filter LTI3OAuthProviderProcessingFilterStateNonceChecked.java that is executed before this.
         //Some security checks, the processing of the LTIRequest as an object
@@ -197,7 +180,7 @@ public class LTI3Controller {
             // processing it here to generate the right answer.
             if (ltiDataService.getDemoMode()) {
                 model.addAttribute("lti3Request", lti3Request);
-                String link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
+                String link = LtiLinkUtils.linkParameter(lti3Request.getLtiTargetLinkUrl());
                 if (StringUtils.isNotBlank(link)) {
                     List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext(lti3Request.getLtiLinkId(), link, lti3Request.getContext());
                     log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());

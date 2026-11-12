@@ -1,17 +1,6 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.config;
 
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.security.app.APIOAuthProviderProcessingFilter;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilter;
 import net.unicon.lti.security.lti.LTI3OAuthProviderProcessingFilterStateNonceChecked;
@@ -45,6 +34,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
     @Value("${terracotta.admin.user:admin}")
@@ -56,14 +46,10 @@ public class WebSecurityConfig {
     private LTI3OAuthProviderProcessingFilterStateNonceChecked lti3OAuthProviderProcessingFilterStateNonceChecked;
     private LTI3OAuthProviderProcessingFilter lti3oAuthProviderProcessingFilter;
     private APIOAuthProviderProcessingFilter apioAuthProviderProcessingFilter;
-    @Autowired
-    LTIDataService ltiDataService;
-    @Autowired
-    LTIJWTService ltijwtService;
-    @Autowired
-    APIJWTService apiJwtService;
-    @Autowired
-    APIDataService apiDataService;
+    private final LTIDataService ltiDataService;
+    private final LTIJWTService ltijwtService;
+    private final APIJWTService apiJwtService;
+    private final APIDataService apiDataService;
 
     static final Logger log = LoggerFactory.getLogger(WebSecurityConfig.class);
 

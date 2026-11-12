@@ -1,17 +1,11 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.lti.impl;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
+import java.time.Instant;
+import java.time.Duration;
+import net.unicon.lti.utils.HttpClients;
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.PlatformDeployment;
@@ -27,11 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -47,15 +38,25 @@ import java.util.List;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
 @Service
+@RequiredArgsConstructor
 public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
 
-    @Autowired
-    LTIJWTService ltijwtService;
+    private final LTIJWTService ltijwtService;
 
     RestTemplate restTemplate;
 
-    @Autowired
-    private ExceptionMessageGenerator exceptionMessageGenerator;
+    private final ExceptionMessageGenerator exceptionMessageGenerator;
+
+    private static final RestTemplate SHARED_REST_TEMPLATE = HttpClients.restTemplate();
+
+    // a cached token is used until this long before it expires
+    private static final Duration TOKEN_EXPIRY_MARGIN = Duration.ofSeconds(60);
+
+    // LMS access tokens by deployment, token endpoint, client and scope; they last an hour or so,
+    // and requesting a new one for every grade or roster call is a round trip to the LMS each time
+    private final Map<String, CachedToken> tokenCache = new ConcurrentHashMap<>();
+
+    private record CachedToken(LTIToken token, Instant expiresAt) { }
 
     static final Logger log = LoggerFactory.getLogger(AdvantageConnectorHelperImpl.class);
 
@@ -118,8 +119,24 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
     //The platformDeployment has the URL to ask for the token.
     @Override
     public LTIToken getToken(PlatformDeployment platformDeployment, String scope) throws ConnectionException {
-        LTIToken ltiToken = null;
-        ResponseEntity<LTIToken> reportPostResponse = null;
+        String cacheKey = platformDeployment.getKeyId() + "|" + platformDeployment.getoAuth2TokenUrl() + "|" + platformDeployment.getClientId() + "|" + scope;
+        CachedToken cached = tokenCache.get(cacheKey);
+
+        if (cached != null && Instant.now().plus(TOKEN_EXPIRY_MARGIN).isBefore(cached.expiresAt())) {
+            return cached.token();
+        }
+
+        LTIToken ltiToken = fetchToken(platformDeployment, scope);
+
+        if (ltiToken != null && ltiToken.getExpires_in() > 0) {
+            tokenCache.put(cacheKey, new CachedToken(ltiToken, Instant.now().plusSeconds(ltiToken.getExpires_in())));
+        }
+
+        return ltiToken;
+    }
+
+    private LTIToken fetchToken(PlatformDeployment platformDeployment, String scope) throws ConnectionException {
+        ResponseEntity<LTIToken> reportPostResponse;
 
         try {
             // We need a specific request for the token.
@@ -135,33 +152,21 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
 
-        if (reportPostResponse != null) {
-            HttpStatusCode status = reportPostResponse.getStatusCode();
-            if (status.is2xxSuccessful()) {
-                ltiToken = reportPostResponse.getBody();
-            } else {
-                String exceptionMsg = "Can't get the token: " + status.value();
-                log.error(exceptionMsg);
-                throw new ConnectionException(exceptionMsg);
-            }
-        } else {
-            String exceptionMsg = "Problem getting the token";
+        // postForEntity never returns null, it throws instead
+        HttpStatusCode status = reportPostResponse.getStatusCode();
+        if (!status.is2xxSuccessful()) {
+            String exceptionMsg = "Can't get the token: " + status.value();
             log.error(exceptionMsg);
             throw new ConnectionException(exceptionMsg);
         }
-        return ltiToken;
+        return reportPostResponse.getBody();
     }
 
 
     private ResponseEntity<LTIToken> postEntity(String POST_TOKEN_URL, HttpEntity request, PlatformDeployment platformDeployment, String scope) throws GeneralSecurityException, IOException {
         ResponseEntity<LTIToken> reportPostResponse;
-        restTemplate = restTemplate == null ? createRestTemplate() : restTemplate;
+        restTemplate = restTemplate == null ? createTokenRestTemplate() : restTemplate;
         try {
-            // Add response converter that supports Moodle's response type of text/html
-            MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-            converter.setSupportedMediaTypes(Arrays.asList(TEXT_HTML));
-            restTemplate.getMessageConverters().add(converter);
-
             reportPostResponse = restTemplate.postForEntity(POST_TOKEN_URL, request, LTIToken.class);
         } catch (Exception ex) {
             log.error("ERROR GETTING THE TOKEN", ex);
@@ -206,8 +211,18 @@ public class AdvantageConnectorHelperImpl implements AdvantageConnectorHelper {
 
     @Override
     public RestTemplate createRestTemplate() {
-        return new RestTemplate(
-                new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+        // shared: a RestTemplate is thread safe once configured, and this one never changes
+        return SHARED_REST_TEMPLATE;
+    }
+
+    // the token endpoint's own client, which also reads Moodle's token responses, sent as text/html
+    private RestTemplate createTokenRestTemplate() {
+        RestTemplate tokenRestTemplate = HttpClients.restTemplate();
+        JacksonJsonHttpMessageConverter converter = new JacksonJsonHttpMessageConverter();
+        converter.setSupportedMediaTypes(Arrays.asList(TEXT_HTML));
+        tokenRestTemplate.getMessageConverters().add(converter);
+
+        return tokenRestTemplate;
     }
 
     @Override

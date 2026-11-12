@@ -1,14 +1,13 @@
 package net.unicon.lti.utils.lti;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.deser.std.StdDeserializer;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.lti.dto.MessagesSupportedDTO;
 import net.unicon.lti.utils.LtiStrings;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +15,8 @@ import java.util.List;
 public class MessagesSupportedDeserializer extends StdDeserializer<MessagesSupportedDTO> {
 
     public MessagesSupportedDeserializer() {
-        this(null);
+        // Jackson 3 requires the handled type; Jackson 2 accepted null
+        this(MessagesSupportedDTO.class);
     }
 
     protected MessagesSupportedDeserializer(Class<?> vc) {
@@ -24,20 +24,20 @@ public class MessagesSupportedDeserializer extends StdDeserializer<MessagesSuppo
     }
 
     @Override
-    public MessagesSupportedDTO deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+    public MessagesSupportedDTO deserialize(JsonParser jp, DeserializationContext ctxt) {
+        JsonNode node = ctxt.readTree(jp);
         MessagesSupportedDTO messagesSupported = new MessagesSupportedDTO();
         if (node.get("type") != null) {
-            messagesSupported.setType(node.get("type").asText());
+            messagesSupported.setType(node.get("type").asString());
             if (node.get("placements") != null) {
                 List<String> placements = new ArrayList<>();
                 for (JsonNode jsonNode : node.get("placements")) {
-                    placements.add(jsonNode.asText());
+                    placements.add(jsonNode.asString());
                 }
                 messagesSupported.setPlacements(placements);
             }
-        } else if (LtiStrings.MESSAGES_SUPPORTED_TYPES.contains(node.asText())) {
-            messagesSupported.setType(node.asText());
+        } else if (node.isString() && LtiStrings.MESSAGES_SUPPORTED_TYPES.contains(node.stringValue())) {
+            messagesSupported.setType(node.stringValue());
         }
         log.debug("Deserialized Message Type:");
         log.debug(messagesSupported.getType());
