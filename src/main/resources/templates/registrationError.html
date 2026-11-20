@@ -13,16 +13,22 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
-<head>
-    <title>LTI 3 DYNAMIC REGISTRATION ERROR</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
-<h1>Error during the dynamic registration.</h1>
-<p><span th:text="${Error}"/></p>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Registration error')}"></head>
+
+<body class="demo">
+<div th:replace="~{fragments/demo :: bar('Dynamic Registration', false)}"></div>
+
+<main class="demo-main">
+    <h1 class="demo-title">Dynamic Registration didn't complete</h1>
+    <p class="demo-lead">
+        The tool couldn't finish registering with the LMS. The most common causes are an expired registration token
+        (start again from the LMS), or the LMS not being able to reach the tool's public URL.
+    </p>
+    <section class="demo-card">
+        <h2>What went wrong</h2>
+        <pre class="demo-code" th:text="${Error} ?: 'Unknown error'">Error</pre>
+    </section>
+</main>
 </body>
 </html>

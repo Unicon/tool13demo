@@ -199,6 +199,7 @@ public class LTI3Controller {
             // processing it here to generate the right answer.
             if (ltiDataService.getDemoMode()) {
                 model.addAttribute("lti3Request", lti3Request);
+                model.addAttribute("id_token", id_token); // Already validated by the filter; the pages show its decoded claims.
                 String demoAudience = DemoAudience.normalize(claims.getBody().get(DemoAudience.STATE_CLAIM, String.class));
                 boolean clientAudience = DemoAudience.isClient(demoAudience);
                 model.addAttribute(DemoAudience.MODEL_ATTRIBUTE, demoAudience);

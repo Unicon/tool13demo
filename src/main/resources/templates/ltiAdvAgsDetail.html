@@ -13,161 +13,155 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI 1.3 AGS Scores Demo</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
-<h4>Assignment and Grade Services </h4>
-<p>&nbsp;</p>
-<div th:if="${noSessionValues}">
-    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
-        in the course and the deployment. </p>
-    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership
-        service without a session created. </p>
-</div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Scores')}"></head>
 
-<div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
-    <h4>Post a score </h4>
-    <form action="#" method="post" th:with="idLocator=${#strings.contains(lineitems[0].id, '?') ? 2 : 1}" th:action="@{/ags/score/{did}(did=${#strings.arraySplit(lineitems[0].id,'/')[#arrays.length(#strings.arraySplit(lineitems[0].id, '/')) - idLocator]}, advantageToken=${advantageToken})}" th:object="${score}">
-        <table>
-            <tr>
-                <td>userId: </td><td><input type="text" id="userId" name="userId" /></td>
-            </tr>
-            <tr>
-                <td>scoreMaximum: </td><td><input type="text" id="scoreMaximum" name="scoreMaximum" /></td>
-            </tr>
-            <tr>
-                <td>scoreGiven: </td><td><input type="text" id="scoreGiven"  name="scoreGiven" /></td>
-            </tr>
-            <tr>
-                <td>comment: </td><td><input type="text" id="comment" name="comment" /></td>
-            </tr>
-            <tr>
-                <td>activityProgress: </td><td><input type="text" id="activityProgress" name="activityProgress" /></td>
-            </tr>
-            <tr>
-                <td>gradingProgress: </td><td><input type="text" id="gradingProgress" name="gradingProgress" /></td>
-            </tr>
-            <tr>
-                <td>timestamp: </td><td><input type="text" id="timestamp" name="timestamp" /></td>
-            </tr>
-            <tr>
-                <td><input type="submit" value="Post Score" /></td><td><input type="reset" value="Reset" /></td>
-            </tr>
-        </table>
-    </form>
-</div>
-<p>&nbsp;</p>
-<p>&nbsp;</p>
+<!-- demo_audience comes from the link on the line items page: client pages hide the protocol detail and the tour. -->
+<body class="demo"
+      th:with="clientMode=${param.demo_audience != null and param.demo_audience[0] == 'client'},
+               audience=${clientMode} ? 'client' : 'technical',
+               lineitem=${lineitems != null and !#lists.isEmpty(lineitems)} ? ${lineitems[0]} : null"
+      th:attr="data-tour-autostart=${!clientMode and lineitem != null}">
+<div th:replace="~{fragments/demo :: bar(${clientMode} ? 'Client demo' : 'Technical walkthrough', ${!clientMode})}"></div>
 
-<div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>LineItem created/updated</h4>
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Id</th>
-            <th scope="col">scoreMaximum</th>
-            <th scope="col">label</th>
-            <th scope="col">resourceId</th>
-            <th scope="col">tag</th>
-            <th scope="col">resourceLinkId</th>
-            <th scope="col">startDateTime</th>
-            <th scope="col">endDateTime</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="lineitem,rowStat : ${results}">
-            <td th:text="${rowStat.count}">1</td>
-            <td th:text="${lineitem.id}"></td>
-            <td th:text="${lineitem.scoreMaximum}"></td>
-            <td th:text="${lineitem.label}"></td>
-            <td th:text="${lineitem.resourceId}"></td>
-            <td th:text="${lineitem.tag}"></td>
-            <td th:text="${lineitem.resourceLinkId}"></td>
-            <td th:text="${lineitem.startDateTime}"></td>
-            <td th:text="${lineitem.endDateTime}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<main class="demo-main">
+    <p class="demo-eyebrow" th:unless="${clientMode}">LTI Advantage &middot; Assignment and Grade Services</p>
+    <h1 class="demo-title" th:text="${lineitem != null} ? ${lineitem.label} : 'Scores'">Scores</h1>
+    <p class="demo-lead">
+        <a th:href="@{/ags/(advantageToken=${advantageToken}, demo_audience=${audience})}">&larr; All columns</a>
+    </p>
 
-<div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
+    <div class="demo-callout warn" th:if="${noSessionValues}">
+        <p>Open this page from a launch. The link carries a short-lived token that identifies the course and deployment.</p>
+    </div>
+    <div class="demo-callout ok" th:if="${results != null and !#lists.isEmpty(results)}">
+        <p>Score posted. The results below were read back from the LMS.</p>
+    </div>
+    <p class="demo-empty" th:if="${lineitems != null and #lists.isEmpty(lineitems)}">That line item wasn't found.</p>
 
-    <h4>LineItem Info</h4>
+    <th:block th:if="${lineitem != null}">
+        <section class="demo-card" th:unless="${clientMode}" data-tour="1" data-tour-title="The line item">
+            <template data-tour-text>
+                <p>The line item's <code>id</code> is a URL. Scores are POSTed to <code>{id}/scores</code> and results are read from <code>{id}/results</code>.</p>
+            </template>
+            <h2>Line item</h2>
+            <dl class="demo-kv">
+                <dt><code>id</code></dt>
+                <dd class="demo-mono" th:text="${lineitem.id}"></dd>
+                <dt><code>scoreMaximum</code></dt>
+                <dd th:text="${lineitem.scoreMaximum}"></dd>
+                <dt><code>resourceLinkId</code></dt>
+                <dd class="demo-mono" th:text="${lineitem.resourceLinkId} ?: '(none)'"></dd>
+                <dt><code>resourceId</code> / <code>tag</code></dt>
+                <dd><span th:text="${lineitem.resourceId} ?: '(none)'"></span> <span class="demo-hint" th:text="${lineitem.tag}"></span></dd>
+                <dt>Submission window</dt>
+                <dd>
+                    <span th:text="${lineitem.startDateTime != null or lineitem.endDateTime != null} ? ${lineitem.startDateTime + ' to ' + lineitem.endDateTime} : '(not set, which is good)'"></span>
+                </dd>
+            </dl>
+        </section>
 
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Id</th>
-            <th scope="col">scoreMaximum</th>
-            <th scope="col">label</th>
-            <th scope="col">resourceId</th>
-            <th scope="col">tag</th>
-            <th scope="col">resourceLinkId</th>
-            <th scope="col">startDateTime</th>
-            <th scope="col">endDateTime</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="lineitem,rowStat : ${lineitems}">
-            <td th:text="${rowStat.count}">1</td>
-            <td th:text="${lineitem.id}"></td>
-            <td th:text="${lineitem.scoreMaximum}"></td>
-            <td th:text="${lineitem.label}"></td>
-            <td th:text="${lineitem.resourceId}"></td>
-            <td th:text="${lineitem.tag}"></td>
-            <td th:text="${lineitem.resourceLinkId}"></td>
-            <td th:text="${lineitem.startDateTime}"></td>
-            <td th:text="${lineitem.endDateTime}"></td>
-        </tr>
-        </tbody>
-    </table>
+        <section class="demo-card" th:unless="${clientMode}" data-tour="2" data-tour-title="Post a score">
+            <template data-tour-text>
+                <p>A score always names the user by their <code>sub</code> (the user id from their ID token or the roster), plus <code>activityProgress</code> and <code>gradingProgress</code>.</p>
+                <p>The LMS treats the score as final only when <code>gradingProgress</code> is <code>FullyGraded</code>. <code>timestamp</code> must be newer than the last score the tool posted for that user, or the LMS ignores it.</p>
+            </template>
+            <h2>Post a score</h2>
+            <form method="post"
+                  th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1},
+                           did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}"
+                  th:action="@{/ags/score/{did}(did=${did}, advantageToken=${advantageToken}, demo_audience=${audience})}"
+                  th:object="${score}">
+                <div class="demo-form-grid">
+                    <div class="demo-field">
+                        <label for="userId">User id (<code>sub</code>)</label>
+                        <input type="text" id="userId" name="userId" required/>
+                        <span class="demo-hint">From the student's launch or the class roster.</span>
+                    </div>
+                    <div class="demo-field">
+                        <label for="scoreGiven">Score given</label>
+                        <input type="number" id="scoreGiven" name="scoreGiven" min="0" step="any"/>
+                    </div>
+                    <div class="demo-field">
+                        <label for="scoreMaximum">Score maximum</label>
+                        <input type="number" id="scoreMaximum" name="scoreMaximum" min="0" step="any" th:value="${lineitem.scoreMaximum}"/>
+                    </div>
+                    <div class="demo-field">
+                        <label for="activityProgress">Activity progress</label>
+                        <select id="activityProgress" name="activityProgress">
+                            <option>Initialized</option>
+                            <option>Started</option>
+                            <option>InProgress</option>
+                            <option>Submitted</option>
+                            <option selected>Completed</option>
+                        </select>
+                    </div>
+                    <div class="demo-field">
+                        <label for="gradingProgress">Grading progress</label>
+                        <select id="gradingProgress" name="gradingProgress">
+                            <option selected>FullyGraded</option>
+                            <option>Pending</option>
+                            <option>PendingManual</option>
+                            <option>Failed</option>
+                            <option>NotReady</option>
+                        </select>
+                    </div>
+                    <div class="demo-field">
+                        <label for="timestamp">Timestamp</label>
+                        <input type="text" id="timestamp" name="timestamp"/>
+                        <span class="demo-hint">ISO 8601. Filled with the current time.</span>
+                    </div>
+                    <div class="demo-field" style="grid-column: 1 / -1">
+                        <label for="comment">Comment</label>
+                        <input type="text" id="comment" name="comment" value=" "/>
+                        <span class="demo-hint">Shown to the student in the LMS. (Schoology requires a value, even a space.)</span>
+                    </div>
+                </div>
+                <div class="demo-actions">
+                    <button type="submit" class="demo-button">Post score</button>
+                    <button type="reset" class="demo-button secondary">Clear</button>
+                </div>
+            </form>
+        </section>
 
-    <h3> SCORES </h3>
-
-    <div th:each="lineitem : ${lineitems}">
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Id</th>
-            <th scope="col">UserId</th>
-            <th scope="col">resultMaximum</th>
-            <th scope="col">resultScore</th>
-            <th scope="col">comment</th>
-            <th scope="col">scoreOf</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="result,rowStat2 : ${lineitem.results.resultList}">
-            <td th:text="${rowStat2.count}">1</td>
-            <td th:text="${result.id}"></td>
-            <td th:text="${result.userId}"></td>
-            <td th:text="${result.resultMaximum}"></td>
-            <td th:text="${result.resultScore}"></td>
-            <td th:text="${result.comment}"></td>
-            <td th:text="${result.scoreOf}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-
-<div th:if="${lineitems != null and #lists.isEmpty(lineitems)}">
-    <p>No existing lineitem</p>
-</div>
-
-
-<p>&nbsp;</p>
-
+        <section class="demo-card" data-tour="3" data-tour-title="Results">
+            <template data-tour-text>
+                <p>Results are what the LMS currently holds for each user. If an instructor overrides a grade in the LMS, it shows up here, so a tool can notice changes it didn't make.</p>
+            </template>
+            <h2 th:text="${clientMode} ? 'Scores' : 'Results from the LMS'">Results</h2>
+            <p class="demo-empty" th:if="${lineitem.results == null or #lists.isEmpty(lineitem.results.resultList)}">No scores yet.</p>
+            <div class="demo-table-wrap" th:if="${lineitem.results != null and !#lists.isEmpty(lineitem.results.resultList)}">
+                <table class="demo-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">User id</th>
+                        <th scope="col">Score</th>
+                        <th scope="col">Comment</th>
+                        <th scope="col" th:unless="${clientMode}">Result id</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="result : ${lineitem.results.resultList}">
+                        <td class="wrap demo-mono" th:text="${result.userId}"></td>
+                        <td th:text="${result.resultScore} + ' / ' + ${result.resultMaximum}"></td>
+                        <td th:text="${result.comment}"></td>
+                        <td th:unless="${clientMode}" class="wrap demo-mono" th:text="${result.id}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </th:block>
+</main>
+<script>
+    // Default the timestamp to now, so a score posted twice still counts as the newest.
+    (function () {
+        var field = document.getElementById('timestamp');
+        if (field && !field.value) {
+            field.value = new Date().toISOString();
+        }
+    })();
+</script>
+<script type="text/javascript" th:src="@{/js/demoTour.js}" th:unless="${clientMode}"></script>
 </body>
 </html>

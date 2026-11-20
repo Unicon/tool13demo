@@ -13,405 +13,194 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org
-http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI 3 </title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
-</head>
-<body>
-<div class="demo-bar">
-    <span>Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge">Technical walkthrough</span>
-</div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Deep linking')}"></head>
 
-<h4>LTI 1.3 Deep Linking Initiation Request was successful!</h4>
+<body class="demo" data-tour-autostart="true">
+<div th:replace="~{fragments/demo :: bar('Technical walkthrough', true)}"></div>
 
-<button class="accordion">
-    Click to view the Deep Linking data received from the LTI Request
-</button>
+<main class="demo-main">
 
-
-
-<div class="panel">
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>iss:</strong></label>
-                <span th:text="${lti3Request.iss}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>aud:</strong></label>
-                <span th:text="${lti3Request.aud}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>iat:</strong></label>
-                <span th:text="${lti3Request.iat}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>exp:</strong></label>
-                <span th:text="${lti3Request.exp}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>sub:</strong></label>
-                <span th:text="${lti3Request.sub}"/>
-            </li>
-        </ul>
+    <div data-tour="0" data-tour-title="A deep linking launch">
+        <template data-tour-text>
+            <p>Deep linking goes through the same login, authentication and state check as any launch. The difference is the message type: <code>LtiDeepLinkingRequest</code> instead of <code>LtiResourceLinkRequest</code>.</p>
+            <p>The LMS isn't asking the tool to show content. It's asking the tool to <strong>pick</strong> content and send back links to add to the course.</p>
+        </template>
+        <ol th:replace="~{fragments/demo :: progress(4)}"></ol>
     </div>
-    <p>&nbsp;</p>
 
-    <div>
+    <p class="demo-eyebrow">Step 4 of the launch &middot; Deep linking</p>
+    <h1 class="demo-title">Choose content for the LMS</h1>
+    <p class="demo-lead">
+        The tool shows its content picker. When you choose items, the tool signs a <strong>deep linking response</strong>
+        JWT that lists them, and the browser posts it back to the LMS, which adds the links (and any gradebook columns).
+    </p>
 
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>deepLinkingSettings (a map):</strong></label>
-                <span th:text="${lti3Request.deepLinkingSettings}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkReturnUrl:</strong></label>
-                <span th:text="${lti3Request.deepLinkReturnUrl}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkAcceptTypes (a List):</strong></label>
-                <span th:text="${lti3Request.deepLinkAcceptTypes}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkAcceptMediaTypes:</strong></label>
-                <span th:text="${lti3Request.deepLinkAcceptTypes}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkAcceptPresentationDocumentTargets (a List):</strong></label>
-                <span th:text="${lti3Request.deepLinkAcceptMediaTypes}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkAcceptMultiple:</strong></label>
-                <span th:text="${lti3Request.deepLinkAcceptMultiple}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkAutoCreate:</strong></label>
-                <span th:text="${lti3Request.deepLinkAutoCreate}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkTitle:</strong></label>
-                <span th:text="${lti3Request.deepLinkTitle}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkText:</strong></label>
-                <span th:text="${lti3Request.deepLinkText}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>deepLinkData:</strong></label>
-                <span th:text="${lti3Request.deepLinkData}"/>
-            </li>
-        </ul>
-    </div>
-</div>
+    <section class="demo-card" data-tour="1" data-tour-title="What the LMS will accept">
+        <template data-tour-text>
+            <p>The deep linking settings claim tells the tool what it may send back: which content types, whether more than one item is allowed, and where to post the response (<code>deep_link_return_url</code>).</p>
+            <p><code>data</code>, if present, must be echoed back unchanged.</p>
+        </template>
+        <h2>Deep linking settings</h2>
+        <dl class="demo-kv">
+            <dt><code>deep_link_return_url</code></dt>
+            <dd th:text="${lti3Request.deepLinkReturnUrl}"></dd>
+            <dt><code>accept_types</code></dt>
+            <dd><span class="demo-pill" th:each="type : ${lti3Request.deepLinkAcceptTypes}" th:text="${type}">ltiResourceLink</span></dd>
+            <dt><code>accept_media_types</code></dt>
+            <dd th:text="${lti3Request.deepLinkAcceptMediaTypes} ?: '(any)'"></dd>
+            <dt><code>accept_presentation_document_targets</code></dt>
+            <dd><span class="demo-pill" th:each="target : ${lti3Request.deepLinkAcceptPresentationDocumentTargets}" th:text="${target}">iframe</span></dd>
+            <dt><code>accept_multiple</code></dt>
+            <dd th:text="${lti3Request.deepLinkAcceptMultiple}"></dd>
+            <dt><code>auto_create</code></dt>
+            <dd th:text="${lti3Request.deepLinkAutoCreate} ?: '(not set)'"></dd>
+            <dt><code>title</code> / <code>text</code></dt>
+            <dd><span th:text="${lti3Request.deepLinkTitle} ?: '(none)'"></span><span class="demo-hint" th:text="${lti3Request.deepLinkText}"></span></dd>
+            <dt><code>data</code></dt>
+            <dd class="demo-mono" th:text="${lti3Request.deepLinkData} ?: '(none)'"></dd>
+        </dl>
+    </section>
 
-<br/>
-<h4>Content Menu:</h4>
-<div>Select the link(s) you would like to add to your course.</div>
-
-<script>
-    function submitForm() {
-    // Get all checkboxes
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    document.getElementById("post_to_lms_button").classList.add('disabled');
-    document.getElementById("post_to_lms_button").disabled = true;
-    // Filter checked checkboxes
-    var checkedCheckboxes = Array.from(checkboxes).filter(checkbox => checkbox.checked);
-
-    // Get the IDs of checked checkboxes
-    var selectedIds = checkedCheckboxes.map(checkbox => checkbox.value);
-
-    // Send selectedIds to a specific URL using a POST request
-    var apiUrl = '/deeplink/toJwt';
-    fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ selectedIds: selectedIds,
-        nonce: "[[${ nonce }]]",
-        state_hash: "[[${ state_hash }]]",
-        token: "[[${token}]]",
-        id_token: "[[${id_token}]]"
-        }),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' +  response.error + ':' + response.message);
-      }
-      return response.json();
-    })
-    .then(data => {
-      // Handle the response from the server if needed
-      console.log('Server response:', data);
-      document.getElementById('JWT_manual').value = data.jwtstring;
-      document.getElementById("post_to_lms_button").classList.remove('disabled');
-      document.getElementById("post_to_lms_button").disabled=false;
-    })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  }
-</script>
-
-
-<form id="checkboxForm">
-    <ul>
-        <!-- Iterate over the deeplinks and generate checkboxes -->
-        <li th:each="deeplink : ${deeplinks}">
-            <input type="checkbox" th:id="${deeplink.toolLinkId}" th:name="'selectedIds'" th:value="${deeplink.toolLinkId}">
-            <label th:for="${deeplink.toolLinkId}" th:text="${deeplink.title}"></label>
-        </li>
-        <input id="state_hash" name="state_hash" type="hidden" value="${state_hash}" />
-        <input id="nonce" name="nonce" type="hidden" value="${nonce}" />
-        <input id="token" name="token" type="hidden" value="${token}" />
-        <input id="id_token" name="id_token" type="hidden" value="${id_token}" />
-    </ul>
-    <button type="button" onclick="submitForm()">Select</button>
-</form>
-
-<form th:action="${lti3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
-    <div class="form-group">
-        <input type="text" id="JWT_manual" name="JWT" class="form-control"/>
-    </div>
-    <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="btn btn-primary disabled" disabled="true">Send to the LMS</button>
-</form>
-
-<div></br></br></div>
-
-<h4>Hardcoded Examples:</h4>
-<div>Select the link(s) you would like to add to your course.</div>
-<tr th:each="instance : ${lti3Request.deepLinkJwts}">
-    <button class="accordion">
-        <label><strong><span th:text="${instance.key}"/></strong></label>
-    </button>
-    <div class="panel">
-        <span th:text="${instance.value[1]}" style="white-space: pre"/>
-        <form th:action="${lti3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
-            <div class="form-group">
-                <input type="text" id="JWT" name="JWT" th:value="${instance.value[0]}" class="form-control"/>
+    <section class="demo-card" data-tour="2" data-tour-title="Pick content">
+        <template data-tour-text>
+            <p>This list is the tool's own content (the <code>tool_link</code> table). Graded items also send a <strong>line item</strong>, so the LMS creates a gradebook column with them.</p>
+            <p>Check one or more, then <strong>Build the response</strong>. The tool signs the JWT on the server with its private key.</p>
+        </template>
+        <h2>Pick content</h2>
+        <form id="checkboxForm">
+            <p class="demo-empty" th:if="${#lists.isEmpty(deeplinks)}">No content is loaded in the tool yet.</p>
+            <ul class="demo-picker">
+                <li th:each="deeplink : ${deeplinks}">
+                    <label>
+                        <input type="checkbox" th:id="${deeplink.toolLinkId}" name="selectedIds" th:value="${deeplink.toolLinkId}"/>
+                        <span class="demo-picker-text">
+                            <strong th:text="${deeplink.title}">Title</strong>
+                            <span th:text="${deeplink.description}">Description</span>
+                        </span>
+                    </label>
+                </li>
+            </ul>
+            <div class="demo-actions">
+                <button type="button" class="demo-button secondary" onclick="submitForm()">Build the response</button>
+                <span class="demo-hint" id="build_status" role="status"></span>
             </div>
-            <button th:attr="onclick='performActionBeforeSubmit(\'' + ${instance.key} + '\')'" type="button" class="btn btn-primary">Send to the LMS</button>
         </form>
-    </div>
-    <p></p>
-    </tr>
-</tr>
+    </section>
 
-<script>
+    <section class="demo-card" data-tour="3" data-tour-title="The signed response">
+        <template data-tour-text>
+            <p>The content items (each an <code>ltiResourceLink</code> with a title, URL and optional <code>lineItem</code>) go inside a JWT of type <code>LtiDeepLinkingResponse</code>, signed by the tool.</p>
+            <p><strong>Send to the LMS</strong> posts it as a form field named <code>JWT</code> to the return URL. The LMS verifies it with the tool's public key and adds the links.</p>
+        </template>
+        <h2>The signed response</h2>
+        <p class="demo-hint" id="items_hint">Build the response to see the content items and the JWT.</p>
+        <pre class="demo-code d-none" id="deep_link_items"></pre>
+        <form th:action="${lti3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
+            <div class="demo-field" style="margin-top: 12px">
+                <label for="JWT_manual">JWT</label>
+                <textarea id="JWT_manual" name="JWT" rows="3" readonly></textarea>
+            </div>
+            <div class="demo-actions">
+                <button type="button" id="post_to_lms_button" onclick="performActionBeforeSubmit('deepLinkResponseForm')" class="demo-button" disabled>Send to the LMS</button>
+            </div>
+        </form>
+    </section>
+
+    <details class="demo-card demo-details" data-tour="4" data-tour-title="Prebuilt examples">
+        <template data-tour-text>
+            <p>Hand-built responses that show edge cases: an empty response, several items at once, items with line items, custom parameters and more. Each one is already signed and can be sent as is.</p>
+        </template>
+        <summary>Prebuilt examples <span class="demo-hint">(signed responses for edge cases)</span></summary>
+        <div th:each="instance : ${lti3Request.deepLinkJwts}" style="margin-bottom: 16px">
+            <p class="demo-card-text"><strong th:text="${instance.key}">Example</strong></p>
+            <pre class="demo-code" th:text="${@demoFormatter.json(instance.value[1])}"></pre>
+            <form th:action="${lti3Request.deepLinkReturnUrl}" th:id="${instance.key}" method="POST">
+                <input type="hidden" name="JWT" th:value="${instance.value[0]}"/>
+                <div class="demo-actions">
+                    <button th:attr="onclick='performActionBeforeSubmit(\'' + ${instance.key} + '\')'" type="button" class="demo-button secondary small">Send this example</button>
+                </div>
+            </form>
+        </div>
+    </details>
+
+    <details class="demo-card demo-details" data-tour="5" data-tour-title="The deep linking request">
+        <template data-tour-text>
+            <p>The full ID token for this request, decoded. Look for the <code>deep_linking_settings</code> claim alongside the usual user, course and platform claims.</p>
+        </template>
+        <summary>The whole ID token <span class="demo-hint">(decoded claims)</span></summary>
+        <pre class="demo-code" th:text="${@demoFormatter.jwtPayload(id_token)}"></pre>
+    </details>
+</main>
+
+<script th:inline="javascript">
+    const launch = {
+        nonce: [[${nonce}]],
+        state_hash: [[${state_hash}]],
+        token: [[${token}]],
+        id_token: [[${id_token}]]
+    };
+
+    function submitForm() {
+        const sendButton = document.getElementById("post_to_lms_button");
+        const status = document.getElementById("build_status");
+        sendButton.disabled = true;
+        const selectedIds = Array.from(document.querySelectorAll('#checkboxForm input[name="selectedIds"]:checked'))
+            .map(checkbox => checkbox.value);
+        if (selectedIds.length === 0) {
+            status.textContent = 'Choose at least one item.';
+            return;
+        }
+        status.textContent = 'Signing…';
+
+        fetch('/deeplink/toJwt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign({ selectedIds: selectedIds }, launch)),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('The server returned ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Server response:', data);
+            document.getElementById('JWT_manual').value = data.jwtstring;
+            const items = document.getElementById('deep_link_items');
+            items.textContent = JSON.stringify(data.jsonstring, null, 2);
+            items.classList.remove('d-none');
+            document.getElementById('items_hint').textContent =
+                'Content items in the response (' + selectedIds.length + '), then the signed JWT that carries them:';
+            status.textContent = 'Signed. Review it below, then send it to the LMS.';
+            sendButton.disabled = false;
+            if (window.demoTour) { window.demoTour.refresh(); }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            status.textContent = 'Could not build the response: ' + error.message;
+        });
+    }
+
     function performActionBeforeSubmit(form) {
-
-    // Perform the POST request using fetch
-    fetch('/deeplink/deleteNonce', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        nonce: "[[${ nonce }]]",
-        state_hash: "[[${ state_hash }]]",
-        token: "[[${token}]]",
-        id_token: "[[${id_token}]]"
-        }),
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok: ' +  response.error + ':' + response.message);
-      }
-      // Continue with the form submission if needed
-      document.getElementById(form).submit();
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      // Handle the error as needed
-    });
-  }
+        // Retire the nonce first so this launch can't be reused, then post the JWT to the LMS.
+        fetch('/deeplink/deleteNonce', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(launch),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('The server returned ' + response.status);
+            }
+            document.getElementById(form).submit();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById("build_status").textContent = 'Could not send to the LMS: ' + error.message;
+        });
+    }
 </script>
-
-<button class="accordion">
-    Click to view additional data received from the LTI request
-</button>
-<div class="panel">
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiMessageType:</strong></label>
-                <span th:text="${lti3Request.ltiMessageType}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiVersion:</strong></label>
-                <span th:text="${lti3Request.ltiVersion}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiGivenName:</strong></label>
-                <span th:text="${lti3Request.ltiGivenName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiFamilyName:</strong></label>
-                <span th:text="${lti3Request.ltiFamilyName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiMiddleName:</strong></label>
-                <span th:text="${lti3Request.ltiMiddleName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiPicture:</strong></label>
-                <span th:text="${lti3Request.ltiPicture}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiEmail:</strong></label>
-                <span th:text="${lti3Request.ltiEmail}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>locale:</strong></label>
-                <span th:text="${lti3Request.locale}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>nonce</strong></label>
-                <span th:text="${lti3Request.nonce}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>lti11LegacyUserId</strong></label>
-                <span th:text="${lti3Request.lti11LegacyUserId}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiTargetLinkUrl</strong></label>
-                <span th:text="${lti3Request.ltiTargetLinkUrl}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>Roles, is a list:</strong></label>
-                <span th:text="${lti3Request.ltiRoles}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
-                <span th:text="${lti3Request.ltiRoleScopeMentor}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiResourceLink, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiResourceLink}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiContext, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiContext}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiToolPlatform, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiToolPlatform}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiEndpoint, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiEndpoint}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiNamesRoleService, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiNamesRoleService}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiCaliperEndpointService}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiLaunchPresentation, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiLaunchPresentation}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiExtension, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiExtension}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiCustom, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiCustom}"/>
-            </li>
-        </ul>
-    </div>
-
-
-    <p>&nbsp;</p>
-
-</div>
-
-<script type="text/javascript" th:src="@{/js/utils.js}"></script>
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
 </html>

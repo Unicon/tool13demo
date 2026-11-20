@@ -13,267 +13,140 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI 1.3</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
-</head>
-<body>
-<div class="demo-bar">
-    <span>Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge">Technical walkthrough</span>
-</div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Launch complete')}"></head>
 
-<h4>The LTI 1.3 Launch was successful! This is the tool's landing page!</h4>
-<br/>
-<h5>This is the tool specific content:</h5>
+<body class="demo" data-tour-autostart="true">
+<div th:replace="~{fragments/demo :: bar('Technical walkthrough', true)}"></div>
 
-<div>
-    <span th:text="${htmlContent}" style="white-space: pre-line"></span>
-</div>
+<main class="demo-main">
 
-<p>&nbsp;</p>
-<h4>MEMBERSHIP SERVICE: </h4>
-<div>
-    <a th:href="@{/membership/(advantageToken=${advantageToken})}" target="_blank">Click here to see the users on this course using the LTI Adv membership
-        service</a>
-</div>
-
-<p>&nbsp;</p>
-<h4>AGS SERVICE: </h4>
-<div>
-    <a th:href="@{/ags/(advantageToken=${advantageToken})}" target="_blank">Click here to see the lineitems on this course using the LTI Adv AGS
-        service</a>
-</div>
-
-<p>&nbsp;</p>
-<button class="accordion large-font">
-    Click to view the data received from the LTI Request
-</button>
-<div class="panel">
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>iss:</strong></label>
-                <span th:text="${lti3Request.iss}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>aud:</strong></label>
-                <span th:text="${lti3Request.aud}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>iat:</strong></label>
-                <span th:text="${lti3Request.iat}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>exp:</strong></label>
-                <span th:text="${lti3Request.exp}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>sub:</strong></label>
-                <span th:text="${lti3Request.sub}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiMessageType:</strong></label>
-                <span th:text="${lti3Request.ltiMessageType}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiVersion:</strong></label>
-                <span th:text="${lti3Request.ltiVersion}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiGivenName:</strong></label>
-                <span th:text="${lti3Request.ltiGivenName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiFamilyName:</strong></label>
-                <span th:text="${lti3Request.ltiFamilyName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiMiddleName:</strong></label>
-                <span th:text="${lti3Request.ltiMiddleName}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiPicture:</strong></label>
-                <span th:text="${lti3Request.ltiPicture}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiEmail:</strong></label>
-                <span th:text="${lti3Request.ltiEmail}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>locale:</strong></label>
-                <span th:text="${lti3Request.locale}"/>
-            </li>
-        </ul>
+    <div data-tour="0" data-tour-title="The launch is complete">
+        <template data-tour-text>
+            <p>The server checked the state, nonce and signed hash, verified the ID token's signature with the LMS's public keys, and saved the user, course and link. This is where a real tool would start showing content.</p>
+        </template>
+        <ol th:replace="~{fragments/demo :: progress(4)}"></ol>
     </div>
 
-    <p>&nbsp;</p>
+    <p class="demo-eyebrow">Step 4 of the launch</p>
+    <h1 class="demo-title">Launch complete</h1>
+    <p class="demo-lead">
+        Everything below came from the ID token. A production tool would use it to sign the user in, find the right
+        course, and open the content that was linked, without showing any of this.
+    </p>
 
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>Deployment ID</strong></label>
-                <span th:text="${lti3Request.ltiDeploymentId}"/>
-            </li>
-        </ul>
-    </div>
+    <section class="demo-card" data-tour="1" data-tour-title="What was launched">
+        <template data-tour-text>
+            <p>The tool works out what to show from the <code>target_link_uri</code> and the resource link claim. Deep-linked content carries the tool's own item id in the target link (<code>?link=</code>), so the tool can open the right item.</p>
+            <p>A launch from course navigation has no item, so a real tool would show a course home instead.</p>
+        </template>
+        <h2>What was launched</h2>
+        <th:block th:if="${toolLink != null}">
+            <p>
+                <span class="demo-pill graded" th:if="${toolLink.isAssignment}"
+                      th:text="${toolLink.maxGrade != null} ? ${'Graded · ' + #numbers.formatDecimal(toolLink.maxGrade, 1, 0) + ' points'} : 'Graded'">Graded</span>
+                <span class="demo-pill" th:unless="${toolLink.isAssignment}">Reading</span>
+            </p>
+            <p class="demo-card-text"><strong th:text="${toolLink.title}">Title</strong></p>
+            <p class="demo-card-text" th:text="${toolLink.description}">Description</p>
+        </th:block>
+        <p class="demo-card-text" th:if="${toolLink == null}" th:text="${htmlContent}" style="white-space: pre-line"></p>
+        <dl class="demo-kv">
+            <dt><code>target_link_uri</code></dt>
+            <dd th:text="${lti3Request.ltiTargetLinkUrl}"></dd>
+            <dt>Resource link</dt>
+            <dd>
+                <span th:text="${lti3Request.ltiLinkTitle} ?: '(no title)'"></span>
+                <span class="demo-hint">id <code th:text="${lti3Request.ltiLinkId}"></code>, unique to this placement in this course</span>
+            </dd>
+            <dt>Message type</dt>
+            <dd><code th:text="${lti3Request.ltiMessageType}"></code> <span class="demo-hint" th:text="'LTI version ' + ${lti3Request.ltiVersion}"></span></dd>
+        </dl>
+    </section>
 
-    <p>&nbsp;</p>
+    <section class="demo-card" data-tour="2" data-tour-title="Who, where, and with what role">
+        <template data-tour-text>
+            <p><code>sub</code> is the user's stable id for this tool. It's what you send back when posting a grade. Names and email only arrive if the LMS's privacy setting allows it.</p>
+            <p>Roles drive what the tool shows: instructors usually get settings and grading, learners get the content.</p>
+        </template>
+        <h2>Who, where, and with what role</h2>
+        <div class="demo-grid-2">
+            <dl class="demo-kv">
+                <dt><code>sub</code></dt>
+                <dd><span class="demo-mono" th:text="${lti3Request.sub}"></span><span class="demo-hint">The user's id for this tool. Needed to post a score.</span></dd>
+                <dt>Name</dt>
+                <dd th:text="${lti3Request.ltiName} ?: '(not shared)'"></dd>
+                <dt>Email</dt>
+                <dd th:text="${lti3Request.ltiEmail} ?: '(not shared)'"></dd>
+                <dt>Roles</dt>
+                <dd>
+                    <span class="demo-pill" th:each="role : ${@demoFormatter.roles(lti3Request.ltiRoles)}" th:text="${role}">Instructor</span>
+                </dd>
+                <dt>LTI 1.1 user id</dt>
+                <dd th:text="${lti3Request.lti11LegacyUserId} ?: '(none)'"></dd>
+            </dl>
+            <dl class="demo-kv">
+                <dt>Course</dt>
+                <dd>
+                    <span th:text="${lti3Request.ltiContextTitle}"></span>
+                    <span class="demo-hint" th:text="${lti3Request.ltiContextLabel}"></span>
+                </dd>
+                <dt>Course id</dt>
+                <dd class="demo-mono" th:text="${lti3Request.ltiContextId}"></dd>
+                <dt>Platform</dt>
+                <dd>
+                    <span th:text="${lti3Request.ltiToolPlatformName}"></span>
+                    <span class="demo-hint" th:text="${lti3Request.ltiToolPlatformProduct} + ' ' + ${lti3Request.ltiToolPlatformVersion}"></span>
+                </dd>
+                <dt><code>deployment_id</code></dt>
+                <dd class="demo-mono" th:text="${lti3Request.ltiDeploymentId}"></dd>
+                <dt>Locale</dt>
+                <dd th:text="${lti3Request.locale}"></dd>
+            </dl>
+        </div>
+    </section>
 
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>nonce</strong></label>
-                <span th:text="${lti3Request.nonce}"/>
-            </li>
-        </ul>
-    </div>
+    <section class="demo-card" data-tour="3" data-tour-title="LTI Advantage services">
+        <template data-tour-text>
+            <p>The ID token also hands the tool service URLs. To call them, the tool gets an OAuth 2 access token from the LMS by signing a <strong>client assertion</strong> JWT with its private key (no user involved).</p>
+            <p><strong>NRPS</strong> returns the course roster. <strong>AGS</strong> manages gradebook columns (line items) and posts scores. Both open in a new tab.</p>
+        </template>
+        <h2>LTI Advantage services</h2>
+        <div class="demo-grid-2">
+            <div>
+                <p class="demo-card-text"><strong>Names and Role Provisioning (NRPS)</strong></p>
+                <p class="demo-hint" th:if="${lti3Request.ltiNamesRoleServiceContextMembershipsUrl == null}">Not offered in this launch.</p>
+                <p class="demo-token" th:if="${lti3Request.ltiNamesRoleServiceContextMembershipsUrl != null}" th:text="${lti3Request.ltiNamesRoleServiceContextMembershipsUrl}"></p>
+                <div class="demo-actions">
+                    <a class="demo-button" th:href="@{/membership/(advantageToken=${advantageToken}, demo_audience='technical')}" target="_blank" rel="noopener">View the roster</a>
+                </div>
+            </div>
+            <div>
+                <p class="demo-card-text"><strong>Assignment and Grade Services (AGS)</strong></p>
+                <p class="demo-hint" th:if="${lti3Request.ltiEndpointLineItems == null}">Not offered in this launch.</p>
+                <p class="demo-token" th:if="${lti3Request.ltiEndpointLineItems != null}" th:text="${lti3Request.ltiEndpointLineItems}"></p>
+                <p class="demo-hint" th:if="${lti3Request.ltiEndpointScope != null}">
+                    Scopes: <span class="demo-pill" th:each="scope : ${lti3Request.ltiEndpointScope}" th:text="${@demoFormatter.role(scope)}">score</span>
+                </p>
+                <div class="demo-actions">
+                    <a class="demo-button" th:href="@{/ags/(advantageToken=${advantageToken}, demo_audience='technical')}" target="_blank" rel="noopener">View line items</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <p>&nbsp;</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>lti11LegacyUserId</strong></label>
-                <span th:text="${lti3Request.lti11LegacyUserId}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiTargetLinkUrl</strong></label>
-                <span th:text="${lti3Request.ltiTargetLinkUrl}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>Roles, is a list:</strong></label>
-                <span th:text="${lti3Request.ltiRoles}"/>
-            </li>
-            <li class="list-group-item ">
-                <label><strong>ltiRoleScopeMentor, is a list:</strong></label>
-                <span th:text="${lti3Request.ltiRoleScopeMentor}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiResourceLink, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiResourceLink}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiContext, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiContext}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiToolPlatform, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiToolPlatform}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiEndpoint, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiEndpoint}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiNamesRoleService, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiNamesRoleService}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiCaliperEndpointService, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiCaliperEndpointService}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiLaunchPresentation, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiLaunchPresentation}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiLis, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiLis}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiExtension, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiExtension}"/>
-            </li>
-        </ul>
-    </div>
-
-    <p>&nbsp;</p>
-    <div>
-        <ul class="list-group">
-            <li class="list-group-item ">
-                <label><strong>ltiCustom, is a map:</strong></label>
-                <span th:text="${lti3Request.ltiCustom}"/>
-            </li>
-        </ul>
-    </div>
-    <p>&nbsp;</p>
-
-</div>
-
-<script type="text/javascript" th:src="@{/js/utils.js}"></script>
+    <details class="demo-card demo-details" data-tour="4" data-tour-title="The whole ID token">
+        <template data-tour-text>
+            <p>Every claim the LMS sent, decoded. LTI claims are namespaced URLs such as <code>https://purl.imsglobal.org/spec/lti/claim/context</code>; Canvas adds its own under an extension claim.</p>
+            <p>The header's <code>kid</code> names the LMS key that signed it.</p>
+        </template>
+        <summary>The whole ID token <span class="demo-hint">(decoded header and claims)</span></summary>
+        <p class="demo-hint">Header</p>
+        <pre class="demo-code" th:text="${@demoFormatter.jwtHeader(id_token)}"></pre>
+        <p class="demo-hint" style="margin-top: 12px">Claims</p>
+        <pre class="demo-code" th:text="${@demoFormatter.jwtPayload(id_token)}"></pre>
+    </details>
+</main>
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
 </html>

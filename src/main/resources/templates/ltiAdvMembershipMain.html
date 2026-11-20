@@ -13,53 +13,63 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI 3 </title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
-<h4>Membership: </h4>
-<p>&nbsp;</p>
-<div th:if="${noSessionValues}">
-    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
-        in the course and the deployment. </p>
-    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership
-        service without a session created. </p>
-</div>
-<div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>Users on the course</h4>
-    <table class="table table-striped">
-        <caption>Lineitmes</caption>
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Name</th>
-            <th scope="col">userId</th>
-            <th scope="col">Role</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="user,rowStat : ${results}">
-            <td th:text="${rowStat.count}">1</td>
-            <td th:text="${user.name}"></td>
-            <td th:text="${user.userId}"></td>
-            <td th:text="${#strings.listJoin(user.roles,', ')}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Class roster')}"></head>
 
-<div th:if="${results != null and #lists.isEmpty(results)}">
-    <p>We are not receiving users for this context</p>
-</div>
-<p>&nbsp;</p>
+<!-- demo_audience comes from the link on the landing page: client pages hide the protocol detail and the tour. -->
+<body class="demo"
+      th:with="clientMode=${param.demo_audience != null and param.demo_audience[0] == 'client'}"
+      th:attr="data-tour-autostart=${!clientMode}">
+<div th:replace="~{fragments/demo :: bar(${clientMode} ? 'Client demo' : 'Technical walkthrough', ${!clientMode})}"></div>
 
+<main class="demo-main">
+    <p class="demo-eyebrow" th:unless="${clientMode}">LTI Advantage &middot; Names and Role Provisioning Services</p>
+    <h1 class="demo-title">Class roster</h1>
+    <p class="demo-lead" th:unless="${clientMode}" data-tour="1" data-tour-title="What NRPS is for">
+        <template data-tour-text>
+            <p>NRPS lets a tool learn who is in a course <strong>before</strong> they launch it, for example to set up groups or a gradebook. Most tools don't need it, because each launch already says who the user is.</p>
+            <p>LMSs that support LTI Advantage must offer it; tools may ignore it.</p>
+        </template>
+        The tool called the course's membership URL from the ID token, using an OAuth 2 access token it got from the
+        LMS with a signed client assertion. The LMS returned everyone enrolled, with their roles.
+    </p>
+    <p class="demo-lead" th:if="${clientMode}">Everyone enrolled in this course, as reported by the LMS.</p>
 
+    <div class="demo-callout warn" th:if="${noSessionValues}">
+        <p>Open this page from a launch. The roster link carries a short-lived token that identifies the course and deployment.</p>
+    </div>
+
+    <section class="demo-card" th:if="${results != null}" data-tour="2" data-tour-title="The roster">
+        <template data-tour-text>
+            <p>Each member's <code>user_id</code> is the same value as <code>sub</code> in that person's ID token, so the tool can match roster entries to launches (and post grades for people who haven't launched yet).</p>
+            <p>Roles are full LIS role URIs; they're shortened here.</p>
+        </template>
+        <div class="demo-card-head">
+            <h2 th:text="${#lists.size(results)} + ' members'">Members</h2>
+        </div>
+        <p class="demo-empty" th:if="${#lists.isEmpty(results)}">The LMS didn't return anyone for this course.</p>
+        <div class="demo-table-wrap" th:unless="${#lists.isEmpty(results)}">
+            <table class="demo-table">
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Role</th>
+                    <th scope="col" th:unless="${clientMode}">Email</th>
+                    <th scope="col" th:unless="${clientMode}"><code>user_id</code> (<code>sub</code>)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="user : ${results}">
+                    <td th:text="${user.name} ?: '(name not shared)'"></td>
+                    <td><span class="demo-pill" th:each="role : ${@demoFormatter.roles(user.roles)}" th:text="${role}">Learner</span></td>
+                    <td th:unless="${clientMode}" th:text="${user.email}"></td>
+                    <td th:unless="${clientMode}" class="wrap demo-mono" th:text="${user.userId}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+<script type="text/javascript" th:src="@{/js/demoTour.js}" th:unless="${clientMode}"></script>
 </body>
 </html>

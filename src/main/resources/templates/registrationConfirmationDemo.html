@@ -13,155 +13,41 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Registration complete')}"></head>
 
+<body class="demo" data-tour-autostart="true">
+<div th:replace="~{fragments/demo :: bar('Dynamic Registration', true)}"></div>
 
-<head>
-    <title>LTI 3 DYNAMIC REGISTRATION CONFIRMATION</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
+<main class="demo-main">
+    <p class="demo-eyebrow">LTI Dynamic Registration</p>
+    <h1 class="demo-title">Registration complete</h1>
+    <p class="demo-lead">The LMS accepted the tool's configuration. Its answer is below.</p>
 
+    <section class="demo-card" data-tour="1" data-tour-title="The LMS's answer">
+        <template data-tour-text>
+            <p>The LMS echoes the configuration it registered, plus the <code>client_id</code> it assigned. The tool has stored a registration with this client id, so launches from this LMS will be recognized.</p>
+            <p>In Canvas, an admin may still need to turn the new developer key on and install the app.</p>
+        </template>
+        <h2>The LMS's answer</h2>
+        <pre class="demo-code" th:text="${@demoFormatter.json(registration_confirmation)}"></pre>
+    </section>
+
+    <div class="demo-actions" data-tour="2" data-tour-title="Close the registration window">
+        <template data-tour-text>
+            <p>The tool tells the LMS it's finished by posting an <code>org.imsglobal.lti.close</code> message to the window that opened it. The LMS then closes this dialog and continues its own setup.</p>
+        </template>
+        <button type="button" class="demo-button" onclick="confirmRegistration()">Finish and return to the LMS</button>
+        <span class="demo-hint" id="close_status" role="status"></span>
+    </div>
+</main>
 <script>
-function confirmRegistration() {
-  alert("Sending confirmation close postMessage...");
-  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'*');
-
-  <!--  For non-Canvas LMSs, you can use issuer as the targetOrigin instead of * -->
-  <!--  (window.opener || window.parent).postMessage({subject:'org.imsglobal.lti.close'},'[[${issuer}]]');-->
-}
-
+    function confirmRegistration() {
+        // For LMSs other than Canvas, the issuer can be used as the targetOrigin instead of '*'.
+        (window.opener || window.parent).postMessage({subject: 'org.imsglobal.lti.close'}, '*');
+        document.getElementById('close_status').textContent = 'Sent org.imsglobal.lti.close to the LMS.';
+    }
 </script>
-
-<body>
-<h1>Confirmation after the dynamic registration</h1>
-<p><span th:text="${registration_confirmation}"/></p>
-
-<!--
-<div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-primary">
-            <label>client_uri:</label>
-            <span th:text="${tool_confirmation.client_uri}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>grant_types: </label>
-            <span th:text="${tool_confirmation.grant_types}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>application_type: </label>
-            <span th:text="${tool_confirmation.application_type}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>initiate_login_uri: </label>
-            <span th:text="${tool_confirmation.initiate_login_uri}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>https://purl.imsglobal.org/spec/lti-tool-configuration: </label>
-            <span th:text="${tool_confirmation.jwks_uri}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>registration_endpoint: </label>
-            <span th:text="${tool_confirmation.registration_endpoint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>scopes_supported: </label>
-            <span th:text="${tool_confirmation.scopes_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>response_types_supported: </label>
-            <span th:text="${tool_confirmation.response_types_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>subject_types_supported: </label>
-            <span th:text="${tool_confirmation.subject_types_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>id_token_signing_alg_values_supported: </label>
-            <span th:text="${tool_confirmation.id_token_signing_alg_values_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>claims_supported: </label>
-            <span th:text="${tool_confirmation.claims_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>authorization_server: </label>
-            <span th:text="${tool_confirmation.authorization_server}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>https://purl.imsglobal.org/spec/lti-platform-configuration: </label>
-            <span th:text="${tool_confirmation.platformConfiguration}"/>
-        </li>
-    </ul>
-</div>
--->
-
-
-<!--{
-"client_uri":null,
-"grant_types":[
-"implicit",
-"client_credentials"
-],
-"application_type":"web",
-"initiate_login_uri":"https://test-lti.unicon.net/oidc/login_initiations",
-"logo_uri":null,
-"https://purl.imsglobal.org/spec/lti-tool-configuration":{
-"messages_supported":[
-{
-"target_link_uri":"https://test-lti.unicon.net/lti3/",
-"placements":null,
-"label":null,
-"type":"LtiDeepLinkingRequest",
-"custom_parameters":null,
-"icon_uri":null
-},
-{
-"target_link_uri":"https://test-lti.unicon.net/lti3/",
-"placements":null,
-"label":null,
-"type":"LtiResourceLinkRequest",
-"custom_parameters":null,
-"icon_uri":null
-}
-],
-"domain":"test-lti.unicon.net",
-"target_link_uri":"https://test-lti.unicon.net/lti3/",
-"secondary_domains":null,
-"claims":[
-"iss",
-"aud"
-],
-"description":"The Unicon Demo tool",
-"deployment_id":"1",
-"custom_parameters":null
-},
-"redirect_uris":[
-"https://test-lti.unicon.net/lti3/"
-],
-"token_endpoint_auth_method":"private_key_jwt",
-"client_id":"9177d980-6306-45b2-aa69-9d41b417082f",
-"scope":[
-"openid",
-"https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
-"https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly",
-"https://purl.imsglobal.org/spec/lti-ags/scope/score",
-"https://purl.imsglobal.org/spec/lti-reg/scope/registration",
-"https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly"
-],
-"jwks_uri":"https://test-lti.unicon.net/jwks/jwk",
-"tos_uri":null,
-"client_name":"Unicon LTI 1.3",
-"contacts":null,
-"response_types":[
-"id_token"
-],
-"policy_uri":null
-}-->
-
-<button th:onclick="'confirmRegistration();'">Confirm Registration</button>
-
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
 </html>

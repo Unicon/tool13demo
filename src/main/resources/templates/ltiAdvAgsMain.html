@@ -13,148 +13,135 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI 1.3 AGS Demo</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
-<h4>Assignment and Grade Services </h4>
-<p>&nbsp;</p>
-<div th:if="${noAdvantageToken}">
-    <p>To view the membership you need first to access to the tool with a lti13 link. In that way, we will have a value
-        in the course and the deployment. </p>
-    <p>That is only the way we have secured this endpoint, because LTI Advantage allows you to access to the membership
-        service without a valid token created. </p>
-</div>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Line items')}"></head>
 
-<div th:if="${deleteResults != null and deleteResults}">
-    <p>LineItem deleted</p>
-</div>
-<div th:if="${deleteResults != null and !deleteResults}">
-    <p>LineItem NO deleted</p>
-</div>
+<!-- demo_audience comes from the link on the landing page: client pages hide the protocol detail and the tour. -->
+<body class="demo"
+      th:with="clientMode=${param.demo_audience != null and param.demo_audience[0] == 'client'},
+               audience=${clientMode} ? 'client' : 'technical'"
+      th:attr="data-tour-autostart=${!clientMode}">
+<div th:replace="~{fragments/demo :: bar(${clientMode} ? 'Client demo' : 'Technical walkthrough', ${!clientMode})}"></div>
 
-<div th:if="${!noAdvantageToken}">
-<h4>Create a new LineItem: </h4>
-<form action="#" method="post" th:action="@{/ags/(advantageToken=${advantageToken})}" th:object="${lineItem}">
-    <table>
-        <tr>
-            <td>Label: </td><td><input type="text" id="label" name="label" /></td>
-        </tr>
-        <tr>
-            <td>Tag: </td><td><input type="text" id="tag" name="tag" /></td>
-        </tr>
-        <tr>
-            <td>ScoreMaximum: </td><td><input type="text" id="scoreMaximum"  name="scoreMaximum" /></td>
-        </tr>
-        <tr>
-            <td>ResourceId: </td><td><input type="text" id="resourceId" name="resourceId" /></td>
-        </tr>
-        <tr>
-            <td>ResourceLinkId: </td><td><input type="text" id="resourceLinkId" name="resourceLinkId" /></td>
-        </tr>
-        <tr>
-            <td>StartDateTime: </td><td><input type="text" id="startDateTime" name="startDateTime" /></td>
-        </tr>
-        <tr>
-            <td>EnDateTime: </td><td><input type="text" id="endDateTime" name="endDateTime" /></td>
-        </tr>
-        <tr>
-            <td><input type="submit" value="Create new LineItem" /></td><td><input type="reset" value="Reset" /></td>
-        </tr>
-    </table>
-</form>
-<p>&nbsp;</p>
-</div>
+<main class="demo-main">
+    <p class="demo-eyebrow" th:unless="${clientMode}">LTI Advantage &middot; Assignment and Grade Services</p>
+    <h1 class="demo-title" th:text="${clientMode} ? 'Grades' : 'Line items'">Line items</h1>
+    <p class="demo-lead" th:unless="${clientMode}" data-tour="1" data-tour-title="What AGS does">
+        <template data-tour-text>
+            <p>A <strong>line item</strong> is a gradebook column. With AGS a tool can list, create, update and delete the columns it owns, post <strong>scores</strong> for a user, and read back <strong>results</strong> (including changes an instructor made in the LMS).</p>
+            <p>Every call uses an OAuth 2 access token the tool gets from the LMS with a signed client assertion, limited to the scopes on the developer key.</p>
+        </template>
+        These are the gradebook columns this tool owns in the course, read from the line items URL in the ID token.
+        From here you can create one, or open one to post a score.
+    </p>
+    <p class="demo-lead" th:if="${clientMode}">Gradebook columns this tool keeps in sync with the LMS.</p>
 
+    <div class="demo-callout warn" th:if="${noSessionValues}">
+        <p>Open this page from a launch. The link carries a short-lived token that identifies the course and deployment.</p>
+    </div>
+    <div class="demo-callout ok" th:if="${deleteResults != null and deleteResults}"><p>Line item deleted.</p></div>
+    <div class="demo-callout error" th:if="${deleteResults != null and !deleteResults}"><p>The LMS didn't delete that line item.</p></div>
+    <div class="demo-callout ok" th:if="${results != null and !#lists.isEmpty(results)}">
+        <p th:each="created : ${results}">Created <strong th:text="${created.label}"></strong> (<span th:text="${created.scoreMaximum}"></span> points).</p>
+    </div>
 
+    <section class="demo-card" th:if="${lineitems != null}" data-tour="2" data-tour-title="Line items in this course">
+        <template data-tour-text>
+            <p>Each line item has an <code>id</code> URL, which is also where its scores and results live. <code>resourceLinkId</code> ties a column to a specific link in the course; <code>resourceId</code> and <code>tag</code> are free for the tool's own use.</p>
+            <p>Open <strong>Scores</strong> to post a grade for a user.</p>
+        </template>
+        <h2 th:text="${clientMode} ? 'Columns' : 'Line items in this course'">Line items</h2>
+        <p class="demo-empty" th:if="${#lists.isEmpty(lineitems)}">This tool doesn't have any gradebook columns in this course yet.</p>
+        <div class="demo-table-wrap" th:unless="${#lists.isEmpty(lineitems)}">
+            <table class="demo-table">
+                <thead>
+                <tr>
+                    <th scope="col">Label</th>
+                    <th scope="col">Points</th>
+                    <th scope="col" th:unless="${clientMode}"><code>resourceLinkId</code></th>
+                    <th scope="col" th:unless="${clientMode}"><code>resourceId</code> / <code>tag</code></th>
+                    <th scope="col" th:unless="${clientMode}"><code>id</code></th>
+                    <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="lineitem : ${lineitems}"
+                    th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1},
+                             did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}">
+                    <td th:text="${lineitem.label}"></td>
+                    <td th:text="${lineitem.scoreMaximum}"></td>
+                    <td th:unless="${clientMode}" class="wrap demo-mono" th:text="${lineitem.resourceLinkId}"></td>
+                    <td th:unless="${clientMode}"><span th:text="${lineitem.resourceId}"></span> <span class="demo-hint" th:text="${lineitem.tag}"></span></td>
+                    <td th:unless="${clientMode}" class="wrap demo-mono" th:text="${lineitem.id}"></td>
+                    <td>
+                        <span class="demo-actions" style="margin: 0; flex-wrap: nowrap">
+                            <a class="demo-button small" th:href="@{/ags/{did}(did=${did}, advantageToken=${advantageToken}, demo_audience=${audience})}">Scores</a>
+                            <a class="demo-button danger small" th:unless="${clientMode}"
+                               th:href="@{/ags/delete/{did}(did=${did}, advantageToken=${advantageToken}, demo_audience=${audience})}">Delete</a>
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-<div th:if="${results != null and !#lists.isEmpty(results)}">
-    <h4>LineItem created/updated</h4>
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col">#</th>
-            <th scope="col">Id</th>
-            <th scope="col">scoreMaximum</th>
-            <th scope="col">label</th>
-            <th scope="col">resourceId</th>
-            <th scope="col">tag</th>
-            <th scope="col">resourceLinkId</th>
-            <th scope="col">startDateTime</th>
-            <th scope="col">endDateTime</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="lineitem,rowStat : ${results}">
-            <td th:text="${rowStat.count}">1</td>
-            <td th:text="${lineitem.id}"></td>
-            <td th:text="${lineitem.scoreMaximum}"></td>
-            <td th:text="${lineitem.label}"></td>
-            <td th:text="${lineitem.resourceId}"></td>
-            <td th:text="${lineitem.tag}"></td>
-            <td th:text="${lineitem.resourceLinkId}"></td>
-            <td th:text="${lineitem.startDateTime}"></td>
-            <td th:text="${lineitem.endDateTime}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-<div th:if="${lineitems != null and !#lists.isEmpty(lineitems)}">
-
-    <h4>LineItems on the course </h4>
-
-    <table class="table table-striped">
-        <thead class="thead-dark">
-        <tr>
-            <th scope="col"></th>
-            <th scope="col"></th>
-            <th scope="col">#</th>
-            <th scope="col">Id</th>
-            <th scope="col">scoreMaximum</th>
-            <th scope="col">label</th>
-            <th scope="col">resourceId</th>
-            <th scope="col">tag</th>
-            <th scope="col">resourceLinkId</th>
-            <th scope="col">startDateTime</th>
-            <th scope="col">endDateTime</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="lineitem,rowStat : ${lineitems}">
-            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/delete/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}, advantageToken=${advantageToken})}">Delete</a></td>
-            <td th:with="idLocator=${#strings.contains(lineitem.id, '?') ? 2 : 1}"><a th:href="@{/ags/{did}(did=${#strings.arraySplit(lineitem.id,'/')[#arrays.length(#strings.arraySplit(lineitem.id, '/')) - idLocator]}, advantageToken=${advantageToken})}">Detail</a></td>
-            <td th:text="${rowStat.count}">1</td>
-            <td th:text="${lineitem.id}"></td>
-            <td th:text="${lineitem.scoreMaximum}"></td>
-            <td th:text="${lineitem.label}"></td>
-            <td th:text="${lineitem.resourceId}"></td>
-            <td th:text="${lineitem.tag}"></td>
-            <td th:text="${lineitem.resourceLinkId}"></td>
-            <td th:text="${lineitem.startDateTime}"></td>
-            <td th:text="${lineitem.endDateTime}"></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-
-
-<div th:if="${lineitems != null and #lists.isEmpty(lineitems)}">
-    <p>No existing lineitems for this context/tool</p>
-</div>
-
-
-<p>&nbsp;</p>
-
-
-
-
+    <section class="demo-card" th:if="${noAdvantageToken == false and !clientMode}" data-tour="3" data-tour-title="Create a line item">
+        <template data-tour-text>
+            <p>This POSTs a new line item to the line items URL. Only <code>label</code> and <code>scoreMaximum</code> are required.</p>
+            <p>Leave the dates empty: if an instructor changes the due date in the LMS, the tool never hears about it, and the two drift apart.</p>
+        </template>
+        <h2>Create a line item</h2>
+        <form method="post" th:action="@{/ags/(advantageToken=${advantageToken}, demo_audience=${audience})}" th:object="${lineItem}">
+            <div class="demo-form-grid">
+                <div class="demo-field">
+                    <label for="label">Label</label>
+                    <input type="text" id="label" name="label" required/>
+                    <span class="demo-hint">The column name in the gradebook.</span>
+                </div>
+                <div class="demo-field">
+                    <label for="scoreMaximum">Maximum score</label>
+                    <input type="number" id="scoreMaximum" name="scoreMaximum" min="0" step="any" required/>
+                </div>
+                <div class="demo-field">
+                    <label for="resourceLinkId">Resource link id</label>
+                    <input type="text" id="resourceLinkId" name="resourceLinkId"/>
+                    <span class="demo-hint">Optional. Ties the column to one link, from that launch's resource link claim.</span>
+                </div>
+                <div class="demo-field">
+                    <label for="resourceId">Resource id</label>
+                    <input type="text" id="resourceId" name="resourceId"/>
+                    <span class="demo-hint">Optional. The tool's own id for the activity.</span>
+                </div>
+                <div class="demo-field">
+                    <label for="tag">Tag</label>
+                    <input type="text" id="tag" name="tag"/>
+                    <span class="demo-hint">Optional. For example "final" or "attempt-2".</span>
+                </div>
+            </div>
+            <details class="demo-details" style="margin-top: 14px">
+                <summary>Submission window <span class="demo-hint">(best left empty)</span></summary>
+                <div class="demo-callout warn">
+                    <p>Setting dates here is a common mistake. Instructors change due dates in the LMS, the tool never finds out, and the two drift apart. Let the LMS own the dates.</p>
+                </div>
+                <div class="demo-form-grid">
+                    <div class="demo-field">
+                        <label for="startDateTime">Start date and time</label>
+                        <input type="text" id="startDateTime" name="startDateTime" placeholder="2026-11-20T09:00:00Z"/>
+                    </div>
+                    <div class="demo-field">
+                        <label for="endDateTime">End date and time</label>
+                        <input type="text" id="endDateTime" name="endDateTime" placeholder="2026-11-27T23:59:00Z"/>
+                    </div>
+                </div>
+            </details>
+            <div class="demo-actions">
+                <button type="submit" class="demo-button">Create line item</button>
+                <button type="reset" class="demo-button secondary">Clear</button>
+            </div>
+        </form>
+    </section>
+</main>
+<script type="text/javascript" th:src="@{/js/demoTour.js}" th:unless="${clientMode}"></script>
 </body>
 </html>

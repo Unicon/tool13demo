@@ -13,30 +13,16 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Step 3: State and nonce check')}"></head>
 
-<head>
-    <title>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}" />
-
-</head>
-
-<body>
+<body class="demo" th:attr="data-tour-autostart=${demoAudience != 'client'}">
 <script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
-<script type="text/javascript" th:src="@{/js/utils.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"
         integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
         crossorigin="anonymous"></script>
 
-<div class="demo-bar">
-    <span>Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge" th:text="${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough'">Technical walkthrough</span>
-</div>
+<div th:replace="~{fragments/demo :: bar(${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough', ${demoAudience != 'client'})}"></div>
 
 <!-- Client demo: the same checks run below, hidden behind a loading screen, and the form submits by itself. -->
 <div id="client_loading" class="demo-loading" th:if="${demoAudience == 'client'}">
@@ -44,78 +30,98 @@
     <p role="status">Opening your content&hellip;</p>
 </div>
 
-<div id="technical_view" th:classappend="${demoAudience == 'client'} ? 'd-none'">
+<main id="technical_view" class="demo-main" th:classappend="${demoAudience == 'client'} ? 'd-none'">
 
-
-
-
-    <div th:if="${ltiStorageTarget}">
-        <h4>LTI Checking the nonce and state for the cookieless solution (Behind the Scenes)</h4>
-        <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
-            without any user interaction, so the user will never see this page/information except maybe for some
-            milliseconds or in case of error.</h5>
-
-        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
-            <table>
-                <tr>
-                    <td>State retrieved</td><td><input id="pmState" name="state" type="text" value="" /></td>
-                </tr>
-                <tr>
-                    <td>Nonce retrieved</td><td><input id="pmNonce" name="nonce" type="text" value="" /></td>
-                </tr>
-                <tr>
-                    <td>Expected_state</td><td><input id="pmExpected_state" name="expected_state" type="text" value="" /></td>
-                </tr>
-                <tr>
-                    <td>Expected_nonce</td><td><input id="pmExpected_nonce" name="expected_nonce" type="text" value="" /></td>
-                </tr>
-                <tr>
-                    <td>Id_token</td><td><input id="pmId_token" name="id_token" type="text" value="" /></td>
-                </tr>
-                <tr>
-                    <td>Security Token</td><td><input id="pmToken" name="token" type="text" value="" /></td>
-                </tr>
-            </table>
-            <input id="cookies" name="cookies" type="hidden" value="false" />
-            <input type="submit" id="post_button" value="Submit POST" class="btn btn-primary" disabled="disabled">
-        </form>
-
-        <div></br></br></div>
-
-        <div class="alert alert-info">
-            <p>
-                The LTI tool is retrieving the <code>nonce</code> and <code>state</code> from the <code>target</code> frame storage.
-                We have these values:
-            </p>
-
-            <ul>
-                <li><code>token</code>: <code th:text="${token}"></code></li>
-                <li><code>id_token</code>: <code th:text="${id_token}"></code></li>
-                <li><code>ltiStorageTarget</code>: <code th:text="${ltiStorageTarget}"></code></li>
-                <li><code>expected_state</code>: <code th:text="${expected_state}"></code></li>
-                <li><code>expected_nonce</code>: <code th:text="${expected_nonce}"></code></li>
-                <li><code>oidc_authorization_uri</code>: <code th:text="${oidc_authorization_uri}"></code></li>
-            </ul>
-
-        </div>
-    </div>
-    <div th:if="${ltiStorageTarget == null}">
-        <p>We are using cookies because the ltiStorageTarget has not been provided, so this step does not need to perform any action. Press the continue button to allow the process to finish.</p>
-
-        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
-            <input id="pmState" name="state" type="hidden" value="" />
-            <input id="pmNonce" name="nonce" type="hidden" value="" />
-            <input id="pmExpected_state" name="expected_state" type="hidden" value="" />
-            <input id="pmExpected_nonce" name="expected_nonce" type="hidden" value="" />
-            <input id="pmId_token" name="id_token" type="hidden" value="" />
-            <input id="pmToken" name="token" type="hidden" value="" />
-            <input id="cookies" name="cookies" type="hidden" value="true" />
-            <input type="submit" id="post_button" value="Continue" class="btn btn-primary" disabled="disabled">
-        </form>
-
+    <div data-tour="0" data-tour-title="The LMS answered">
+        <template data-tour-text>
+            <p>Stage 2 happened at the LMS: it confirmed the user is signed in, then signed an <strong>ID token</strong> and posted it, with the <code>state</code>, to the tool's <code>redirect_uri</code>.</p>
+            <p>Before trusting that token, the tool proves the response belongs to the request it started in step 1.</p>
+        </template>
+        <ol th:replace="~{fragments/demo :: progress(3)}"></ol>
     </div>
 
-</div>
+    <p class="demo-eyebrow">Step 3 of the launch</p>
+    <h1 class="demo-title">State and nonce check</h1>
+    <p class="demo-lead">
+        The LMS posted back a signed ID token. Before using it, the tool confirms the <code>state</code> and
+        <code>nonce</code> match the ones it created in step 1, so a token can't be replayed or injected into someone
+        else's session. When you continue, the server repeats that check and verifies the token's signature.
+    </p>
+
+    <section class="demo-card" data-tour="1" data-tour-title="The ID token">
+        <template data-tour-text>
+            <p>This JWT is the launch. It carries who the user is (<code>sub</code>, name, roles), where they came from (course and link), and the LTI Advantage service URLs.</p>
+            <p>The LMS signed it with its private key. The tool hasn't trusted it yet: the claims below are only decoded for display. The signature is verified on the server, with the LMS's public keys (its JWKS URL), when you continue.</p>
+        </template>
+        <h2>What the LMS posted back</h2>
+        <dl class="demo-kv">
+            <dt><code>id_token</code></dt>
+            <dd><span class="demo-mono" th:text="${@demoFormatter.abbreviate(id_token, 32)}"></span><span class="demo-hint">Signed by the LMS. Decoded below for display; verified on the server when you continue.</span></dd>
+            <dt><code>state</code></dt>
+            <dd><span class="demo-mono" th:text="${expected_state}"></span><span class="demo-hint">Must match the state hash the tool sent in step 1.</span></dd>
+        </dl>
+        <details class="demo-details" style="margin-top: 12px">
+            <summary>Decoded ID token claims</summary>
+            <pre class="demo-code" th:text="${@demoFormatter.jwtPayload(id_token)}"></pre>
+        </details>
+    </section>
+
+    <section class="demo-card" data-tour="2" data-tour-title="Reading the state and nonce back">
+        <template data-tour-text>
+            <p>The tool can't rely on a cookie inside the LMS iframe, so it asks the LMS for the values it saved in step 1, using <code>lti.get_data</code>.</p>
+            <p>If the page isn't in an iframe, or the LMS doesn't offer storage, the tool falls back to its session cookie.</p>
+        </template>
+        <h2>Reading them back</h2>
+        <p class="demo-hint" th:if="${ltiStorageTarget != null}">
+            Cookieless flow: asking the LMS frame <code th:text="${ltiStorageTarget}"></code> for the saved values with <code>lti.get_data</code>.
+        </p>
+        <p class="demo-hint" th:unless="${ltiStorageTarget != null}">
+            The LMS didn't offer storage, so the tool compares against the values in its session cookie.
+        </p>
+        <ul class="demo-status" aria-live="polite">
+            <li id="status_state" class="wait"><span class="dot"></span><span>State: checking&hellip;</span></li>
+            <li id="status_nonce" class="wait"><span class="dot"></span><span>Nonce: checking&hellip;</span></li>
+        </ul>
+    </section>
+
+    <section class="demo-card" data-tour="3" data-tour-title="The comparison">
+        <template data-tour-text>
+            <p>Retrieved values on the left, expected values on the right. The tool also sends a short-lived token it signed, holding a hash of the ID token, state and nonce, so the next request can't be tampered with.</p>
+            <p>The page is only showing its work. The server makes the decision when you continue.</p>
+        </template>
+        <h2>The comparison</h2>
+        <form id="endpoint-form" action="/lti3/stateNonceChecked" method="POST">
+            <div class="demo-form-grid">
+                <div class="demo-field">
+                    <label for="pmState">State retrieved</label>
+                    <input id="pmState" name="state" type="text" value="" readonly/>
+                </div>
+                <div class="demo-field">
+                    <label for="pmExpected_state">State expected</label>
+                    <input id="pmExpected_state" name="expected_state" type="text" value="" readonly/>
+                </div>
+                <div class="demo-field">
+                    <label for="pmNonce">Nonce retrieved</label>
+                    <input id="pmNonce" name="nonce" type="text" value="" readonly/>
+                </div>
+                <div class="demo-field">
+                    <label for="pmExpected_nonce">Nonce expected</label>
+                    <input id="pmExpected_nonce" name="expected_nonce" type="text" value="" readonly/>
+                </div>
+            </div>
+            <input id="pmId_token" name="id_token" type="hidden" value=""/>
+            <input id="pmToken" name="token" type="hidden" value=""/>
+            <input id="cookies" name="cookies" type="hidden" th:value="${ltiStorageTarget == null} ? 'true' : 'false'"/>
+            <div class="demo-actions" data-tour="4" data-tour-title="Finish the launch">
+                <template data-tour-text>
+                    <p>Continue posts these values to <code>/lti3/stateNonceChecked</code>. The server re-checks the state, nonce and signed hash, fetches the LMS's public key (by the token's <code>kid</code>) to verify the ID token's signature, and only then turns the token into the launch.</p>
+                </template>
+                <input type="submit" id="post_button" value="Continue to the tool" class="demo-button" disabled="disabled">
+                <span class="demo-hint">Next: the tool's landing page, with everything the launch carried.</span>
+            </div>
+        </form>
+    </section>
+</main>
 
 <script th:inline="javascript">
     // Client demo: submit the checked state and nonce as soon as they are ready, instead of waiting for a click.
@@ -126,6 +132,18 @@
             document.getElementById("endpoint-form").submit();
         }
     };
+    const setStatus = (id, state, text) => {
+        const item = document.getElementById(id);
+        if (!item) { return; }
+        item.className = state;
+        item.querySelector('span:last-child').textContent = text;
+    };
+    const fillExpected = () => {
+        document.getElementById('pmExpected_state').value = [[${ expected_state }]];
+        document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
+        document.getElementById('pmId_token').value = [[${ id_token }]];
+        document.getElementById('pmToken').value = [[${ token }]];
+    };
     if (clientMode) {
         // If the checks stall, show the technical view so the presenter can see which step failed.
         setTimeout(() => {
@@ -133,10 +151,11 @@
             document.getElementById("technical_view").classList.remove('d-none');
         }, 10000);
     }
+
     const nonceStateCheck = async () => {
 
     // placeholder for state and nonce validations
-    let stateValid = false, nonceValid = false, stateNonceValid = false;
+    let stateValid = false, nonceValid = false;
 
     // state and nonce values. These should be generated on the server side
     const stateHash = [[${ expected_state }]];
@@ -144,7 +163,6 @@
 
     // origin of the LTI launch. Currently, * is the only value the LMS appears to accept
     let origin = [[${oidc_authorization_uri }]];
-    //let origin = '*';
 
     // Create an instance of LTIPostMessage
     let ltiPostMessage = new LTIPostMessage([[${ltiStorageTarget }]]);
@@ -153,20 +171,12 @@
       // Verify the state and nonce
       if (stateValid && nonceValid) {
         console.info('State and Nonce are validated 🤘🏽');
-        stateNonceValid = true;
-        document.getElementById('pmExpected_state').value = [[${ expected_state }]];
-        document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
-        document.getElementById('pmId_token').value = [[${ id_token }]];
-        document.getElementById('pmToken').value = [[${ token }]];
+        fillExpected();
         stepReady();
       } else {
         console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
       }
     }
-
-    const setAutoRedirectUrl = (address) => {
-        redirectUrl = address;
-    };
 
     const verifyAnswer = (uuid, expected_value, data) => {
       // Verify the state and nonce
@@ -179,24 +189,16 @@
         data.subject === 'lti.get_data.response'
         )
         {
-            console.log(
-                `✅ ${
-                data.key.includes("state") ? "State" : "Nonce"
-                } passed ${data.value}`
-            );
+            console.log(`✅ ${data.key.includes("state") ? "State" : "Nonce"} passed ${data.value}`);
             return true;
         }
-        console.log(
-            `✅ ${
-            data.key.includes("state") ? "State" : "Nonce"
-            } failure ${data} response`
-        );
+        console.log(`❌ ${data && data.key && data.key.includes("state") ? "State" : "Nonce"} failure`, data);
         return false;
     }
 
-    // Function to send both state and nonce to LMS
+    // Function to read both state and nonce from the LMS
     const sendStateAndNonce = async () => {
-      // send state message
+      // read state
       const state_uuid = uuidv4();
       await ltiPostMessage.sendMessage({
         subject: 'lti.get_data',
@@ -209,12 +211,14 @@
         if (stateValid) {
             document.getElementById('pmState').value = response.value;
         }
+        setStatus('status_state', stateValid ? 'ok' : 'fail', stateValid ? 'State read back from LMS storage (lti.get_data)' : 'The LMS did not return the state');
         verifyStateAndNonce();
       }).catch(function (error) {
+        setStatus('status_state', 'fail', 'Could not read the state: ' + error);
         console.error('Error sending state message to LMS', error);
       });
       const nonce_uuid = uuidv4();
-      // send nonce message
+      // read nonce
       await ltiPostMessage.sendMessage({
         subject: 'lti.get_data',
         key: `nonce${nonce}`,
@@ -226,17 +230,15 @@
         if (nonceValid) {
             document.getElementById('pmNonce').value = response.value;
         }
+        setStatus('status_nonce', nonceValid ? 'ok' : 'fail', nonceValid ? 'Nonce read back from LMS storage (lti.get_data)' : 'The LMS did not return the nonce');
         verifyStateAndNonce();
       }).catch(function (error) {
+        setStatus('status_nonce', 'fail', 'Could not read the nonce: ' + error);
         console.error('Error sending nonce message to LMS', error);
       });
     }
 
-    // send state and nonce
     sendStateAndNonce();
-    if (!stateNonceValid){
-        setAutoRedirectUrl('ltiError.html');
-    }
 
     // Optional: Cleanup if needed when the page is unloaded
     window.addEventListener('unload', function () {
@@ -244,34 +246,28 @@
       ltiPostMessage.destroy();
     });
     }
+
+    const useCookies = (reason) => {
+        fillExpected();
+        document.getElementById('pmNonce').value = [[${ expected_nonce }]];
+        document.getElementById('pmState').value = [[${ expected_state }]];
+        document.getElementById('cookies').value = 'true';
+        setStatus('status_state', 'ok', reason);
+        setStatus('status_nonce', 'ok', 'Nonce checked against the session cookie on the server');
+        stepReady();
+    };
+
     if ([[${ltiStorageTarget }]]) {
         if (window.location !== window.parent.location) {
             nonceStateCheck();
         } else {
-            document.getElementById('pmExpected_state').value = [[${ expected_state }]];
-            document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
-            document.getElementById('pmId_token').value = [[${ id_token }]];
-            document.getElementById('pmToken').value = [[${ token }]];
-            document.getElementById('pmNonce').value = [[${ expected_nonce }]];
-            document.getElementById('pmState').value = [[${ expected_state }]];
-            document.getElementById('cookies').value = 'true';
-            stepReady();
-            if (!clientMode) window.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
+            useCookies('Not in an iframe, so the state is checked against the session cookie on the server');
         }
-
     } else {
         console.info('Not using post messages, just cookies');
-        document.getElementById('pmExpected_state').value = [[${ expected_state }]];
-        document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
-        document.getElementById('pmId_token').value = [[${ id_token }]];
-        document.getElementById('pmToken').value = [[${ token }]];
-        document.getElementById('pmNonce').value = [[${ expected_nonce }]];
-        document.getElementById('pmState').value = [[${ expected_state }]];
-        stepReady();
+        useCookies('No LMS storage offered, so the state is checked against the session cookie on the server');
     }
-
 </script>
-
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
-
 </html>

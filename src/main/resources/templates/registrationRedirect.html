@@ -13,111 +13,89 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.thymeleaf.org "
-      xml:lang="en">
-<head>
-    <title>LTI Starter Oicd Redirect</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Dynamic Registration')}"></head>
 
-<h4>LTI Dynamic Registration Redirect</h4>
+<body class="demo" data-tour-autostart="true">
+<div th:replace="~{fragments/demo :: bar('Dynamic Registration', true)}"></div>
 
-<h5>This is what we received from the platform</h5>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-primary">
-            <label>openid_configuration:</label>
-            <span th:text="${openid_configuration}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>registration_token: </label>
-            <span th:text="${registration_token}"/>
-        </li>
-    </ul>
-</div>
+<main class="demo-main">
+    <p class="demo-eyebrow">LTI Dynamic Registration</p>
+    <h1 class="demo-title">Register this tool with the LMS</h1>
+    <p class="demo-lead">
+        Instead of an admin copying URLs and keys between systems, the LMS and the tool exchange their configurations
+        directly. The LMS opened this page with a link to its configuration; the tool read it and prepared its own.
+        Registering sends the tool's configuration to the LMS.
+    </p>
 
-<h5>This is the platform configuration returned in the previous endpoint</h5>
-<div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-primary">
-            <label>issuer:</label>
-            <span th:text="${platform_configuration.issuer}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>authorization_endpoint: </label>
-            <span th:text="${platform_configuration.authorization_endpoint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>token_endpoint: </label>
-            <span th:text="${platform_configuration.token_endpoint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>token_endpoint_auth_methods_supported: </label>
-            <span th:text="${platform_configuration.token_endpoint_auth_methods_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>jwks_uri: </label>
-            <span th:text="${platform_configuration.jwks_uri}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>registration_endpoint: </label>
-            <span th:text="${platform_configuration.registration_endpoint}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>scopes_supported: </label>
-            <span th:text="${platform_configuration.scopes_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>response_types_supported: </label>
-            <span th:text="${platform_configuration.response_types_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>subject_types_supported: </label>
-            <span th:text="${platform_configuration.subject_types_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>id_token_signing_alg_values_supported: </label>
-            <span th:text="${platform_configuration.id_token_signing_alg_values_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>claims_supported: </label>
-            <span th:text="${platform_configuration.claims_supported}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>authorization_server: </label>
-            <span th:text="${platform_configuration.authorization_server}"/>
-        </li>
-        <li class="list-group-item list-group-item-primary">
-            <label>https://purl.imsglobal.org/spec/lti-platform-configuration: </label>
-            <span th:text="${platform_configuration.platformConfiguration}"/>
-        </li>
-    </ul>
-</div>
+    <section class="demo-card" data-tour="1" data-tour-title="What the LMS sent">
+        <template data-tour-text>
+            <p>The admin pasted the tool's registration URL into the LMS. The LMS then opened it with two parameters: where to find its <strong>OpenID configuration</strong>, and a short-lived <strong>registration token</strong> that authorizes this one registration.</p>
+        </template>
+        <h2>What the LMS sent</h2>
+        <dl class="demo-kv">
+            <dt><code>openid_configuration</code></dt>
+            <dd th:text="${openid_configuration}"></dd>
+            <dt><code>registration_token</code></dt>
+            <dd class="demo-mono" th:text="${@demoFormatter.abbreviate(registration_token, 24)}"></dd>
+        </dl>
+    </section>
 
+    <section class="demo-card" data-tour="2" data-tour-title="The LMS's configuration">
+        <template data-tour-text>
+            <p>The tool fetched the OpenID configuration. It tells the tool everything it used to need typed in by hand: the issuer, where to send logins (authorization endpoint), where to get service tokens, where the LMS's public keys live, and which scopes, claims and placements it supports.</p>
+        </template>
+        <h2>The LMS's configuration</h2>
+        <dl class="demo-kv">
+            <dt><code>issuer</code></dt>
+            <dd th:text="${platform_configuration.issuer}"></dd>
+            <dt><code>authorization_endpoint</code></dt>
+            <dd th:text="${platform_configuration.authorization_endpoint}"></dd>
+            <dt><code>token_endpoint</code></dt>
+            <dd th:text="${platform_configuration.token_endpoint}"></dd>
+            <dt><code>jwks_uri</code></dt>
+            <dd th:text="${platform_configuration.jwks_uri}"></dd>
+            <dt><code>registration_endpoint</code></dt>
+            <dd th:text="${platform_configuration.registration_endpoint}"></dd>
+            <dt><code>authorization_server</code></dt>
+            <dd th:text="${platform_configuration.authorization_server}"></dd>
+            <dt><code>scopes_supported</code></dt>
+            <dd><span class="demo-pill" th:each="scope : ${platform_configuration.scopes_supported}" th:text="${@demoFormatter.role(scope)}">score</span></dd>
+            <dt><code>token_endpoint_auth_methods_supported</code></dt>
+            <dd th:text="${platform_configuration.token_endpoint_auth_methods_supported}"></dd>
+            <dt><code>id_token_signing_alg_values_supported</code></dt>
+            <dd th:text="${platform_configuration.id_token_signing_alg_values_supported}"></dd>
+        </dl>
+        <details class="demo-details" style="margin-top: 12px">
+            <summary>Everything else <span class="demo-hint">(claims, response types, LTI platform configuration)</span></summary>
+            <dl class="demo-kv">
+                <dt><code>response_types_supported</code></dt>
+                <dd th:text="${platform_configuration.response_types_supported}"></dd>
+                <dt><code>subject_types_supported</code></dt>
+                <dd th:text="${platform_configuration.subject_types_supported}"></dd>
+                <dt><code>claims_supported</code></dt>
+                <dd th:text="${platform_configuration.claims_supported}"></dd>
+            </dl>
+            <pre class="demo-code" th:text="${@demoFormatter.json(platform_configuration.platformConfiguration)}"></pre>
+        </details>
+    </section>
 
-<p>&nbsp;</p>
-<h5>This is what we are going to send to the Registration Endpoint</h5>
+    <section class="demo-card" data-tour="3" data-tour-title="The tool's configuration">
+        <template data-tour-text>
+            <p>This is what the tool will send to the LMS's registration endpoint: its login and launch URLs, where its public keys live (<code>jwks_uri</code>), the messages and placements it supports, and the scopes it wants.</p>
+            <p>The tool filtered the placements to ones this LMS said it supports.</p>
+        </template>
+        <h2>The tool's configuration</h2>
+        <pre class="demo-code" th:text="${@demoFormatter.json(tool_configuration)}"></pre>
+    </section>
 
-<div>
-    <ul class="list-group">
-        <li class="list-group-item list-group-item-primary">
-            <label>tool configuration:</label>
-            <span th:text="${tool_configuration}"/>
-        </li>
-    </ul>
-</div>
-
-
-<form th:action="${own_redirect_post_endpoint}" method="post">
-
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
-
-<p>&nbsp;</p>
+    <form th:action="${own_redirect_post_endpoint}" method="post" class="demo-actions" data-tour="4" data-tour-title="Register">
+        <template data-tour-text>
+            <p>Register POSTs the tool's configuration to the LMS, authorized by the registration token. The LMS answers with a <code>client_id</code> (and, in Canvas, creates the developer key), and the tool saves a matching registration record.</p>
+        </template>
+        <button type="submit" class="demo-button">Register with the LMS</button>
+    </form>
+</main>
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
 </html>

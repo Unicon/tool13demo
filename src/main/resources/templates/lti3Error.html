@@ -13,16 +13,40 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xml:lang="en">
-<head>
-    <title>LTI 3 ERROR</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
-</head>
-<body>
-<h1>Error trying to process the LTI 3 launch</h1>
-<p><span th:text="${Error}"/></p>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Launch error')}"></head>
+
+<body class="demo" th:with="message=${Error} ?: 'Unknown error'">
+<div th:replace="~{fragments/demo :: bar('Launch error', false)}"></div>
+
+<main class="demo-main">
+    <h1 class="demo-title">The launch didn't complete</h1>
+    <p class="demo-lead">The tool stopped the launch for the reason below. Relaunching from the LMS usually helps; if it doesn't, the hint underneath says where to look.</p>
+
+    <section class="demo-card">
+        <h2>What went wrong</h2>
+        <pre class="demo-code" th:text="${message}">Error</pre>
+    </section>
+
+    <!-- Hints for the errors this tool raises most often. -->
+    <th:block th:with="unregistered=${#strings.contains(message, 'Not found any existing tool deployment')},
+                      stateProblem=${#strings.contains(message, 'State was not as expected') or #strings.contains(message, 'state don') or #strings.contains(message, 'nonce don') or #strings.contains(message, 'hashes don')},
+                      idProblem=${#strings.contains(message, 'Invalid Client Id') or #strings.contains(message, 'Invalid Deployment Id')}">
+    <section class="demo-card" th:if="${unregistered or stateProblem or idProblem}">
+        <h2>Likely cause</h2>
+        <th:block th:if="${unregistered}">
+            <p>The tool has no registration that matches this LMS, developer key and deployment. Each install of the tool has its own deployment id, so a new course or account install needs its own record.</p>
+            <p>Add one with the values in the message (issuer, client id and deployment id) through <code>/config/</code>, or register the tool with Dynamic Registration. See "Registering a Platform Deployment" in the README.</p>
+        </th:block>
+        <th:block th:if="${stateProblem}">
+            <p>The response didn't match a launch this tool started. This happens when a launch page is reloaded or reopened with the back button, when the launch took too long and the state expired, or when the browser blocked the storage the cookieless flow relies on.</p>
+            <p>Start again from the link in the LMS.</p>
+        </th:block>
+        <th:block th:if="${idProblem}">
+            <p>The ID token was issued for a different developer key or deployment than the one the launch started with. Check that the LMS install uses the client id and deployment id registered in the tool.</p>
+        </th:block>
+    </section>
+    </th:block>
+</main>
 </body>
 </html>

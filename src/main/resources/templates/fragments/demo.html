@@ -1,0 +1,56 @@
+<!--
+
+    Copyright 2026 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+    Shared pieces for every demo view. Usage:
+      <head th:replace="~{fragments/demo :: head('Page title')}"></head>
+      <div th:replace="~{fragments/demo :: bar('Technical walkthrough', true)}"></div>
+      <ol th:replace="~{fragments/demo :: progress(2)}"></ol>
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title th:text="${title}">Unicon LTI 1.3 Demo</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
+</head>
+
+<body>
+
+<!-- Top bar: tool name, which experience this is, and (technical pages) a button to replay the guided tour. -->
+<div th:fragment="bar(badge, tour)" class="demo-bar">
+    <span th:text="${@environment.getProperty('application.name', 'Unicon LTI 1.3 Demo')}">Unicon LTI 1.3 Demo</span>
+    <span class="demo-bar-end">
+        <button type="button" class="demo-bar-button" data-tour-start th:if="${tour}">Guided tour</button>
+        <span class="demo-badge" th:if="${badge != null}" th:text="${badge}">Technical walkthrough</span>
+    </span>
+</div>
+
+<!--
+    The four stages of an LTI 1.3 launch. "current" is 1 to 4; earlier stages show as done.
+    Stage 2 happens entirely at the LMS, so the tool never shows a page for it.
+-->
+<ol th:fragment="progress(current)" class="demo-progress" aria-label="Launch progress">
+    <li th:classappend="${current > 1} ? 'done' : (${current == 1} ? 'current')"
+        th:attr="aria-current=${current == 1} ? 'step'">Login initiation<small>LMS &rarr; tool</small></li>
+    <li th:classappend="${current > 2} ? 'done' : (${current == 2} ? 'current')"
+        th:attr="aria-current=${current == 2} ? 'step'">Authentication<small>at the LMS</small></li>
+    <li th:classappend="${current > 3} ? 'done' : (${current == 3} ? 'current')"
+        th:attr="aria-current=${current == 3} ? 'step'">State &amp; nonce check<small>tool</small></li>
+    <li th:classappend="${current >= 4} ? 'current'"
+        th:attr="aria-current=${current >= 4} ? 'step'">Launch<small>tool content</small></li>
+</ol>
+
+</body>
+</html>
