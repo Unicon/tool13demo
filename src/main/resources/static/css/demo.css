@@ -1,0 +1,220 @@
+/*
+ * Styles for the demo-audience pages (chooser, client-mode launch and landing).
+ * The technical pages keep bootstrap.min.css + style.css and only use .demo-bar from here.
+ */
+:root {
+    --demo-navy: #1f3a5f;
+    --demo-blue: #2a6fdb;
+    --demo-gold: #f2b134;
+    --demo-ink: #1d2433;
+    --demo-muted: #5b6577;
+    --demo-line: #dfe3ea;
+    --demo-surface: #f6f8fb;
+    --demo-card: #ffffff;
+}
+
+body.demo {
+    background: var(--demo-surface);
+    color: var(--demo-ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+}
+
+/* Thin bar at the top of every demo page that says which experience you are in. */
+.demo-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--demo-navy);
+    color: #fff;
+    font-size: 14px;
+}
+.demo-bar .demo-badge {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.demo-main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+}
+
+/* Audience chooser */
+.demo-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+.demo-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    background: var(--demo-card);
+    border: 1px solid var(--demo-line);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+.demo-choice:hover,
+.demo-choice:focus-visible {
+    border-color: var(--demo-blue);
+    box-shadow: 0 0 0 3px rgba(42, 111, 219, 0.15);
+    outline: none;
+}
+.demo-choice strong {
+    font-size: 18px;
+}
+.demo-choice span {
+    color: var(--demo-muted);
+}
+
+/* Client-mode "loading" screen shown while the launch runs without pausing */
+.demo-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 60vh;
+    color: var(--demo-muted);
+}
+.demo-spinner {
+    width: 36px;
+    height: 36px;
+    border: 4px solid var(--demo-line);
+    border-top-color: var(--demo-blue);
+    border-radius: 50%;
+    animation: demo-spin 0.9s linear infinite;
+}
+@keyframes demo-spin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .demo-spinner { animation: none; }
+}
+
+/* Client-mode landing */
+.demo-course {
+    color: var(--demo-muted);
+    font-size: 14px;
+    margin: 0 0 4px;
+}
+.demo-title {
+    font-size: 28px;
+    line-height: 1.25;
+    margin: 0 0 16px;
+}
+.demo-card {
+    background: var(--demo-card);
+    border: 1px solid var(--demo-line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+.demo-card h2 {
+    font-size: 18px;
+    margin: 0 0 8px;
+}
+.demo-card p {
+    margin: 0 0 8px;
+}
+.demo-pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    background: #e8eefb;
+    color: var(--demo-navy);
+    margin-right: 6px;
+}
+.demo-pill.graded {
+    background: #fdf1d8;
+    color: #7a5200;
+}
+.demo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.demo-button {
+    display: inline-block;
+    border: 1px solid var(--demo-blue);
+    border-radius: 6px;
+    padding: 8px 14px;
+    background: var(--demo-blue);
+    color: #fff;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+}
+.demo-button.secondary {
+    background: transparent;
+    color: var(--demo-blue);
+}
+.demo-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.demo-details summary {
+    cursor: pointer;
+    color: var(--demo-muted);
+}
+.demo-details dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 16px;
+    margin: 12px 0 0;
+    font-size: 14px;
+}
+.demo-details dt {
+    color: var(--demo-muted);
+}
+.demo-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Client-mode deep-linking picker */
+.demo-picker {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 12px;
+}
+.demo-picker label {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--demo-card);
+    border: 1px solid var(--demo-line);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+}
+.demo-picker input {
+    margin-top: 4px;
+    width: 18px;
+    height: 18px;
+}
+.demo-picker .demo-picker-text strong {
+    display: block;
+}
+.demo-picker .demo-picker-text span {
+    color: var(--demo-muted);
+    font-size: 14px;
+}
+.demo-error {
+    color: #a12622;
+}

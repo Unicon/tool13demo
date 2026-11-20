@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
+import net.unicon.lti.utils.DemoAudience;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -44,6 +45,7 @@ import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
 import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
 import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -431,5 +433,62 @@ public class OIDCControllerTest {
         assertEquals(OIDC_OPEN_ID, parameters.get("scope").get(0));
         assertTrue(parameters.get("nonce").get(0).length() >= 36);
         assertTrue(parameters.get("state").get(0).length() >= 36);
+    }
+
+    // --- Demo audience (client vs. technical) ---
+
+    private void demoModeLogin(String demoAudienceParam, String targetLinkUri, String defaultAudience) {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        ReflectionTestUtils.setField(oidcController, "defaultDemoAudience", defaultAudience);
+        when(ltiDataService.getDemoMode()).thenReturn(true);
+        when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
+        when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
+        when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(req.getParameter(OIDC_TARGET_LINK_URI)).thenReturn(targetLinkUri);
+        when(req.getParameter(DemoAudience.PARAM)).thenReturn(demoAudienceParam);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(any(String.class), any(String.class), any(String.class)))
+                .thenReturn(onePlatformDeployment);
+    }
+
+    @Test
+    public void testDemoModeWithoutAudienceShowsChooserBeforeCreatingState() {
+        demoModeLogin(null, SAMPLE_TARGET_URI, "");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals("demoAudienceChooser", response);
+        assertNotNull(model.getAttribute("initiation_dto"));
+        // No state or nonce is generated until the audience is known.
+        Mockito.verify(ltiDataService, never()).getOwnPrivateKey();
+    }
+
+    @Test
+    public void testDemoModeAudienceFromChooserParameter() {
+        demoModeLogin("client", SAMPLE_TARGET_URI, "");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals("oidcRedirect", response);
+        assertEquals(DemoAudience.CLIENT, model.getAttribute(DemoAudience.MODEL_ATTRIBUTE));
+    }
+
+    @Test
+    public void testDemoModeAudienceFromTargetLinkUri() {
+        demoModeLogin(null, SAMPLE_TARGET_URI + "?link=bio-1-1&demo_audience=technical", "");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals("oidcRedirect", response);
+        assertEquals(DemoAudience.TECHNICAL, model.getAttribute(DemoAudience.MODEL_ATTRIBUTE));
+    }
+
+    @Test
+    public void testDemoModeAudienceFromConfiguredDefault() {
+        demoModeLogin(null, SAMPLE_TARGET_URI, "client");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals("oidcRedirect", response);
+        assertEquals(DemoAudience.CLIENT, model.getAttribute(DemoAudience.MODEL_ATTRIBUTE));
     }
 }

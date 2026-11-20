@@ -29,6 +29,7 @@ import net.unicon.lti.service.app.APIJWTService;
 import net.unicon.lti.service.lti.DeepLinkService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
+import net.unicon.lti.utils.DemoAudience;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LTI3Request;
@@ -105,6 +106,7 @@ public class LTI3Controller {
             }
             model.addAttribute("id_token", id_token);
             model.addAttribute("ltiStorageTarget", nonceState.getLtiStorageTarget());
+            model.addAttribute(DemoAudience.MODEL_ATTRIBUTE, DemoAudience.normalize(stateClaims.getBody().get(DemoAudience.STATE_CLAIM, String.class)));
 
 
             //We need to get the PlatformDeployment based on the iss, clientId and ltiDeploymentId
@@ -197,17 +199,23 @@ public class LTI3Controller {
             // processing it here to generate the right answer.
             if (ltiDataService.getDemoMode()) {
                 model.addAttribute("lti3Request", lti3Request);
-                String link = lti3Request.getLtiTargetLinkUrl().substring(lti3Request.getLtiTargetLinkUrl().lastIndexOf("?link=") + 6);
+                String demoAudience = DemoAudience.normalize(claims.getBody().get(DemoAudience.STATE_CLAIM, String.class));
+                boolean clientAudience = DemoAudience.isClient(demoAudience);
+                model.addAttribute(DemoAudience.MODEL_ATTRIBUTE, demoAudience);
+                // Deep-linked content carries its tool link id in the target link (".../lti3?link=<id>").
+                // Parse it as a query parameter so other parameters (such as demo_audience) don't end up in the id.
+                String link = DemoAudience.linkFromTargetLinkUri(lti3Request.getLtiTargetLinkUrl());
                 if (StringUtils.isNotBlank(link)) {
                     List<LtiLinkEntity> linkEntity = ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext(lti3Request.getLtiLinkId(), link, lti3Request.getContext());
-                    log.debug("Searching for link " + link + " in the context Key " + lti3Request.getContext().getContextKey() + " And id " + lti3Request.getContext().getContextId());
+                    log.debug("Searching for link {} in context {}", link, lti3Request.getLtiContextId());
                     if (linkEntity.size() > 0) {
                         model.addAttribute(TextConstants.HTML_CONTENT, linkEntity.get(0).createHtmlFromLink());
+                        model.addAttribute("toolLink", linkEntity.get(0).getToolLink());
                     } else {
-                        model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was found for that context and linkKey</b>");
+                        model.addAttribute(TextConstants.HTML_CONTENT, "No element was found for that context and linkKey");
                     }
                 } else {
-                    model.addAttribute(TextConstants.HTML_CONTENT, "<b> No element was requested or it doesn't exists </b>");
+                    model.addAttribute(TextConstants.HTML_CONTENT, "No element was requested or it doesn't exist");
                 }
                 String advantageToken = apiJWTService.buildJwt(
                         false,
@@ -222,10 +230,10 @@ public class LTI3Controller {
                     model.addAttribute("nonce", expected_nonce);
                     model.addAttribute("token", token);
                     model.addAttribute("id_token", id_token);
-                    return "lti3DeepLink";
+                    return clientAudience ? "clientDeepLink" : "lti3DeepLink";
                 }
                 ltiDataService.getRepos().nonceStateRepository.deleteById(expected_nonce);
-                return "lti3Result";
+                return clientAudience ? "clientLanding" : "lti3Result";
             } else {
                 String oneTimeToken = apiJWTService.buildJwt(
                         true,
