@@ -14,17 +14,9 @@
 -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <title>Add content</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
-</head>
+<head th:replace="~{fragments/demo :: head('Add content')}"></head>
 <body class="demo">
-<div class="demo-bar">
-    <span th:text="${@environment.getProperty('application.name', 'Unicon LTI 1.3 Demo')}">Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge">Client demo</span>
-</div>
+<div th:replace="~{fragments/demo :: bar('Client demo', false)}"></div>
 
 <main class="demo-main">
     <p class="demo-course" th:if="${lti3Request.ltiContextTitle != null}" th:text="${lti3Request.ltiContextTitle}">Course</p>

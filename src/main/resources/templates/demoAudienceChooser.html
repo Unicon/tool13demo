@@ -14,17 +14,9 @@
 -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <title>Choose a demo</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
-</head>
+<head th:replace="~{fragments/demo :: head('Choose a demo')}"></head>
 <body class="demo">
-<div class="demo-bar">
-    <span th:text="${@environment.getProperty('application.name', 'Unicon LTI 1.3 Demo')}">Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge">Demo mode</span>
-</div>
+<div th:replace="~{fragments/demo :: bar('Demo mode', false)}"></div>
 
 <main class="demo-main">
     <h1 class="demo-title">Who is this demo for?</h1>

@@ -13,28 +13,16 @@
 
 -->
 <!DOCTYPE html>
-<!--suppress CheckEmptyScriptTag -->
-<html xmlns:th="http://www.thymeleaf.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.thymeleaf.org " xml:lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/demo :: head('Step 1: Login initiation')}"></head>
 
-<head>
-    <title>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}" />
-</head>
-
-<body>
+<body class="demo" th:attr="data-tour-autostart=${demoAudience != 'client'}">
 <script type="text/javascript" th:src="@{/js/ltiPostMessage.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/uuid@8.3.2/dist/umd/uuidv4.min.js"
         integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
         crossorigin="anonymous"></script>
 
-<div class="demo-bar">
-    <span>Unicon LTI 1.3 Demo</span>
-    <span class="demo-badge" th:text="${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough'">Technical walkthrough</span>
-</div>
+<div th:replace="~{fragments/demo :: bar(${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough', ${demoAudience != 'client'})}"></div>
 
 <!-- Client demo: the same checks run below, hidden behind a loading screen, and the page continues by itself. -->
 <div id="client_loading" class="demo-loading" th:if="${demoAudience == 'client'}">
@@ -42,120 +30,137 @@
     <p role="status">Opening your content&hellip;</p>
 </div>
 
-<div id="technical_view" th:classappend="${demoAudience == 'client'} ? 'd-none'">
-    <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
-    <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
-        completely on the back end, so the user will never see this page/information as they will be sent directly to
-        the tool's landing page.</h5>
+<main id="technical_view" class="demo-main" th:classappend="${demoAudience == 'client'} ? 'd-none'">
 
-    <button class="accordion large-font">
-        Click to view the form data we received from the platform
-    </button>
-    <div class="panel">
-        <div>
-            <ul class="list-group">
-                <li class="list-group-item list-group-item-primary">
-                    <label>iss:</label>
-                    <span th:text="${initiation_dto.iss}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>login_hint: </label>
-                    <span th:text="${initiation_dto.loginHint}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>target_link_uri:</label>
-                    <span th:text="${initiation_dto.targetLinkUri}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>lti_message_hint:</label>
-                    <span th:text="${initiation_dto.ltiMessageHint}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>client_id (received):</label>
-                    <span th:text="${client_id_received}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>lti_deployment_id (received):</label>
-                    <span th:text="${deployment_id_received}" />
-                </li>
-                <li class="list-group-item list-group-item-primary">
-                    <label>lti_storage_target:</label>
-                    <span th:text="${initiation_dto.ltiStorageTarget}" />
-                </li>
-            </ul>
+    <div data-tour="0" data-tour-title="An LTI 1.3 launch, in four stages">
+        <template data-tour-text>
+            <p>Clicking an LTI link starts a short round trip between the LMS and the tool. This walkthrough pauses at each stage the tool handles, so you can see what was sent and why.</p>
+            <p>Use <strong>Next</strong> or the arrow keys. The highlighted area stays clickable. <strong>Guided tour</strong> in the top bar replays this.</p>
+        </template>
+        <ol th:replace="~{fragments/demo :: progress(1)}"></ol>
+    </div>
+
+    <p class="demo-eyebrow">Step 1 of the launch</p>
+    <h1 class="demo-title">Login initiation</h1>
+    <p class="demo-lead">
+        The LMS started this launch by sending the tool a <strong>login initiation request</strong>. The tool now
+        identifies the LMS, creates a <code>state</code> and a <code>nonce</code>, and sends the browser back to the
+        LMS to authenticate the user. In a production tool this page is invisible: it redirects immediately.
+    </p>
+
+    <section class="demo-card" data-tour="1" data-tour-title="What the LMS sent">
+        <template data-tour-text>
+            <p>LTI 1.3 launches use <strong>OpenID Connect third-party initiated login</strong>. The LMS doesn't send any user data yet. It only says who it is (<code>iss</code>, <code>client_id</code>, <code>lti_deployment_id</code>) and hands over two opaque hints it will want back.</p>
+            <p>The tool uses these three values to find its registration for this LMS. If none matches, the launch stops here.</p>
+        </template>
+        <h2>What the LMS sent</h2>
+        <p class="demo-hint">Received as form or query parameters on <code>/oidc/login_initiations</code>.</p>
+        <dl class="demo-kv">
+            <dt><code>iss</code></dt>
+            <dd><span th:text="${initiation_dto.iss}"></span><span class="demo-hint">The platform's issuer. Production Canvas sends https://canvas.instructure.com for every school.</span></dd>
+            <dt><code>client_id</code></dt>
+            <dd><span th:text="${client_id_received}"></span><span class="demo-hint">The developer key (tool registration) on the LMS.</span></dd>
+            <dt><code>lti_deployment_id</code></dt>
+            <dd><span th:text="${deployment_id_received}"></span><span class="demo-hint">Where the tool is installed (an account or course).</span></dd>
+            <dt><code>login_hint</code></dt>
+            <dd><span th:text="${initiation_dto.loginHint}"></span><span class="demo-hint">Opaque to the tool. Sent back unchanged so the LMS knows which user this is.</span></dd>
+            <dt><code>lti_message_hint</code></dt>
+            <dd><span th:text="${@demoFormatter.abbreviate(initiation_dto.ltiMessageHint, 24)}"></span><span class="demo-hint">Opaque to the tool. Identifies the link that was clicked. It expires after a few minutes.</span></dd>
+            <dt><code>target_link_uri</code></dt>
+            <dd><span th:text="${initiation_dto.targetLinkUri}"></span><span class="demo-hint">Where the user should end up once the launch completes.</span></dd>
+            <dt><code>lti_storage_target</code></dt>
+            <dd>
+                <span th:text="${initiation_dto.ltiStorageTarget} ?: '(not sent)'"></span>
+                <span class="demo-hint" th:if="${initiation_dto.ltiStorageTarget != null}">The LMS offers storage for the cookieless flow (see below).</span>
+                <span class="demo-hint" th:unless="${initiation_dto.ltiStorageTarget != null}">The LMS doesn't support the cookieless flow, so the tool relies on a session cookie.</span>
+            </dd>
+        </dl>
+    </section>
+
+    <section class="demo-card" data-tour="2" data-tour-title="What the tool created">
+        <template data-tour-text>
+            <p>The <code>state</code> ties the LMS's answer back to this request. Here it is a JWT signed by the tool and saved on the server; only its SHA-256 hash travels to the LMS.</p>
+            <p>The <code>nonce</code> is a one-time value. The LMS puts it inside the ID token it signs, so the tool can refuse a token that's replayed.</p>
+        </template>
+        <h2>What the tool created</h2>
+        <dl class="demo-kv">
+            <dt><code>state</code></dt>
+            <dd><span class="demo-mono" th:text="${state}"></span><span class="demo-hint">SHA-256 hash of a signed state JWT that the tool stored server-side (with the nonce) for step 3.</span></dd>
+            <dt><code>nonce</code></dt>
+            <dd><span class="demo-mono" th:text="${nonce}"></span><span class="demo-hint">Random, single use. It must come back inside the ID token.</span></dd>
+        </dl>
+    </section>
+
+    <section class="demo-card" data-tour="3" data-tour-title="Keeping state without third-party cookies">
+        <template data-tour-text>
+            <p>Inside an LMS iframe, browsers increasingly block the tool's cookies. So instead of a session cookie, the tool asks the LMS to hold the <code>state</code> and <code>nonce</code> for it, using <code>window.postMessage</code> (<code>lti.put_data</code>) to the frame named in <code>lti_storage_target</code>.</p>
+            <p>In step 3 the tool reads them back with <code>lti.get_data</code> and compares.</p>
+        </template>
+        <h2>Saving state and nonce in LMS storage</h2>
+        <p class="demo-hint" th:if="${initiation_dto.ltiStorageTarget != null}">
+            Using the LTI client-side storage messages (<code>lti.put_data</code>) with the LMS frame <code th:text="${initiation_dto.ltiStorageTarget}"></code>.
+        </p>
+        <ul class="demo-status" id="storage_status" aria-live="polite">
+            <li id="status_state" class="wait"><span class="dot"></span><span>State: checking&hellip;</span></li>
+            <li id="status_nonce" class="wait"><span class="dot"></span><span>Nonce: checking&hellip;</span></li>
+        </ul>
+    </section>
+
+    <section class="demo-card" data-tour="4" data-tour-title="The authentication request">
+        <template data-tour-text>
+            <p>This is a standard OIDC authentication request in <strong>implicit flow</strong> (<code>response_type=id_token</code>), with <code>prompt=none</code> because the user is already signed in to the LMS.</p>
+            <p><code>response_mode=form_post</code> tells the LMS to POST the signed ID token to <code>redirect_uri</code>, which must match a redirect URI on the developer key.</p>
+        </template>
+        <h2>The authentication request</h2>
+        <p class="demo-card-text">The browser goes to the LMS's OIDC authorization endpoint with these parameters:</p>
+        <p class="demo-token" th:text="${oidcEndpoint}"></p>
+        <div class="demo-table-wrap">
+            <table class="demo-table">
+                <tbody>
+                <tr><th scope="row"><code>client_id</code></th><td class="wrap" th:text="${client_id}"></td></tr>
+                <tr><th scope="row"><code>response_type</code></th><td th:text="${response_type}"></td></tr>
+                <tr><th scope="row"><code>response_mode</code></th><td th:text="${response_mode}"></td></tr>
+                <tr><th scope="row"><code>scope</code></th><td th:text="${scope}"></td></tr>
+                <tr><th scope="row"><code>prompt</code></th><td th:text="${prompt}"></td></tr>
+                <tr><th scope="row"><code>redirect_uri</code></th><td class="wrap" th:text="${redirect_uri}"></td></tr>
+                <tr><th scope="row"><code>state</code></th><td class="wrap demo-mono" th:text="${state}"></td></tr>
+                <tr><th scope="row"><code>nonce</code></th><td class="wrap demo-mono" th:text="${nonce}"></td></tr>
+                <tr><th scope="row"><code>login_hint</code></th><td class="wrap" th:text="${login_hint}"></td></tr>
+                <tr><th scope="row"><code>lti_message_hint</code></th><td class="wrap" th:text="${@demoFormatter.abbreviate(lti_message_hint, 24)}"></td></tr>
+                </tbody>
+            </table>
         </div>
+        <details class="demo-details" style="margin-top: 12px">
+            <summary>Full GET URL <span class="demo-hint">(what the Continue button follows)</span></summary>
+            <p class="demo-token" th:text="${oidcEndpointComplete}"></p>
+        </details>
+        <details class="demo-details" style="margin-top: 8px">
+            <summary>Send it as a POST instead <span class="demo-hint">(the spec allows either)</span></summary>
+            <form th:action="${oidcEndpoint}" method="post" class="demo-form-grid">
+                <input type="hidden" name="client_id" th:value="${client_id}"/>
+                <input type="hidden" name="login_hint" th:value="${login_hint}"/>
+                <input type="hidden" name="lti_message_hint" th:value="${lti_message_hint}"/>
+                <input type="hidden" name="nonce" th:value="${nonce}"/>
+                <input type="hidden" name="prompt" th:value="${prompt}"/>
+                <input type="hidden" name="redirect_uri" th:value="${redirect_uri}"/>
+                <input type="hidden" name="response_mode" th:value="${response_mode}"/>
+                <input type="hidden" name="response_type" th:value="${response_type}"/>
+                <input type="hidden" name="scope" th:value="${scope}"/>
+                <input type="hidden" name="state" th:value="${state}"/>
+                <div><input id="post_button" type="submit" value="Continue with POST" class="demo-button secondary" disabled="disabled"></div>
+            </form>
+        </details>
+    </section>
+
+    <div class="demo-actions" data-tour="5" data-tour-title="Continue to the LMS">
+        <template data-tour-text>
+            <p>Continue sends the browser to the LMS. The LMS checks that the user is signed in and that the hints match, then signs an <strong>ID token</strong> (a JWT with the user, course and link) and posts it back to the tool. That's stage 2, and it happens entirely at the LMS.</p>
+            <p>The button stays disabled until the state and nonce are saved.</p>
+        </template>
+        <a th:href="${oidcEndpointComplete}" id="get_button" class="demo-button disabled" role="button">Continue to the LMS</a>
+        <span class="demo-hint">Next: the LMS authenticates the user and posts back a signed ID token.</span>
     </div>
-
-    <br />
-    <h4>This is what we are going to send to the OIDC Authorization Endpoint</h4>
-
-    <div class="alert alert-primary">Redirect URL: <span th:text="${oidcEndpoint}" /></div>
-
-    <button class="accordion large-font">
-        Click to view the POST version of Step 2 of the LTI Core Standard Launch
-    </button>
-    <div class="panel">
-
-        <form th:action="${oidcEndpoint}" method="post">
-            <div class="form-group">
-                <label for="client_id">client_id:</label>
-                <input type="text" id="client_id" name="client_id" th:value="${client_id}" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="login_hint">login_hint:</label>
-                <input type="text" id="login_hint" name="login_hint" th:value="${login_hint}" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="lti_message_hint">lti_message_hint:</label>
-                <input type="text" id="lti_message_hint" name="lti_message_hint" th:value="${lti_message_hint}"
-                    class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="nonce">nonce:</label>
-                <input type="text" id="nonce" name="nonce" th:value="${nonce}" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="prompt">prompt:</label>
-                <input type="text" id="prompt" name="prompt" th:value="${prompt}" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="redirect_uri">redirect_uri:</label>
-                <input type="text" id="redirect_uri" name="redirect_uri" th:value="${redirect_uri}"
-                    class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="response_mode">response_mode:</label>
-                <input type="text" id="response_mode" name="response_mode" th:value="${response_mode}"
-                    class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="response_type">response_type:</label>
-                <input type="text" id="response_type" name="response_type" th:value="${response_type}"
-                    class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="scope">scope:</label>
-                <input type="text" id="scope" name="scope" th:value="${scope}" class="form-control" />
-            </div>
-            <div class="form-group">
-                <label for="state">state:</label>
-                <input type="text" id="state" class="form-control" name="state" th:value="${state}" />
-            </div>
-            <input id="post_button" type="submit" value="Submit POST" class="btn btn-primary" disabled="disabled">
-        </form>
-    </div>
-
-    <br />
-
-    <button class="accordion large-font">
-        Click to view the GET version of Step 2 of the LTI Core Standard Launch
-    </button>
-    <div class="panel">
-        <div class="alert alert-primary">GET URL: <span th:text="${oidcEndpointComplete}" /></div>
-    </div>
-    <a th:href="${oidcEndpointComplete}"  id="get_button" class="btn btn-primary disabled" role="button" aria-pressed="true">Perform GET as Step
-        2</a>
-</div>
+</main>
 
 <script th:inline="javascript">
     // Client demo: continue to the LMS as soon as the state and nonce are ready, instead of waiting for a click.
@@ -166,6 +171,12 @@
         if (clientMode) {
             window.location.href = [[${ oidcEndpointComplete }]];
         }
+    };
+    const setStatus = (id, state, text) => {
+        const item = document.getElementById(id);
+        if (!item) { return; }
+        item.className = state;
+        item.querySelector('span:last-child').textContent = text;
     };
     if (clientMode) {
         // If the checks stall, show the technical view so the presenter can see which step failed.
@@ -201,10 +212,6 @@
       }
     }
 
-    const setAutoRedirectUrl = (address) => {
-        redirectUrl = address;
-    };
-
     const verifyAnswer = (uuid, expected_value, data) => {
       // Verify the state and nonce
       if (
@@ -216,18 +223,10 @@
         data.subject === 'lti.put_data.response'
         )
         {
-            console.log(
-                `✅ ${
-                data.key.includes("state") ? "State" : "Nonce"
-                } passed ${data.value}`
-            );
+            console.log(`✅ ${data.key.includes("state") ? "State" : "Nonce"} passed ${data.value}`);
             return true;
         }
-        console.log(
-            `✅ ${
-            data.key.includes("state") ? "State" : "Nonce"
-            } failure ${data} response`
-        );
+        console.log(`❌ ${data && data.key && data.key.includes("state") ? "State" : "Nonce"} failure`, data);
         return false;
     }
 
@@ -243,8 +242,10 @@
       }, origin).then(function (response) {
         console.info('State response from LMS', response);
         stateValid = verifyAnswer(state_uuid,stateHash,response);
+        setStatus('status_state', stateValid ? 'ok' : 'fail', stateValid ? 'State saved in LMS storage (lti.put_data)' : 'The LMS did not confirm the state');
         verifyStateAndNonce();
       }).catch(function (error) {
+        setStatus('status_state', 'fail', 'Could not save the state: ' + error);
         console.error('Error sending state message to LMS', error);
       });
       const nonce_uuid = uuidv4();
@@ -257,21 +258,16 @@
       }, origin).then(function (response) {
         console.info('Nonce response from LMS', response);
         nonceValid = verifyAnswer(nonce_uuid,nonce,response);
+        setStatus('status_nonce', nonceValid ? 'ok' : 'fail', nonceValid ? 'Nonce saved in LMS storage (lti.put_data)' : 'The LMS did not confirm the nonce');
         verifyStateAndNonce();
       }).catch(function (error) {
+        setStatus('status_nonce', 'fail', 'Could not save the nonce: ' + error);
         console.error('Error sending nonce message to LMS', error);
       });
     }
 
     // send state and nonce
     sendStateAndNonce();
-    if (stateNonceValid){
-        setAutoRedirectUrl(
-           [[${ oidcEndpointComplete }]]
-        );
-    } else {
-        setAutoRedirectUrl('ltiError.html');
-    }
 
     // Optional: Cleanup if needed when the page is unloaded
     window.addEventListener('unload', function () {
@@ -285,15 +281,16 @@
         stepReady();
 
         if ([[${initiation_dto.ltiStorageTarget }]]) {
+            setStatus('status_state', 'ok', 'Not in an iframe (new tab), so the tool uses its session cookie for the state');
+            setStatus('status_nonce', 'ok', 'Nonce kept in the session cookie too');
             console.info('Not using post messages, just cookies because we are on another tab');
         } else {
+            setStatus('status_state', 'ok', 'No lti_storage_target, so the tool uses its session cookie for the state');
+            setStatus('status_nonce', 'ok', 'Nonce kept in the session cookie too');
             console.info('Not using post messages, just cookies');
         }
     }
-
 </script>
-
-<script type="text/javascript" th:src="@{/js/utils.js}"></script>
+<script type="text/javascript" th:src="@{/js/demoTour.js}"></script>
 </body>
-
 </html>
