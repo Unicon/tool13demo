@@ -22,6 +22,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}" />
 </head>
 
 <body>
@@ -30,6 +31,18 @@
         integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
         crossorigin="anonymous"></script>
 
+<div class="demo-bar">
+    <span>Unicon LTI 1.3 Demo</span>
+    <span class="demo-badge" th:text="${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough'">Technical walkthrough</span>
+</div>
+
+<!-- Client demo: the same checks run below, hidden behind a loading screen, and the page continues by itself. -->
+<div id="client_loading" class="demo-loading" th:if="${demoAudience == 'client'}">
+    <div class="demo-spinner" aria-hidden="true"></div>
+    <p role="status">Opening your content&hellip;</p>
+</div>
+
+<div id="technical_view" th:classappend="${demoAudience == 'client'} ? 'd-none'">
     <h4>LTI Core Standard Launch OIDC Redirect (Behind the Scenes - Step 1)</h4>
     <h5 class="alert alert-warning">In a real tool that is not for demonstration purposes, this step will be handled
         completely on the back end, so the user will never see this page/information as they will be sent directly to
@@ -142,8 +155,25 @@
     </div>
     <a th:href="${oidcEndpointComplete}"  id="get_button" class="btn btn-primary disabled" role="button" aria-pressed="true">Perform GET as Step
         2</a>
+</div>
 
 <script th:inline="javascript">
+    // Client demo: continue to the LMS as soon as the state and nonce are ready, instead of waiting for a click.
+    const clientMode = [[${demoAudience == 'client'}]];
+    const stepReady = () => {
+        document.getElementById("get_button").classList.remove('disabled');
+        document.getElementById("post_button").disabled = false;
+        if (clientMode) {
+            window.location.href = [[${ oidcEndpointComplete }]];
+        }
+    };
+    if (clientMode) {
+        // If the checks stall, show the technical view so the presenter can see which step failed.
+        setTimeout(() => {
+            document.getElementById("client_loading").classList.add('d-none');
+            document.getElementById("technical_view").classList.remove('d-none');
+        }, 10000);
+    }
 
     const nonceStateCheck = async () => {
 
@@ -165,8 +195,7 @@
       if (stateValid && nonceValid) {
         console.info('State and Nonce are validated 🤘🏽');
         stateNonceValid = true;
-        document.getElementById("get_button").classList.remove('disabled');
-        document.getElementById("post_button").disabled = false;
+        stepReady();
       } else {
         console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
       }
@@ -253,8 +282,7 @@
     if ((window.location !== window.parent.location)&&([[${ initiation_dto.ltiStorageTarget }]]!=null)) {
         nonceStateCheck();
     } else {
-        document.getElementById("get_button").classList.remove('disabled');
-        document.getElementById("post_button").disabled = false;
+        stepReady();
 
         if ([[${initiation_dto.ltiStorageTarget }]]) {
             console.info('Not using post messages, just cookies because we are on another tab');

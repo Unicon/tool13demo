@@ -13,6 +13,7 @@
 package net.unicon.lti.model.lti.dto;
 
 import jakarta.servlet.http.HttpServletRequest;
+import net.unicon.lti.utils.DemoAudience;
 
 import static net.unicon.lti.utils.LtiStrings.*;
 
@@ -27,6 +28,7 @@ public class LoginInitiationDTO {
     private String deploymentId; //we need this one because canvas sends it with the wrong name...
     private String ltiDeploymentId;
     private String ltiStorageTarget;
+    private String demoAudience; // Not part of LTI: which demo experience to show (see DemoAudience)
 
 
     public LoginInitiationDTO() {//Empty on purpose
@@ -53,6 +55,17 @@ public class LoginInitiationDTO {
                 req.getParameter(OIDC_DEPLOYMENT_ID),
                 req.getParameter(OIDC_LTI_STORAGE_TARGET)
         );
+        // Demo audience: an explicit choice (from the chooser page) wins over one baked into the target link.
+        String requested = DemoAudience.normalize(req.getParameter(DemoAudience.PARAM));
+        this.demoAudience = requested != null ? requested : DemoAudience.fromTargetLinkUri(this.targetLinkUri);
+    }
+
+    public String getDemoAudience() {
+        return demoAudience;
+    }
+
+    public void setDemoAudience(String demoAudience) {
+        this.demoAudience = DemoAudience.normalize(demoAudience);
     }
 
     public String getIss() {

@@ -17,6 +17,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.service.lti.LTIDataService;
+import net.unicon.lti.utils.DemoAudience;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.oauth.OAuthUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -62,6 +63,7 @@ public class LtiOidcUtils {
                 .claim("ltiDeploymentId", deploymentIdValue)
                 .claim("nonce", nonce)
                 .claim("controller", "/oidc/login_initiations")
+                .claim(DemoAudience.STATE_CLAIM, loginInitiationDTO.getDemoAudience()) // Not LTI: which demo experience to show after the launch
                 .signWith(SignatureAlgorithm.RS256, issPrivateKey)  //We sign it
                 .compact();
         log.debug("State: \n {} \n", state);

@@ -22,6 +22,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}" />
 
 </head>
 
@@ -32,7 +33,18 @@
         integrity="sha256-S7uAbnQ+Ibyfl7YvwFZOCIm38x7p1Iw/K4XU4A/mKcw="
         crossorigin="anonymous"></script>
 
-</script>
+<div class="demo-bar">
+    <span>Unicon LTI 1.3 Demo</span>
+    <span class="demo-badge" th:text="${demoAudience == 'client'} ? 'Client demo' : 'Technical walkthrough'">Technical walkthrough</span>
+</div>
+
+<!-- Client demo: the same checks run below, hidden behind a loading screen, and the form submits by itself. -->
+<div id="client_loading" class="demo-loading" th:if="${demoAudience == 'client'}">
+    <div class="demo-spinner" aria-hidden="true"></div>
+    <p role="status">Opening your content&hellip;</p>
+</div>
+
+<div id="technical_view" th:classappend="${demoAudience == 'client'} ? 'd-none'">
 
 
 
@@ -103,7 +115,24 @@
 
     </div>
 
+</div>
+
 <script th:inline="javascript">
+    // Client demo: submit the checked state and nonce as soon as they are ready, instead of waiting for a click.
+    const clientMode = [[${demoAudience == 'client'}]];
+    const stepReady = () => {
+        document.getElementById("post_button").disabled = false;
+        if (clientMode) {
+            document.getElementById("endpoint-form").submit();
+        }
+    };
+    if (clientMode) {
+        // If the checks stall, show the technical view so the presenter can see which step failed.
+        setTimeout(() => {
+            document.getElementById("client_loading").classList.add('d-none');
+            document.getElementById("technical_view").classList.remove('d-none');
+        }, 10000);
+    }
     const nonceStateCheck = async () => {
 
     // placeholder for state and nonce validations
@@ -129,7 +158,7 @@
         document.getElementById('pmExpected_nonce').value = [[${ expected_nonce }]];
         document.getElementById('pmId_token').value = [[${ id_token }]];
         document.getElementById('pmToken').value = [[${ token }]];
-        document.getElementById("post_button").disabled = false;
+        stepReady();
       } else {
         console.warn('Either State or Nonce is not validated', { state: stateValid, nonce: nonceValid });
       }
@@ -226,8 +255,8 @@
             document.getElementById('pmNonce').value = [[${ expected_nonce }]];
             document.getElementById('pmState').value = [[${ expected_state }]];
             document.getElementById('cookies').value = 'true';
-            document.getElementById("post_button").disabled = false;
-            window.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
+            stepReady();
+            if (!clientMode) window.alert('Not using post messages, just cookies because this is not an iframe. Values have just been filled in the form to pass this step');
         }
 
     } else {
@@ -238,7 +267,7 @@
         document.getElementById('pmToken').value = [[${ token }]];
         document.getElementById('pmNonce').value = [[${ expected_nonce }]];
         document.getElementById('pmState').value = [[${ expected_state }]];
-        document.getElementById("post_button").disabled = false;
+        stepReady();
     }
 
 </script>

@@ -1,0 +1,7 @@
+{
+  "toolLinkId": "bio-2-quiz",
+  "title": "Chapter 2 Quiz: Chemical Foundation of Life",
+  "description": "Graded quiz (10 points). Creates a gradebook column when added through deep linking.",
+  "isAssignment": true,
+  "maxGrade": 10.0
+}

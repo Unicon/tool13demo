@@ -1,0 +1,7 @@
+{
+  "toolLinkId": "bio-1-quiz",
+  "title": "Chapter 1 Quiz: Study of Life",
+  "description": "Graded quiz (10 points). Creates a gradebook column when added through deep linking.",
+  "isAssignment": true,
+  "maxGrade": 10.0
+}

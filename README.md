@@ -142,6 +142,27 @@ Tailscale Funnel provides that: Tailscale terminates TLS on port 443 with a vali
 `tailscale funnel status` shows the current configuration. Any other tunnel (ngrok and similar) works the same way: point it
 at the local port and use the public https URL in the platform registration.
 
+Client and Technical Demos
+--------------------------
+With `lti13.demoMode=true`, each launch can be shown to one of two audiences:
+
+- **Client demo**: runs the full LTI launch, including the cookieless state and nonce checks, without stopping on the
+  "Behind the Scenes" pages. It lands on a page that looks like a content tool (course name, the launched item, and
+  roster and grade links for instructors). Deep linking shows a simple content picker.
+- **Technical walkthrough**: the original experience. It pauses at each step and shows the ID token and the deep-linking JWT.
+
+The audience is chosen in this order:
+
+1. A `demo_audience=client` or `demo_audience=technical` query parameter on the target link URI. For example, set up one
+   course link to `https://yourtool/lti3?demo_audience=client` and another to `?demo_audience=technical`.
+2. `lti13.defaultDemoAudience` in the properties file.
+3. Otherwise, a chooser page at the start of the launch asks.
+
+The choice is stored in the signed state JWT, so it survives the round trip to the LMS without cookies.
+
+Sample content for deep linking is loaded from `src/main/resources/data/tool_link/*.json` at startup when the
+`tool_link` table is empty.
+
 Registering a Platform Deployment
 ---------------------------------
 Each LMS deployment the tool accepts launches from needs a platform deployment record (issuer, client id, deployment id

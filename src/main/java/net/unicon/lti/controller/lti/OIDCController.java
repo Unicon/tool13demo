@@ -18,6 +18,7 @@ import net.unicon.lti.model.lti.dto.LoginInitiationDTO;
 import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIDataService;
+import net.unicon.lti.utils.DemoAudience;
 import net.unicon.lti.utils.TextConstants;
 import net.unicon.lti.utils.lti.LtiOidcUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,10 @@ public class OIDCController {
     @Value("${force.cookies:false}")
     String forceCookies;
 
+    // Demo mode only: "client" or "technical" skips the audience chooser for every launch. Blank means ask each time.
+    @Value("${lti13.defaultDemoAudience:}")
+    String defaultDemoAudience;
+
     /**
      * This will receive the request to start the OIDC process.
      * We receive some parameters (iss, login_hint, target_link_uri, lti_message_hint, and optionally, the deployment_id and the client_id)
@@ -119,6 +124,20 @@ public class OIDCController {
             if (deploymentIdValue == null) {
                 deploymentIdValue = platformDeployment.getDeploymentId();
             }
+        }
+
+        // Demo mode: decide who this launch is for before we create the state, so the choice can travel inside it.
+        // Order: the chooser form (demo_audience parameter), the target_link_uri, then the configured default.
+        // If none of them decides it, show the chooser page, which posts these same login parameters back here.
+        if (ltiDataService.getDemoMode()) {
+            if (loginInitiationDTO.getDemoAudience() == null) {
+                loginInitiationDTO.setDemoAudience(defaultDemoAudience);
+            }
+            if (loginInitiationDTO.getDemoAudience() == null) {
+                model.addAttribute("initiation_dto", loginInitiationDTO);
+                return "demoAudienceChooser";
+            }
+            model.addAttribute(DemoAudience.MODEL_ATTRIBUTE, loginInitiationDTO.getDemoAudience());
         }
 
         try {

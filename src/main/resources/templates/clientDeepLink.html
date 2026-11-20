@@ -1,0 +1,114 @@
+<!--
+
+    Copyright 2026 Unicon (R)
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <title>Add content</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/demo.css}"/>
+</head>
+<body class="demo">
+<div class="demo-bar">
+    <span th:text="${@environment.getProperty('application.name', 'Unicon LTI 1.3 Demo')}">Unicon LTI 1.3 Demo</span>
+    <span class="demo-badge">Client demo</span>
+</div>
+
+<main class="demo-main">
+    <p class="demo-course" th:if="${lti3Request.ltiContextTitle != null}" th:text="${lti3Request.ltiContextTitle}">Course</p>
+    <h1 class="demo-title">Add content to your course</h1>
+
+    <p th:if="${#lists.isEmpty(deeplinks)}">
+        There is no content to add yet. Ask the tool administrator to load the sample content.
+    </p>
+
+    <form id="pickerForm" th:unless="${#lists.isEmpty(deeplinks)}">
+        <ul class="demo-picker">
+            <li th:each="deeplink : ${deeplinks}">
+                <label>
+                    <input type="checkbox" name="selectedIds" th:value="${deeplink.toolLinkId}"/>
+                    <span class="demo-picker-text">
+                        <strong th:text="${deeplink.title}">Title</strong>
+                        <span th:text="${deeplink.description}">Description</span>
+                    </span>
+                </label>
+            </li>
+        </ul>
+        <div class="demo-actions">
+            <button type="submit" id="add_button" class="demo-button">Add to course</button>
+        </div>
+        <p id="picker_status" class="demo-course" role="status"></p>
+    </form>
+
+    <!-- The signed deep-linking response goes back to the LMS in this form. Technical mode shows the JWT; here it stays hidden. -->
+    <form th:action="${lti3Request.deepLinkReturnUrl}" id="deepLinkResponseForm" method="POST">
+        <input type="hidden" id="JWT" name="JWT"/>
+    </form>
+</main>
+
+<script th:inline="javascript">
+    const launch = {
+        nonce: [[${nonce}]],
+        state_hash: [[${state_hash}]],
+        token: [[${token}]],
+        id_token: [[${id_token}]]
+    };
+
+    const postJson = (url, body) => fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(body)
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(url + ' returned ' + response.status);
+        }
+        return response;
+    });
+
+    const pickerForm = document.getElementById('pickerForm');
+    if (pickerForm) {
+        pickerForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const status = document.getElementById('picker_status');
+            const button = document.getElementById('add_button');
+            const selectedIds = Array.from(pickerForm.querySelectorAll('input[name="selectedIds"]:checked'))
+                .map(input => input.value);
+            if (selectedIds.length === 0) {
+                status.textContent = 'Choose at least one item.';
+                return;
+            }
+            button.disabled = true;
+            status.classList.remove('demo-error');
+            status.textContent = 'Adding to your course…';
+
+            // Same two steps as the technical page: sign the selection, then retire the nonce and post it to the LMS.
+            postJson('/deeplink/toJwt', Object.assign({selectedIds: selectedIds}, launch))
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('JWT').value = data.jwtstring;
+                    return postJson('/deeplink/deleteNonce', launch);
+                })
+                .then(() => document.getElementById('deepLinkResponseForm').submit())
+                .catch(error => {
+                    console.error(error);
+                    button.disabled = false;
+                    status.classList.add('demo-error');
+                    status.textContent = 'Something went wrong adding this content. Relaunch and choose Technical walkthrough to see the details.';
+                });
+        });
+    }
+</script>
+</body>
+</html>

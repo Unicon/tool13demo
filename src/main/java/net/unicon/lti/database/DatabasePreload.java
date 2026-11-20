@@ -15,8 +15,10 @@ package net.unicon.lti.database;
 import net.unicon.lti.config.ApplicationConfig;
 import net.unicon.lti.model.LtiUserEntity;
 import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.ToolLink;
 import net.unicon.lti.repository.LtiUserRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
+import net.unicon.lti.repository.ToolLinkRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,12 @@ public class DatabasePreload {
     @Autowired
     LtiUserEntityResourceService ltiUserEntityResourceService;
 
+    @Autowired
+    ToolLinkRepository toolLinkRepository;
+
+    @Autowired
+    ToolLinkResourceService toolLinkResourceService;
+
     @PostConstruct
     public void init() throws IOException {
 
@@ -62,6 +70,14 @@ public class DatabasePreload {
             log.info("INIT - no preload");
         } else {
             buildDataFromFiles();
+        }
+
+        // Sample content is checked on its own, so databases created before it existed also get it.
+        if (toolLinkRepository.count() == 0) {
+            for (ToolLink toolLink : toolLinkResourceService.getResources(ToolLink.class)) {
+                log.info("Storing sample content: " + toolLink.getToolLinkId());
+                toolLinkRepository.save(toolLink);
+            }
         }
     }
 
