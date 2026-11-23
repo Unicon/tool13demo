@@ -1,18 +1,6 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.lti.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.helper.ExceptionMessageGenerator;
 import net.unicon.lti.model.LtiContextEntity;
@@ -29,28 +17,43 @@ import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * This manages all the Membership call for the LTIRequest (and for LTI in general)
  * Necessary to get appropriate TX handling and service management
  */
 @Service
+@RequiredArgsConstructor
 public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
-    @Autowired
-    AdvantageConnectorHelper advantageConnectorHelper;
+    private final AdvantageConnectorHelper advantageConnectorHelper;
 
-    @Autowired
-    private ExceptionMessageGenerator exceptionMessageGenerator;
+    private final ExceptionMessageGenerator exceptionMessageGenerator;
+
+    // a line item id from the tool's own API is one path segment under the context's line items URL
+    private static final Pattern LINE_ITEM_ID = Pattern.compile("[A-Za-z0-9._~-]+");
+
+    /**
+     * Checks a line item id before it goes into a platform URL, so an id like "../.." can't reach other platform
+     * endpoints with the tool's token, and returns it encoded as a path segment.
+     */
+    public static String lineItemPathSegment(String id) throws ConnectionException {
+        if (id == null || !LINE_ITEM_ID.matcher(id).matches() || ".".equals(id) || "..".equals(id)) {
+            throw new ConnectionException("The line item id isn't valid");
+        }
+        return UriUtils.encodePathSegment(id, StandardCharsets.UTF_8);
+    }
 
     static final Logger log = LoggerFactory.getLogger(AdvantageAGSServiceImpl.class);
 
@@ -78,7 +81,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     @Override
     public LineItems getLineItems(LTIToken LTIToken, LtiContextEntity context, boolean results, LTIToken resultsToken) throws ConnectionException {
         LineItems lineItems = new LineItems();
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -126,8 +128,8 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     @Override
-    public boolean deleteLineItem(LTIToken LTIToken, LtiContextEntity context, String id) throws ConnectionException {
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
+    public boolean deleteLineItem(LTIToken LTIToken, LtiContextEntity context, String lineItemId) throws ConnectionException {
+        String id = lineItemPathSegment(lineItemId);
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -148,7 +150,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't delete the lineitem with id").append(id);
+            exceptionMsg.append("Can't delete the lineitem with id ").append(id);
             log.error(exceptionMsg.toString(), e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
@@ -156,7 +158,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
     @Override
     public LineItem putLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException {
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
+        String id = lineItemPathSegment(lineItem.getId());
         LineItem resultlineItem;
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
@@ -164,7 +166,7 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
             HttpEntity<LineItem> request = advantageConnectorHelper.createTokenizedRequestEntity(LTIToken, lineItem, TextConstants.LINEITEM_TYPE);
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
-            final String PUT_LINEITEM = context.getLineitems() + "/" + lineItem.getId();
+            final String PUT_LINEITEM = context.getLineitems() + "/" + id;
             log.debug("PUT_LINEITEM -  " + PUT_LINEITEM);
             ResponseEntity<LineItem> lineItemsGetResponse = restTemplate.
                     exchange(PUT_LINEITEM, HttpMethod.PUT, request, LineItem.class);
@@ -173,13 +175,13 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
                 resultlineItem = lineItemsGetResponse.getBody();
                 //We deal here with pagination
             } else {
-                String exceptionMsg = "Can't put the lineitem " + lineItem.getId();
+                String exceptionMsg = "Can't put the lineitem " + id;
                 log.error(exceptionMsg);
                 throw new ConnectionException(exceptionMsg);
             }
         } catch (Exception e) {
             StringBuilder exceptionMsg = new StringBuilder();
-            exceptionMsg.append("Can't get put lineitem ").append(lineItem.getId());
+            exceptionMsg.append("Can't put the lineitem ").append(id);
             log.error(exceptionMsg.toString(), e);
             throw new ConnectionException(exceptionMessageGenerator.exceptionMessage(exceptionMsg.toString(), e));
         }
@@ -187,9 +189,9 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     }
 
     @Override
-    public LineItem getLineItem(LTIToken LTIToken, LTIToken resultsToken, LtiContextEntity context, String id) throws ConnectionException {
+    public LineItem getLineItem(LTIToken LTIToken, LTIToken resultsToken, LtiContextEntity context, String lineItemId) throws ConnectionException {
+        String id = lineItemPathSegment(lineItemId);
         LineItem lineItem;
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -231,7 +233,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     public LineItems postLineItem(LTIToken LTIToken, LtiContextEntity context, LineItem lineItem) throws ConnectionException {
 
         LineItems resultLineItems = new LineItems();
-        log.debug(TextConstants.TOKEN + LTIToken.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -263,7 +264,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
     @Override
     public Results getResults(LTIToken LTITokenResults, LtiContextEntity context, String lineItemId) throws ConnectionException {
         Results results = new Results();
-        log.debug(TextConstants.TOKEN + LTITokenResults.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -314,7 +314,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
     @Override
     public Results postScore(LTIToken lTITokenScores, LTIToken lTITokenResults, LtiContextEntity context, String lineItemId, Score score) throws ConnectionException {
-        log.debug(TextConstants.TOKEN + lTITokenScores.getAccess_token());
         try {
             RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
             //We add the token in the request with this.
@@ -350,7 +349,6 @@ public class AdvantageAGSServiceImpl implements AdvantageAGSService {
 
     @Override
     public ResponseEntity<Void> postScore(LTIToken lTITokenScores, String lineItemId, Score score) {
-        log.debug(TextConstants.TOKEN + lTITokenScores.getAccess_token());
         RestTemplate restTemplate = advantageConnectorHelper.createRestTemplate();
 
         // Add the token and score to the request entity

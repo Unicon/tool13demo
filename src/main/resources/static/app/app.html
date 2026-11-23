@@ -35,7 +35,8 @@
     <div id="divID"></div>
     <script language="JavaScript">
         var div = document.getElementById('divID');
-        div.innerHTML += getParameterByName('token');
+        // textContent, not innerHTML: the token comes from the URL, so anything in it is shown as text
+        div.textContent = getParameterByName('token') || '';
     </script>
 </body>
 </html>

@@ -16,8 +16,9 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -31,6 +32,8 @@ import java.util.Date;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
@@ -43,11 +46,6 @@ public class LtiOidcUtilsTest {
 
     @Mock
     LoginInitiationDTO loginInitiationDTO;
-
-    @Configuration
-    static class ContextConfiguration {
-
-    }
 
     @BeforeEach()
     public void setUp() {
@@ -95,6 +93,23 @@ public class LtiOidcUtilsTest {
         } catch (GeneralSecurityException e) {
             fail("GeneralSecurityException should not be thrown.");
         }
+    }
+
+    @Test
+    public void testGenerateStateWithUnsupportedKey() {
+        when(ltiDataService.getOwnPrivateKey()).thenReturn("-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----");
+        Map<String, String> authRequestMap = Collections.singletonMap("nonce", "nonce-value");
+        assertThrows(GeneralSecurityException.class,
+                () -> LtiOidcUtils.generateState(ltiDataService, authRequestMap, loginInitiationDTO, "client-id", "deployment-id", "nonce-value"));
+    }
+
+    @Test
+    public void testConstructorThrows() throws Exception {
+        Constructor<LtiOidcUtils> constructor = LtiOidcUtils.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        InvocationTargetException e = assertThrows(InvocationTargetException.class, constructor::newInstance);
+        assertInstanceOf(IllegalStateException.class, e.getCause());
+        assertEquals("Utility class", e.getCause().getMessage());
     }
 
 }

@@ -1,17 +1,6 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.database;
 
+import lombok.RequiredArgsConstructor;
 import net.unicon.lti.config.ApplicationConfig;
 import net.unicon.lti.model.LtiUserEntity;
 import net.unicon.lti.model.PlatformDeployment;
@@ -19,7 +8,6 @@ import net.unicon.lti.repository.LtiUserRepository;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -34,25 +22,19 @@ import java.util.Set;
 @Component
 @Profile("!test")
 // only load this when running the application (not for unit tests which have the 'testing' profile active)
+@RequiredArgsConstructor
 public class DatabasePreload {
 
     static final Logger log = LoggerFactory.getLogger(DatabasePreload.class);
 
-    @Autowired
-    ApplicationConfig applicationConfig;
+    private final ApplicationConfig applicationConfig;
 
-    @Autowired
-    @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "SpringJavaAutowiringInspection"})
-    LtiUserRepository ltiUserRepository;
-    @Autowired
-    @SuppressWarnings({"SpringJavaAutowiredMembersInspection", "SpringJavaAutowiringInspection"})
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final LtiUserRepository ltiUserRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    PlatformDeploymentResourceService platformDeploymentResources;
+    private final PlatformDeploymentResourceService platformDeploymentResources;
 
-    @Autowired
-    LtiUserEntityResourceService ltiUserEntityResourceService;
+    private final LtiUserEntityResourceService ltiUserEntityResourceService;
 
     @PostConstruct
     public void init() throws IOException {
@@ -69,11 +51,17 @@ public class DatabasePreload {
         Set<PlatformDeployment> deploymentPlatforms = platformDeploymentResources.getResources(PlatformDeployment.class);
         for (PlatformDeployment deploymentPlatform : deploymentPlatforms) {
             log.info("Storing: " + deploymentPlatform.getKeyId() + " : " + deploymentPlatform.getIss());
+            // a seed row is always new: the version in the file would make Spring Data merge it
+            // instead, and Hibernate 7 rejects merging a row that doesn't exist
+            deploymentPlatform.setVersion(null);
             platformDeploymentRepository.save(deploymentPlatform);
         }
 
         Set<LtiUserEntity> users = ltiUserEntityResourceService.getResources(LtiUserEntity.class);
         for (LtiUserEntity user : users) {
+            // the same for seed users, whose file also fixes the generated id
+            user.setUserId(0);
+            user.setVersion(null);
             ltiUserRepository.save(user);
         }
     }

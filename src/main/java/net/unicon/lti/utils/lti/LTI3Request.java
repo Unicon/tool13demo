@@ -1,22 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.utils.lti;
 
 import com.google.common.collect.Iterables;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.AsymmetricJWK;
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
@@ -45,10 +30,8 @@ import org.thymeleaf.util.ListUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.Key;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -256,10 +239,8 @@ public class LTI3Request {
                 // convert them to keys from the string stored in DB. There are for sure other ways to manage this.
                 if (StringUtils.isNoneEmpty(platformDeployment.getJwksEndpoint())) {
                     try {
-                        JWKSet publicKeys = JWKSet.load(new URL(platformDeployment.getJwksEndpoint()));
-                        JWK jwk = publicKeys.getKeyByKeyId(header.getKeyId());
-                        return ((AsymmetricJWK) jwk).toPublicKey();
-                    } catch (JOSEException | ParseException | IOException ex) {
+                        return PlatformJwks.publicKey(platformDeployment.getJwksEndpoint(), header.getKeyId());
+                    } catch (JOSEException | IOException | IllegalArgumentException ex) {
                         log.error("Error getting the iss public key", ex);
                         return null;
                     }

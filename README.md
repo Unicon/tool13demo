@@ -22,11 +22,11 @@ Everyday Use
 
 Build
 -----
-This will produce a lti13demo.jar file in the *target* directory
+This runs the unit tests and produces a lti13demo.jar file in the *target* directory
 
-    mvn clean install 
+    mvn clean install
 
-note, to avoid some test errors if those happen, try
+To build faster without running the tests:
 
     mvn install -DskipTests=true
 
@@ -45,14 +45,14 @@ Instructions to Start from Scratch
 ----------------------------------
 Prerequisites
 -------------
-- Install Java 17 (the `java.version` in `pom.xml`).
-- Install Maven
+- Install Java 25 (the `java.version` in `pom.xml`).
+- Maven 3.9 or newer, or use the bundled `./mvnw` (it downloads Maven 3.9.16 the first time it runs).
 - Install MySQL (optional for local development, see the H2 note under "Creating the database")
 
 Creating the database
 ---------------------
 Connect to your mysql server and use your values on YOURDATABASE, YOURDATABASEUSERNAME, YOURDATABASEUSERPASSWORD Set the right
-values in the properties file. This code was last tested with MySQL version 8.0.28.
+values in the properties file. This code was last tested with MySQL 8.0.45 and MySQL Connector/J 9.7.0.
 
 `mysql> create database YOURDATABASE DEFAULT CHARACTER SET utf8 ; Query OK, 1 row affected (0.00 sec)`
 
@@ -71,6 +71,10 @@ spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=update
 spring.liquibase.enabled=false
 ```
+
+H2 is only a test dependency, so include the test classpath when you run the app with it:
+
+    mvn spring-boot:run -Dspring-boot.run.useTestClasspath=true
 
 Keep in mind that the database is wiped every time the application restarts. The platform registrations seeded from
 `src/main/resources/data/platform_deployment/*.json` are reloaded on startup, but anything you registered through the

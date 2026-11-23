@@ -42,19 +42,6 @@ class LTIPostMessage {
     window.addEventListener('message', this.handlePostMessages);
   }
 
-  async create_UUID() {
-    var dt = new Date().getTime();
-    var uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-      /[xy]/g,
-      function (c) {
-        var r = (dt + Math.random() * 16) % 16 | 0;
-        dt = Math.floor(dt / 16);
-        return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
-      }
-    );
-    return uuid;
-  };
-
   /**
    * Handles post messages received from the window.
    * @param {Event} event - The message event.
@@ -122,14 +109,14 @@ class LTIPostMessage {
         if (timeout >= topTimeout) {
           // if so, clear the interval and reject with an error
           clearInterval(interval);
-          reject({ error: 'Timeout reached, no response from LMS' });
+          reject(postMessageError('Timeout reached, no response from LMS'));
         }
 
         // check if we have an error
         if (this.error !== null) {
           // if so, clear the interval and reject with the error
           clearInterval(interval);
-          reject({ error: this.error });
+          reject(postMessageError(this.error));
         }
 
         // check if we have a response
@@ -151,4 +138,11 @@ class LTIPostMessage {
   destroy() {
     window.removeEventListener('message', this.handlePostMessages);
   }
+}
+
+// an Error for a failed postMessage exchange, keeping the "error" field callers read from the old plain object
+function postMessageError(error) {
+  const failure = new Error(typeof error === 'string' ? error : JSON.stringify(error));
+  failure.error = error;
+  return failure;
 }

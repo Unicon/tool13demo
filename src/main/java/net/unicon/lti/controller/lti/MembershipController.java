@@ -1,18 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.controller.lti;
 
 
+import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import net.unicon.lti.exceptions.ConnectionException;
@@ -27,8 +16,6 @@ import net.unicon.lti.service.lti.AdvantageMembershipService;
 import net.unicon.lti.utils.TextConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,23 +29,19 @@ import java.util.Optional;
  * Everything that arrives here is filtered first by the LTI3OAuthProviderProcessingFilter
  */
 @Controller
-@Scope("session")
 @RequestMapping("/membership")
+@RequiredArgsConstructor
 public class MembershipController {
 
     static final Logger log = LoggerFactory.getLogger(MembershipController.class);
 
-    @Autowired
-    LtiContextRepository ltiContextRepository;
+    private final LtiContextRepository ltiContextRepository;
 
-    @Autowired
-    APIJWTService apijwtService;
+    private final APIJWTService apijwtService;
 
-    @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    AdvantageMembershipService advantageMembershipService;
+    private final AdvantageMembershipService advantageMembershipService;
 
     @SuppressWarnings("SameReturnValue")
     @RequestMapping({"", "/"})

@@ -1,23 +1,10 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.service.app.impl;
 
+import lombok.RequiredArgsConstructor;
 import com.google.common.collect.Iterables;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
-import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -34,7 +21,6 @@ import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.apache.commons.lang3.StringUtils;
@@ -56,15 +42,14 @@ import java.util.UUID;
  * Necessary to get appropriate TX handling and service management
  */
 @Service
+@RequiredArgsConstructor
 public class APIJWTServiceImpl implements APIJWTService {
 
     static final Logger log = LoggerFactory.getLogger(APIJWTServiceImpl.class);
 
-    @Autowired
-    LTIDataService ltiDataService;
+    private final LTIDataService ltiDataService;
 
-    @Autowired
-    APIDataService apiDataService;
+    private final APIDataService apiDataService;
 
     private static final String JWT_REQUEST_HEADER_NAME = "Authorization";
     private static final String JWT_BEARER_TYPE = "Bearer";
@@ -99,13 +84,6 @@ public class APIJWTServiceImpl implements APIJWTService {
         // If we are on this point, then the state signature has been validated. We can start other tasks now.
     }
 
-
-    @Override
-    public Jwt<Header, Claims> unsecureToken(String token){
-        int i = token.lastIndexOf('.');
-        String withoutSignature = token.substring(0, i+1);
-        return Jwts.parser().build().parseUnsecuredClaims(withoutSignature);
-    }
 
     @Override
     public String buildJwt(boolean oneUse,
@@ -170,7 +148,8 @@ public class APIJWTServiceImpl implements APIJWTService {
     public String refreshToken(String token) throws GeneralSecurityException, IOException, BadTokenException {
         int length = 3600;
         Jws<Claims> tokenClaims = validateToken(token);
-        if (tokenClaims.getBody().get("oneUse").equals("true")){
+        // buildJwt stores oneUse as a boolean; accept a string "true" as well
+        if (Boolean.parseBoolean(String.valueOf(tokenClaims.getBody().get("oneUse")))){
             throw new BadTokenException("Trying to refresh an one use token");
         }
         Date date = new Date();
@@ -181,7 +160,7 @@ public class APIJWTServiceImpl implements APIJWTService {
                 .setIssuer(tokenClaims.getBody().getIssuer())
                 .setSubject(tokenClaims.getBody().getSubject()) // The clientId
                 .setAudience(Iterables.getOnlyElement(tokenClaims.getBody().getAudience()))  //We send here the authToken url.
-                .setExpiration(DateUtils.addDays(date, length)) //a java.util.Date
+                .setExpiration(DateUtils.addSeconds(date, length)) //a java.util.Date
                 .setNotBefore(date) //a java.util.Date
                 .setIssuedAt(date) // for example, now
                 .claim("contextId", tokenClaims.getBody().get("contextId"))

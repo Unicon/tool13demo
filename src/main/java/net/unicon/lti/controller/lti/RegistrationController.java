@@ -1,17 +1,7 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.controller.lti;
 
+import net.unicon.lti.utils.HttpClients;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.exceptions.ConnectionException;
 import net.unicon.lti.exceptions.RegistrationException;
@@ -26,16 +16,12 @@ import net.unicon.lti.service.lti.RegistrationService;
 import net.unicon.lti.utils.LtiStrings;
 import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.BufferingClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,15 +52,13 @@ import static net.unicon.lti.utils.TextConstants.CANVAS_ISSUER;
 @SuppressWarnings("ALL")
 @Slf4j
 @Controller
-@Scope("session")
 @RequestMapping("/registration")
 @ConditionalOnExpression("${lti13.enableDynamicRegistration}")
+@RequiredArgsConstructor
 public class RegistrationController {
-    @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    RegistrationService registrationService;
+    private final RegistrationService registrationService;
 
     private RestTemplate restTemplate;
 
@@ -116,7 +100,7 @@ public class RegistrationController {
 
         try {
             // We are going to create the call the openidconfiguration endpoint,
-            restTemplate = restTemplate == null ? new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory())) : restTemplate;
+            restTemplate = restTemplate == null ? HttpClients.restTemplate() : restTemplate;
 
             //The URL to get the course contents is stored in the context (in our database) because it came
             // from the platform when we created the link to the context, and we saved it then.
@@ -153,7 +137,7 @@ public class RegistrationController {
                 return "registrationRedirect";
             }
         } catch (HttpServerErrorException | ConnectionException ex) {
-            ex.printStackTrace();
+            log.error("Can't get the platform configuration from the registration request", ex);
             model.addAttribute("Error", ex.getMessage());
             return "registrationError";
         }
@@ -175,12 +159,8 @@ public class RegistrationController {
             answer = registrationService.callDynamicRegistration(token, toolRegistrationDTO, platformRegistrationDTO.getRegistration_endpoint());
             //If we are here, then we received a succesful registration and we need to create the database entry
             registrationService.saveNewPlatformDeployment(answer, platformRegistrationDTO);
-        } catch (ConnectionException ex) {
-            ex.printStackTrace();
-            model.addAttribute("Error", ex.getMessage());
-            return "registrationError";
-        } catch (RegistrationException ex) {
-            ex.printStackTrace();
+        } catch (ConnectionException | RegistrationException ex) {
+            log.error("The dynamic registration failed", ex);
             model.addAttribute("Error", ex.getMessage());
             return "registrationError";
         }

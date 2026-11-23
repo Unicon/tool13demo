@@ -1,26 +1,14 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.controller.lti;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.unicon.lti.model.PlatformDeployment;
+import net.unicon.lti.model.PlatformDeploymentRequest;
 import net.unicon.lti.repository.PlatformDeploymentRepository;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.TextConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -50,17 +38,15 @@ import java.util.Optional;
  */
 @Slf4j
 @Controller
-@Scope("session")
 @RequestMapping("/config")
+@RequiredArgsConstructor
 public class ConfigurationController {
     @Value("${lti13.demoMode}")
     private boolean demoMode;
 
-    @Autowired
-    PlatformDeploymentRepository platformDeploymentRepository;
+    private final PlatformDeploymentRepository platformDeploymentRepository;
 
-    @Autowired
-    LTIJWTService ltijwtService;
+    private final LTIJWTService ltijwtService;
 
     @GetMapping(value = "/", produces = "application/json;")
     @ResponseBody
@@ -90,7 +76,8 @@ public class ConfigurationController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<PlatformDeployment> createDeployment(@RequestBody PlatformDeployment platformDeployment) {
+    public ResponseEntity<PlatformDeployment> createDeployment(@RequestBody PlatformDeploymentRequest request) {
+        PlatformDeployment platformDeployment = request.toEntity();
         log.info("Creating Deployment : {}", platformDeployment);
 
         if (!platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(platformDeployment.getIss(), platformDeployment.getClientId(), platformDeployment.getDeploymentId()).isEmpty()) {
@@ -103,7 +90,7 @@ public class ConfigurationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PlatformDeployment> updateDeployment(@PathVariable("id") long id, @RequestBody PlatformDeployment platformDeployment) {
+    public ResponseEntity<PlatformDeployment> updateDeployment(@PathVariable("id") long id, @RequestBody PlatformDeploymentRequest request) {
         log.info("Updating User with id {}", id);
 
         Optional<PlatformDeployment> platformDeploymentSearchResult = platformDeploymentRepository.findById(id);
@@ -115,12 +102,7 @@ public class ConfigurationController {
         }
 
         PlatformDeployment platformDeploymentToChange = platformDeploymentSearchResult.get();
-        platformDeploymentToChange.setoAuth2TokenUrl(platformDeployment.getoAuth2TokenUrl());
-        platformDeploymentToChange.setClientId(platformDeployment.getClientId());
-        platformDeploymentToChange.setDeploymentId(platformDeployment.getDeploymentId());
-        platformDeploymentToChange.setIss(platformDeployment.getIss());
-        platformDeploymentToChange.setOidcEndpoint(platformDeployment.getOidcEndpoint());
-        platformDeploymentToChange.setJwksEndpoint(platformDeployment.getJwksEndpoint());
+        request.applyTo(platformDeploymentToChange);
 
         platformDeploymentRepository.saveAndFlush(platformDeploymentToChange);
         return new ResponseEntity<>(platformDeploymentToChange, HttpStatus.OK);

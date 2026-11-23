@@ -1,9 +1,7 @@
 package net.unicon.lti.service.app;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwt;
 import net.unicon.lti.exceptions.BadTokenException;
 import net.unicon.lti.model.oauth2.SecuredInfo;
 import net.unicon.lti.utils.lti.LTI3Request;
@@ -17,7 +15,6 @@ public interface APIJWTService {
     //Here we could add other checks like expiration of the state (not implemented)
     Jws<Claims> validateToken(String token);
 
-    Jwt<Header, Claims> unsecureToken(String token);
 
     String buildJwt(boolean oneUse,
                     List<String> roles,

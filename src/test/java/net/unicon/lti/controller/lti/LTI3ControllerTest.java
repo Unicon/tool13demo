@@ -1,5 +1,7 @@
 package net.unicon.lti.controller.lti;
 
+import java.util.List;
+import java.util.ArrayList;
 import com.google.common.hash.Hashing;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -11,6 +13,10 @@ import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.model.lti.dto.NonceState;
 import net.unicon.lti.repository.*;
 import net.unicon.lti.service.app.APIJWTService;
+import io.jsonwebtoken.SignatureException;
+import net.unicon.lti.model.LtiLinkEntity;
+import net.unicon.lti.model.lti.dto.DeepLinkDTO;
+import net.unicon.lti.service.lti.DeepLinkService;
 import net.unicon.lti.service.lti.LTIDataService;
 import net.unicon.lti.service.lti.LTIJWTService;
 import net.unicon.lti.utils.LtiStrings;
@@ -25,9 +31,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
@@ -52,7 +55,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest(LTI3Controller.class)
 public class LTI3ControllerTest {
     private static String VALID_STATE = "eyJraWQiOiJPV05LRVkiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJsdGlTdGFydGVyIiwic3ViIjoiaHR0cHM6Ly9jYW52YXMuaW5zdHJ1Y3R1cmUuY29tIiwiYXVkIjoiOTcxNDAwMDAwMDAwMDAwNDkiLCJleHAiOjE3MDg3MjgzODIsIm5iZiI6MTcwODcyNDc4MiwiaWF0IjoxNzA4NzI0NzgyLCJqdGkiOiJjYzUzNmRmNi1jYmExLTRiYjQtYmQzMC0wYmI3OTIwN2U0ZmQiLCJvcmlnaW5hbF9pc3MiOiJodHRwczovL2NhbnZhcy5pbnN0cnVjdHVyZS5jb20iLCJ0YXJnZXRMaW5rVXJpIjoiaHR0cHM6Ly90ZXN0LWx0aS51bmljb24ubmV0L2x0aTM_bGluaz0xMjM0IiwiY2xpZW50SWQiOiI5NzE0MDAwMDAwMDAwMDA0OSIsImx0aURlcGxveW1lbnRJZCI6IjIwNzo1NDQwYTA4NDIyYWIxZWU3Nzk0YTA1ODhiNWU0Y2I0YTA5NGM0MjU2Iiwibm9uY2UiOiJjYzUzNmRmNi1jYmExLTRiYjQtYmQzMC0wYmI3OTIwN2U0ZmQiLCJjb250cm9sbGVyIjoiL29pZGMvbG9naW5faW5pdGlhdGlvbnMifQ.Py2dlpu4OMhcwC1QQVohDkBZ9j7Q130kdZ0yzIDPN_8c2HiSszKJ5N7YxFto7Zp43IPlFDSkG67uIEv5GhPFZr_Ykc3kPqoc_nnaAWB-OOiuJXjFBetXFgAXCiNKYyCf2k_GZEB332R16jJnBDK3d46dXau_3dXghlg732marxWd0fNF4fqxEWR8xWZIQH9vzIyojqi6lO66QL_wc6UAfLsFbDjj7DwBPyWkJe7m09Jp7C1dySY7TaLkgP443DQalmLG_wLCtsfBE1WvUDf-YJWu-4vTp8GXZbRXfsXpz4-akfWD7rsHSdALcKihMKT5V6vNLpavoJeRhDAmf6gpig";
     private static String ID_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjIwMjQtMDEtMDFUMDA6MDA6MDFaXzgzMTc1YzAxLTQ3M2YtNDRkMi05MjY4LTcxOTRkYzk2MDliOCJ9.eyJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS9jbGFpbS9tZXNzYWdlX3R5cGUiOiJMdGlSZXNvdXJjZUxpbmtSZXF1ZXN0IiwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGkvY2xhaW0vdmVyc2lvbiI6IjEuMy4wIiwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGkvY2xhaW0vcmVzb3VyY2VfbGluayI6eyJpZCI6ImEzYTE1M2I0LTc0MjgtNDViOS04OTUwLTY4MmYyMTQ5MmE3MSIsImRlc2NyaXB0aW9uIjpudWxsLCJ0aXRsZSI6Ik15IHRlc3QgbGluayIsInZhbGlkYXRpb25fY29udGV4dCI6bnVsbCwiZXJyb3JzIjp7ImVycm9ycyI6e319fSwiYXVkIjoiOTcxNDAwMDAwMDAwMDAwNDkiLCJhenAiOiI5NzE0MDAwMDAwMDAwMDA0OSIsImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL2RlcGxveW1lbnRfaWQiOiIyMDc6NTQ0MGEwODQyMmFiMWVlNzc5NGEwNTg4YjVlNGNiNGEwOTRjNDI1NiIsImV4cCI6MTcwODcyODM4MCwiaWF0IjoxNzA4NzI0NzgwLCJpc3MiOiJodHRwczovL2NhbnZhcy5pbnN0cnVjdHVyZS5jb20iLCJub25jZSI6ImNjNTM2ZGY2LWNiYTEtNGJiNC1iZDMwLTBiYjc5MjA3ZTRmZCIsInN1YiI6IjQ5OTljOTcyLTdkYTktNDBjOC1hZmU2LTNjMjc4YTllNTg5NSIsImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL3RhcmdldF9saW5rX3VyaSI6Imh0dHBzOi8vdGVzdC1sdGkudW5pY29uLm5ldC9sdGkzP2xpbms9MTIzNCIsInBpY3R1cmUiOiJodHRwczovL2NhbnZhcy5pbnN0cnVjdHVyZS5jb20vaW1hZ2VzL21lc3NhZ2VzL2F2YXRhci01MC5wbmciLCJlbWFpbCI6ImRkZWxibGFuY29AdW5pY29uLm5ldCIsIm5hbWUiOiJEaWVnbyBkZWwgQmxhbmNvIiwiZ2l2ZW5fbmFtZSI6IkRpZWdvIiwiZmFtaWx5X25hbWUiOiJkZWwgQmxhbmNvIiwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGkvY2xhaW0vbGlzIjp7InBlcnNvbl9zb3VyY2VkaWQiOiIwMDM0TjAwMDAycnZUWW0iLCJjb3Vyc2Vfb2ZmZXJpbmdfc291cmNlZGlkIjpudWxsLCJ2YWxpZGF0aW9uX2NvbnRleHQiOm51bGwsImVycm9ycyI6eyJlcnJvcnMiOnt9fX0sImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL2NvbnRleHQiOnsiaWQiOiI0YWJmYjIwZTg4ZDUyNjQ5YzkzMWUyYWExZDU5NzEwYjcwMmM2NGJiIiwidGl0bGUiOiJMVEkgMTMgRGVtbyIsInR5cGUiOlsiaHR0cDovL3B1cmwuaW1zZ2xvYmFsLm9yZy92b2NhYi9saXMvdjIvY291cnNlI0NvdXJzZU9mZmVyaW5nIl0sInZhbGlkYXRpb25fY29udGV4dCI6bnVsbCwiZXJyb3JzIjp7ImVycm9ycyI6e319LCJsYWJlbCI6IkxUSTEwMSJ9LCJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS9jbGFpbS90b29sX3BsYXRmb3JtIjp7Imd1aWQiOiJwb3QyOHlOcERTWnMxRnZNUWE0Mk1pUFdsUk9MUUNBZWR6UVg2TWMyOmNhbnZhcy1sbXMiLCJuYW1lIjoiVW5pY29uIiwidmVyc2lvbiI6ImNsb3VkIiwicHJvZHVjdF9mYW1pbHlfY29kZSI6ImNhbnZhcyIsInZhbGlkYXRpb25fY29udGV4dCI6bnVsbCwiZXJyb3JzIjp7ImVycm9ycyI6e319fSwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGkvY2xhaW0vbGF1bmNoX3ByZXNlbnRhdGlvbiI6eyJkb2N1bWVudF90YXJnZXQiOiJpZnJhbWUiLCJyZXR1cm5fdXJsIjoiaHR0cHM6Ly91bmljb24uaW5zdHJ1Y3R1cmUuY29tL2NvdXJzZXMvNDA5L2V4dGVybmFsX2NvbnRlbnQvc3VjY2Vzcy9leHRlcm5hbF90b29sX3JlZGlyZWN0IiwibG9jYWxlIjoiZW4iLCJ2YWxpZGF0aW9uX2NvbnRleHQiOm51bGwsImVycm9ycyI6eyJlcnJvcnMiOnt9fX0sImxvY2FsZSI6ImVuIiwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGkvY2xhaW0vcm9sZXMiOlsiaHR0cDovL3B1cmwuaW1zZ2xvYmFsLm9yZy92b2NhYi9saXMvdjIvaW5zdGl0dXRpb24vcGVyc29uI0FkbWluaXN0cmF0b3IiLCJodHRwOi8vcHVybC5pbXNnbG9iYWwub3JnL3ZvY2FiL2xpcy92Mi9pbnN0aXR1dGlvbi9wZXJzb24jSW5zdHJ1Y3RvciIsImh0dHA6Ly9wdXJsLmltc2dsb2JhbC5vcmcvdm9jYWIvbGlzL3YyL2luc3RpdHV0aW9uL3BlcnNvbiNTdHVkZW50IiwiaHR0cDovL3B1cmwuaW1zZ2xvYmFsLm9yZy92b2NhYi9saXMvdjIvbWVtYmVyc2hpcCNJbnN0cnVjdG9yIiwiaHR0cDovL3B1cmwuaW1zZ2xvYmFsLm9yZy92b2NhYi9saXMvdjIvc3lzdGVtL3BlcnNvbiNVc2VyIl0sImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL2N1c3RvbSI6eyJzaXNpZCI6IjAwMzROMDAwMDJydlRZbSIsImR1ZV9hdCI6IiRDYW52YXMuYXNzaWdubWVudC5kdWVBdC5pc284NjAxIiwibG9ja19hdCI6IiRDYW52YXMuYXNzaWdubWVudC5sb2NrQXQuaXNvODYwMSIsInVubG9ja19hdCI6IiRDYW52YXMuYXNzaWdubWVudC51bmxvY2tBdC5pc284NjAxIiwiZ3JvdXBfbmFtZSI6IiRjb20uaW5zdHJ1Y3R1cmUuR3JvdXAubmFtZSIsImxtc19jb3Vyc2VfaWQiOiI0MDkiLCJjYW52YXNfdXNlcl9pZCI6IjE5NyIsImxtc19hY2NvdW50X2lkIjoiMSIsImNhbnZhc19sb2dpbl9pZCI6ImRkZWxibGFuY29AdW5pY29uLm5ldCIsImNhbnZhc191c2VyX25hbWUiOiJkZGVsYmxhbmNvQHVuaWNvbi5uZXQiLCJsbXNfYWNjb3VudF9uYW1lIjoiVW5pY29uIiwidG9vbF9wbGF0Zm9ybV91cmwiOiIkVG9vbFBsYXRmb3JtSW5zdGFuY2UudXJsIiwiY2FudmFzX3NlY3Rpb25faWRzIjoiMzY0LDM2OSIsInRvb2xfcGxhdGZvcm1fZ3VpZCI6IiRUb29sUGxhdGZvcm1JbnN0YW5jZS5ndWlkIiwidG9vbF9wbGF0Zm9ybV9uYW1lIjoiJFRvb2xQbGF0Zm9ybUluc3RhbmNlLm5hbWUiLCJjYW52YXNfY291cnNlX3N0YXJ0IjoiMjAyMC0wNS0yMVQxMjo1NTozMFoiLCJsbXNfcm9vdF9hY2NvdW50X2lkIjoiMSIsImNhbnZhc19hc3NpZ25tZW50X2lkIjoiJENhbnZhcy5hc3NpZ25tZW50LmlkIiwiY2FudmFzX3Jlc291cmNlX3R5cGUiOm51bGwsInRvb2xfcGxhdGZvcm1fdmVyc2lvbiI6IiRUb29sUGxhdGZvcm0udmVyc2lvbiIsInBlcnNvbl9hZGRyZXNzX2NvdW50cnkiOiIkUGVyc29uLmFkZHJlc3MuY291bnRyeSIsInBlcnNvbl9hZGRyZXNzX3RpbWV6b25lIjoiQW1lcmljYS9QaG9lbml4IiwidG9vbF9wbGF0Zm9ybV9kZXNjcmlwdGlvbiI6IiRUb29sUGxhdGZvcm1JbnN0YW5jZS5kZXNjcmlwdGlvbiIsInRvb2xfcGxhdGZvcm1fY29udGFjdF9lbWFpbCI6IiRUb29sUGxhdGZvcm1JbnN0YW5jZS5jb250YWN0RW1haWwiLCJ0b29sX3BsYXRmb3JtX3Byb2R1Y3RfZmFtaWx5X2NvZGUiOiIkVG9vbFBsYXRmb3JtLnByb2R1Y3RGYW1pbHlDb2RlIn0sImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL2x0aTExX2xlZ2FjeV91c2VyX2lkIjoiNjUwM2Q2OGVhZDM3Yzk0Y2EwZDNmZjk0MzE4YTYwYjY3MGZhYmFkYSIsImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpL2NsYWltL2x0aTFwMSI6eyJ1c2VyX2lkIjoiNjUwM2Q2OGVhZDM3Yzk0Y2EwZDNmZjk0MzE4YTYwYjY3MGZhYmFkYSIsInZhbGlkYXRpb25fY29udGV4dCI6bnVsbCwiZXJyb3JzIjp7ImVycm9ycyI6e319LCJyZXNvdXJjZV9saW5rX2lkIjoiYmFmZGNlOTA3NzI5MWI3OTlmNTFkNWU4ZDY2OWNiZGY5MTkwZWM1NSJ9LCJlcnJvcnMiOnsiZXJyb3JzIjp7fX0sImh0dHBzOi8vcHVybC5pbXNnbG9iYWwub3JnL3NwZWMvbHRpLWFncy9jbGFpbS9lbmRwb2ludCI6eyJzY29wZSI6WyJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS1hZ3Mvc2NvcGUvbGluZWl0ZW0iLCJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS1hZ3Mvc2NvcGUvbGluZWl0ZW0ucmVhZG9ubHkiLCJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS1hZ3Mvc2NvcGUvcmVzdWx0LnJlYWRvbmx5IiwiaHR0cHM6Ly9wdXJsLmltc2dsb2JhbC5vcmcvc3BlYy9sdGktYWdzL3Njb3BlL3Njb3JlIl0sImxpbmVpdGVtcyI6Imh0dHBzOi8vY2FudmFzLnVuaWNvbi5uZXQvYXBpL2x0aS9jb3Vyc2VzLzQwOS9saW5lX2l0ZW1zIiwidmFsaWRhdGlvbl9jb250ZXh0IjpudWxsLCJlcnJvcnMiOnsiZXJyb3JzIjp7fX19LCJodHRwczovL3B1cmwuaW1zZ2xvYmFsLm9yZy9zcGVjL2x0aS1ucnBzL2NsYWltL25hbWVzcm9sZXNlcnZpY2UiOnsiY29udGV4dF9tZW1iZXJzaGlwc191cmwiOiJodHRwczovL2NhbnZhcy51bmljb24ubmV0L2FwaS9sdGkvY291cnNlcy80MDkvbmFtZXNfYW5kX3JvbGVzIiwic2VydmljZV92ZXJzaW9ucyI6WyIyLjAiXSwidmFsaWRhdGlvbl9jb250ZXh0IjpudWxsLCJlcnJvcnMiOnsiZXJyb3JzIjp7fX19LCJodHRwczovL3d3dy5pbnN0cnVjdHVyZS5jb20vcGxhY2VtZW50IjpudWxsfQ.u0RnbYJ_iCEVTtk8ha85Hh1GpKvyqOV1EdyGhzYlfzde6lQOV9OJi-KltxaqkrcagU-b3e_n4QqoIwUo5lLHaNOjhjVJB0-uYaqOHt5g5pFvsv0JUMNEbBEaouQzJg6FM0VoFbMvRcQmVd0zswF1wmb2IUl5QJTqgHgjlcbxiMxE5sWDLA-0einnwEVMcZfrUfU-gtK9yO6ZqZx6pKXIeb6S5jozNMJQ5eBoQw4_E77DaZZXSFPiFs0XtjIOAHDbXoRIanYWXIrGeZBusnd2QFc2DAdSgZlBFdN1tIGMMUepcNS7a8-3nNVRKB8Y-h3SNk0XkW6KtQnRaY_oku2fjA";
@@ -60,30 +62,33 @@ public class LTI3ControllerTest {
     private static String NONCE = "cc536df6-cba1-4bb4-bd30-0bb79207e4fd";
     private static String TOKEN = "eyJraWQiOiJPV05LRVkiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJPdXIgb3duIHRvb2wiLCJzdWIiOiJPdXIgb3duIHRvb2wiLCJhdWQiOiJPdXIgb3duIHRvb2wiLCJleHAiOjE3MDg3Mjg2NjcsIm5iZiI6MTcwODcyNTA2NywiaWF0IjoxNzA4NzI1MDY3LCJleHBlY3RlZF9oYXNoIjoiZmZmNTY5YTNlMjQxZDdmOTFiZTg1Y2MzZDQwN2NlNzQwZGI2MjBlZDc5YTYwMjRlMjQ1ZmI3Mjg1YzRhYTYzMSJ9.md0NvQsf34j-ESo_PcZ2JI9oYxRlABzvX30SSnxbagEW4HVuKt5L6UjJkwIon-2gyr-_Fwfo6uImNXqoxzKZYq_iPuM4OyKJ2IkMCb_J1wF8T4kWjTamWEmU4eTyUlk68lIj4tul5nu2gMEixFtRXW2Ie5bki25xnVkTm5GFJrgOu9M2iSuuNuN8R7pBFX1JypKMjI6Qv679Q1w_XDRVql2IrDxpbH1_gcvC_OT08e_pY1iqiMifyWiAdAHQKZM99XUK9aTsPqXnJxhriq8PX_cB1UhiNE6uB5fPjREONmQtr_REPlas-xGyA2kzsbL6L2PuCub93RzTu5tEp2tYWw";
     @InjectMocks
-    private LTI3Controller lti3Controller = new LTI3Controller();
+    private LTI3Controller lti3Controller;
 
     @InjectMocks
     private AllRepositories allRepositories;
 
-    @MockBean
+    @Mock
     private LTIJWTService ltijwtService;
 
-    @MockBean
+    @Mock
     private APIJWTService apijwtService;
 
-    @MockBean
+    @Mock
     private LtiLinkRepository ltiLinkRepository;
 
-    @MockBean
+    @Mock
     private LTIDataService ltiDataService;
 
-    @MockBean
+    @Mock
     private LtiContextRepository ltiContextRepository;
 
-    @MockBean
+    @Mock
+    private DeepLinkService deepLinkService;
+
+    @Mock
     private NonceStateRepository nonceStateRepository;
 
-    @MockBean
+    @Mock
     private PlatformDeploymentRepository platformDeploymentRepository;
 
     @Mock
@@ -107,11 +112,6 @@ public class LTI3ControllerTest {
     private PlatformDeployment platformDeployment1;
 
     private static MockedStatic<LTI3Request> lti3RequestMockedStatic;
-
-    @Configuration
-    static class ContextConfiguration {
-
-    }
 
     @BeforeEach
     public void setUp() {
@@ -332,4 +332,182 @@ public class LTI3ControllerTest {
             fail("Exception should not be thrown.");
         }
     }
+
+
+
+    private static String expectedHash() {
+        return Hashing.sha256().hashString(ID_TOKEN + HASH_STATE + NONCE, StandardCharsets.UTF_8).toString();
+    }
+
+    // a stateNonceChecked request whose token, state and nonce all check out
+    private void givenValidCheckedRequest() {
+        when(req.getParameter("token")).thenReturn(TOKEN);
+        when(ltijwtService.validateNonceState(TOKEN)).thenReturn(jwsClaims);
+        when(claims.get("expected_hash")).thenReturn(expectedHash());
+        when(nonceStateRepository.findByStateHash(HASH_STATE)).thenReturn(new NonceState(NONCE, HASH_STATE, VALID_STATE, "_parent"));
+        when(lti3Request.getContext()).thenReturn(ltiContextEntity);
+        when(lti3Request.getLtiLinkId()).thenReturn("lti-link-1");
+        when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_RESOURCE_LINK);
+        when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/lti3?link=");
+        when(ltiDataService.getDemoMode()).thenReturn(true);
+    }
+
+    @Test
+    public void testLTI3checkedRejectsAMismatchedTokenHash() throws Exception {
+        givenValidCheckedRequest();
+        when(claims.get("expected_hash")).thenReturn("another-hash");
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("Token hashes don't match", model.getAttribute(TextConstants.ERROR));
+        Mockito.verify(ltijwtService, Mockito.never()).validateState(any());
+    }
+
+    @Test
+    public void testLTI3checkedRejectsAMismatchedState() throws Exception {
+        givenValidCheckedRequest();
+        when(req.getParameter("state")).thenReturn("another-state");
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("State retrieved and the expected state don't match", model.getAttribute(TextConstants.ERROR));
+    }
+
+    @Test
+    public void testLTI3checkedRejectsAMismatchedNonce() throws Exception {
+        givenValidCheckedRequest();
+        when(req.getParameter("nonce")).thenReturn("another-nonce");
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("Nonce retrieved and the expected nonce don't match", model.getAttribute(TextConstants.ERROR));
+    }
+
+    @Test
+    public void testLTI3checkedDemoModeWithoutRequestedLink() throws Exception {
+        givenValidCheckedRequest();
+        when(apijwtService.buildJwt(false, lti3Request)).thenReturn("advantage-token");
+
+        assertEquals("lti3Result", lti3Controller.lti3checked(req, model));
+
+        assertEquals("<b> No element was requested or it doesn't exists </b>", model.getAttribute(TextConstants.HTML_CONTENT));
+        assertEquals("advantage-token", model.getAttribute(TextConstants.ADVANTAGE_TOKEN));
+        assertEquals(lti3Request, model.getAttribute("lti3Request"));
+        Mockito.verify(ltiLinkRepository, Mockito.never()).findByLtiLinkIdAndToolLinkToolLinkIdAndContext(any(), any(), any());
+        Mockito.verify(nonceStateRepository).deleteById(NONCE);
+    }
+
+    @Test
+    public void testLTI3checkedDemoModeShowsTheRequestedLink() throws Exception {
+        givenValidCheckedRequest();
+        when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/lti3?link=1234");
+        LtiLinkEntity link = Mockito.mock(LtiLinkEntity.class);
+        when(link.createHtmlFromLink()).thenReturn("<p>link content</p>");
+        when(ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext("lti-link-1", "1234", ltiContextEntity)).thenReturn(List.of(link));
+
+        assertEquals("lti3Result", lti3Controller.lti3checked(req, model));
+
+        assertEquals("<p>link content</p>", model.getAttribute(TextConstants.HTML_CONTENT));
+    }
+
+    @Test
+    public void testLTI3checkedDemoModeWithAnUnknownLink() throws Exception {
+        givenValidCheckedRequest();
+        when(lti3Request.getLtiTargetLinkUrl()).thenReturn("https://tool.com/lti3?link=1234");
+        when(ltiLinkRepository.findByLtiLinkIdAndToolLinkToolLinkIdAndContext("lti-link-1", "1234", ltiContextEntity)).thenReturn(List.of());
+
+        assertEquals("lti3Result", lti3Controller.lti3checked(req, model));
+
+        assertEquals("<b> No element was found for that context and linkKey</b>", model.getAttribute(TextConstants.HTML_CONTENT));
+    }
+
+    @Test
+    public void testLTI3checkedDemoModeDeepLinking() throws Exception {
+        givenValidCheckedRequest();
+        when(lti3Request.getLtiMessageType()).thenReturn(LtiStrings.LTI_MESSAGE_TYPE_DEEP_LINKING);
+        List<DeepLinkDTO> deepLinks = List.of(new DeepLinkDTO());
+        when(deepLinkService.getDeepLinks()).thenReturn(deepLinks);
+
+        assertEquals("lti3DeepLink", lti3Controller.lti3checked(req, model));
+
+        assertEquals(deepLinks, model.getAttribute("deeplinks"));
+        assertEquals(HASH_STATE, model.getAttribute("state_hash"));
+        assertEquals(NONCE, model.getAttribute("nonce"));
+        assertEquals(TOKEN, model.getAttribute("token"));
+        assertEquals(ID_TOKEN, model.getAttribute("id_token"));
+        Mockito.verify(nonceStateRepository, Mockito.never()).deleteById(any());
+    }
+
+    @Test
+    public void testLTI3checkedWithAnInvalidStateSignature() throws Exception {
+        givenValidCheckedRequest();
+        when(ltijwtService.validateState(VALID_STATE)).thenThrow(new SignatureException("bad state signature"));
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("bad state signature", model.getAttribute(TextConstants.ERROR));
+    }
+
+    @Test
+    public void testLTI3checkedWhenTheTokenCannotBeSigned() throws Exception {
+        givenValidCheckedRequest();
+        when(apijwtService.buildJwt(false, lti3Request)).thenThrow(new GeneralSecurityException("no key"));
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("no key", model.getAttribute(TextConstants.ERROR));
+    }
+
+    @Test
+    public void testLTI3checkedWhenTheTokenCannotBeWritten() throws Exception {
+        givenValidCheckedRequest();
+        when(apijwtService.buildJwt(false, lti3Request)).thenThrow(new IOException("io problem"));
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3checked(req, model));
+        assertEquals("io problem", model.getAttribute(TextConstants.ERROR));
+    }
+
+    @Test
+    public void testLTI3WithUnknownState() throws Exception {
+        when(nonceStateRepository.findByStateHash(HASH_STATE)).thenReturn(null);
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3(req, model));
+        assertEquals("State was not as expected", model.getAttribute(TextConstants.ERROR));
+        Mockito.verify(ltijwtService, Mockito.never()).validateState(any());
+    }
+
+    @Test
+    public void testLTI3WhenTheStateNonceTokenCannotBeGenerated() throws Exception {
+        when(nonceStateRepository.findByStateHash(HASH_STATE)).thenReturn(new NonceState(NONCE, HASH_STATE, VALID_STATE, "_parent"));
+        when(claims.getId()).thenReturn(NONCE);
+        when(ltijwtService.generateStateNonceTokenJWT(any())).thenThrow(new GeneralSecurityException("no key"));
+
+        assertEquals(TextConstants.LTI3ERROR, lti3Controller.lti3(req, model));
+        assertEquals("Error generating state nonce token JWT", model.getAttribute(TextConstants.ERROR));
+        assertEquals(HASH_STATE, model.getAttribute("expected_state"));
+        assertEquals(NONCE, model.getAttribute("expected_nonce"));
+    }
+
+    @Test
+    public void testLTI3TrustsTheIdTokenDeploymentWhenTheStateHasNone() throws Exception {
+        when(nonceStateRepository.findByStateHash(HASH_STATE)).thenReturn(new NonceState(NONCE, HASH_STATE, VALID_STATE, "_parent"));
+        when(claims.getId()).thenReturn(NONCE);
+        when(claims.get(eq("original_iss"), any())).thenReturn("iss-1");
+        when(claims.get(eq("clientId"), any())).thenReturn("client-id-1");
+        String expected = Hashing.sha256().hashString(ID_TOKEN + HASH_STATE + NONCE, StandardCharsets.UTF_8).toString();
+        when(ltijwtService.generateStateNonceTokenJWT(expected)).thenReturn("state-nonce-token");
+        @SuppressWarnings("unchecked")
+        Jws<Claims> idTokenJws = Mockito.mock(Jws.class);
+        Claims idTokenClaims = Mockito.mock(Claims.class);
+        when(idTokenJws.getPayload()).thenReturn(idTokenClaims);
+        when(idTokenClaims.get("https://purl.imsglobal.org/spec/lti/claim/deployment_id")).thenReturn("deployment-from-token");
+        when(ltijwtService.validateJWT(ID_TOKEN, "client-id-1")).thenReturn(idTokenJws);
+        PlatformDeployment platform = new PlatformDeployment();
+        platform.setOidcEndpoint("https://platform.com/authorize");
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId("iss-1", "client-id-1", "deployment-from-token")).thenReturn(List.of(platform));
+
+        assertEquals("nonceStateCheck", lti3Controller.lti3(req, model));
+
+        assertEquals("state-nonce-token", model.getAttribute("token"));
+        assertEquals(ID_TOKEN, model.getAttribute("id_token"));
+        assertEquals("_parent", model.getAttribute("ltiStorageTarget"));
+        assertEquals("https://platform.com/authorize", model.getAttribute("oidc_authorization_uri"));
+        Mockito.verify(platformDeploymentRepository, Mockito.never()).findByIssAndClientId(any(), any());
+    }
+
 }

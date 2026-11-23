@@ -1,15 +1,3 @@
-/**
- * Copyright 2021 Unicon (R)
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package net.unicon.lti.security.app;
 
 import io.jsonwebtoken.Claims;
@@ -117,15 +105,12 @@ public class APIOAuthProviderProcessingFilter extends GenericFilterBean {
     }
 
     private String extractJwtStringValue(HttpServletRequest request) {
-        String rawHeaderValue = StringUtils.trimAllWhitespace(request.getHeader(JWT_REQUEST_HEADER_NAME));
-        if (rawHeaderValue == null) {
-            if (allowQueryParam) {
-                return StringUtils.trimAllWhitespace(request.getParameter(QUERY_PARAM_NAME));
-            }
+        String header = request.getHeader(JWT_REQUEST_HEADER_NAME);
+        if (header == null) {
+            String queryParam = allowQueryParam ? request.getParameter(QUERY_PARAM_NAME) : null;
+            return queryParam == null ? null : StringUtils.trimAllWhitespace(queryParam);
         }
-        if (rawHeaderValue == null) {
-          return null;
-        }
+        String rawHeaderValue = StringUtils.trimAllWhitespace(header);
         // very similar to BearerTokenExtractor.java in Spring spring-security-oauth2
         if (isBearerToken(rawHeaderValue)) {
             return rawHeaderValue.substring(JWT_BEARER_TYPE.length()).trim();

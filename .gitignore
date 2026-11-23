@@ -1,5 +1,4 @@
 /target/
-!.mvn/wrapper/maven-wrapper.jar
 
 ### STS ###
 .apt_generated
@@ -25,6 +24,7 @@
 /.nb-gradle/
 
 /.scannerwork/
+/.sonar/
 /sonar-project.properties
 
 application-local*.properties
@@ -36,3 +36,7 @@ application-local*.properties
 *.p12
 
 *.DS_Store
+# local run settings with secrets
+/application.yml
+# editor settings
+/.vscode/

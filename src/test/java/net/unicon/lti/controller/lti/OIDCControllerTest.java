@@ -1,5 +1,6 @@
 package net.unicon.lti.controller.lti;
 
+import java.util.ArrayList;
 import net.unicon.lti.model.PlatformDeployment;
 import net.unicon.lti.repository.AllRepositories;
 import net.unicon.lti.repository.NonceStateRepository;
@@ -12,9 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.ExtendedModelMap;
@@ -40,19 +38,23 @@ import static net.unicon.lti.utils.LtiStrings.OIDC_ID_TOKEN;
 import static net.unicon.lti.utils.LtiStrings.OIDC_ISS;
 import static net.unicon.lti.utils.LtiStrings.OIDC_LOGIN_HINT;
 import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_MESSAGE_HINT;
+import static net.unicon.lti.utils.LtiStrings.OIDC_LTI_STORAGE_TARGET;
 import static net.unicon.lti.utils.LtiStrings.OIDC_NONE;
 import static net.unicon.lti.utils.LtiStrings.OIDC_OPEN_ID;
 import static net.unicon.lti.utils.LtiStrings.OIDC_TARGET_LINK_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@WebMvcTest(LTI3Controller.class)
 public class OIDCControllerTest {
     private static final String SAMPLE_LOGIN_HINT = "sample-login-hint-from-platform";
     private static final String SAMPLE_TARGET_URI = "https://lti-tool.com/lti3";
@@ -65,18 +67,18 @@ public class OIDCControllerTest {
     private static final String SAMPLE_ENCODED_REDIRECT_URI = "https%3A%2F%2Flti-tool.com%2Flti3";
 
     @InjectMocks
-    private OIDCController oidcController = new OIDCController();
+    private OIDCController oidcController;
 
     @InjectMocks
     private AllRepositories allRepositories;
 
-    @MockBean
+    @Mock
     private PlatformDeploymentRepository platformDeploymentRepository;
 
     @Mock
     private NonceStateRepository nonceStateRepository;
 
-    @MockBean
+    @Mock
     private LTIDataService ltiDataService;
 
     @Mock
@@ -99,12 +101,6 @@ public class OIDCControllerTest {
     private KeyPair kp;
 
     private Model model = new ExtendedModelMap();
-
-    @Configuration
-    static class ContextConfiguration {
-
-    }
-
 
     @BeforeEach
     public void setUp() {
@@ -432,4 +428,106 @@ public class OIDCControllerTest {
         assertTrue(parameters.get("nonce").get(0).length() >= 36);
         assertTrue(parameters.get("state").get(0).length() >= 36);
     }
+
+
+    private void givenOneRegisteredDeployment() {
+        when(req.getParameter(OIDC_ISS)).thenReturn(SAMPLE_ISS);
+        when(req.getParameter(OIDC_CLIENT_ID)).thenReturn(SAMPLE_CLIENT_ID);
+        when(req.getParameter(OIDC_DEPLOYMENT_ID)).thenReturn(SAMPLE_DEPLOYMENT_ID);
+        when(platformDeploymentRepository.findByIssAndClientIdAndDeploymentId(SAMPLE_ISS, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID))
+                .thenReturn(onePlatformDeployment);
+    }
+
+    @Test
+    public void testLoginInitiationInDemoModeWithStorageTarget() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        givenOneRegisteredDeployment();
+        when(req.getParameter(OIDC_LTI_STORAGE_TARGET)).thenReturn("_parent");
+        when(ltiDataService.getDemoMode()).thenReturn(true);
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals("oidcRedirect", response);
+        assertEquals("_parent", model.getAttribute("lti_storage_target"));
+        assertEquals(SAMPLE_OIDC_ENDPOINT, model.getAttribute("oidc_authorization_uri"));
+        assertEquals(SAMPLE_CLIENT_ID, model.getAttribute("client_id_received"));
+        assertEquals(SAMPLE_DEPLOYMENT_ID, model.getAttribute("deployment_id_received"));
+        assertEquals(SAMPLE_CLIENT_ID, model.getAttribute(OIDC_CLIENT_ID));
+        assertTrue(model.containsAttribute("initiation_dto"));
+        assertTrue(((String) model.getAttribute("oidcEndpointComplete")).startsWith(SAMPLE_OIDC_ENDPOINT + "?client_id="));
+        assertEquals(List.of(model.getAttribute("state")), mockHttpSession.getAttribute("lti_state"));
+        assertEquals(List.of(model.getAttribute("nonce")), mockHttpSession.getAttribute("lti_nonce"));
+    }
+
+    @Test
+    public void testForcedCookiesIgnoreTheStorageTarget() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "true");
+        givenOneRegisteredDeployment();
+        when(req.getParameter(OIDC_LTI_STORAGE_TARGET)).thenReturn("_parent");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        validateOAuthResponse(response, SAMPLE_CLIENT_ID, SAMPLE_DEPLOYMENT_ID, SAMPLE_ISS);
+        assertFalse(model.containsAttribute("lti_storage_target"));
+        assertFalse(model.containsAttribute("oidc_authorization_uri"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testKnownStatesAndNoncesAreNotAddedTwice() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        givenOneRegisteredDeployment();
+        List<String> states = mock(List.class);
+        List<String> nonces = mock(List.class);
+        when(states.contains(any())).thenReturn(true);
+        when(nonces.contains(any())).thenReturn(true);
+        mockHttpSession.setAttribute("lti_state", states);
+        mockHttpSession.setAttribute("lti_nonce", nonces);
+
+        oidcController.loginInitiations(req, model);
+
+        verify(states, never()).add(any());
+        verify(nonces, never()).add(any());
+        assertSame(states, mockHttpSession.getAttribute("lti_state"));
+        assertSame(nonces, mockHttpSession.getAttribute("lti_nonce"));
+    }
+
+    @Test
+    public void testExistingSessionListsAreExtended() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        givenOneRegisteredDeployment();
+        mockHttpSession.setAttribute("lti_state", new ArrayList<>(List.of("older-state")));
+        mockHttpSession.setAttribute("lti_nonce", new ArrayList<>(List.of("older-nonce")));
+
+        oidcController.loginInitiations(req, model);
+
+        assertEquals(2, ((List<?>) mockHttpSession.getAttribute("lti_state")).size());
+        assertEquals(2, ((List<?>) mockHttpSession.getAttribute("lti_nonce")).size());
+    }
+
+    @Test
+    public void testMissingMessageHintIsLeftOutOfTheUrl() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        givenOneRegisteredDeployment();
+        when(req.getParameter(OIDC_LTI_MESSAGE_HINT)).thenReturn(null);
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertTrue(response.startsWith("redirect:" + SAMPLE_OIDC_ENDPOINT + "?client_id="));
+        assertFalse(response.contains("lti_message_hint"));
+    }
+
+    @Test
+    public void testStateGenerationFailureIsAnError() {
+        ReflectionTestUtils.setField(oidcController, "forceCookies", "false");
+        givenOneRegisteredDeployment();
+        when(ltiDataService.getOwnPrivateKey()).thenReturn("not-a-key");
+
+        String response = oidcController.loginInitiations(req, model);
+
+        assertEquals(TextConstants.LTI3ERROR, response);
+        assertTrue(((String) model.getAttribute(TextConstants.ERROR)).contains("Exception"));
+        Mockito.verify(req, never()).getSession();
+    }
+
 }
